@@ -19,15 +19,15 @@
  */
 package dsa.gui.dialogs.ItemProviders;
 
-import dsa.gui.tables.ThingsTable;
+import dsa.gui.tables.ClothesTable;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 import dsa.util.Optional;
 
-public class ThingsProvider extends ItemProvider {
+public class ClothesProvider extends ItemProvider {
   
-  public ThingsProvider() {
-    super(new ThingsTable(false, true));
+  public ClothesProvider() {
+    super(new ClothesTable());
   }
   
   /* (non-Javadoc)
@@ -36,8 +36,14 @@ public class ThingsProvider extends ItemProvider {
   @Override
   public void fillTable(boolean showSingularItems) {
     Things things = Things.getInstance();
-    ThingsTable table = (ThingsTable) getTable();
+    ClothesTable table = (ClothesTable) getTable();
     for (Thing thing : things.getAllWearableThings()) {
+	    if (!thing.getCategory().equals("Kleidung")) {
+	      continue;
+	    }
+	    if (thing.getName().startsWith("Tuch")) {
+	      continue;
+	    }
       if (thing.isSingular() && !showSingularItems) continue;
       if (isDisplayed(thing.getName())) table.addThing(thing);
     }

@@ -47,6 +47,7 @@ public class GroupOptions {
   private boolean qvatMarkers;
 
   private boolean heavyClothes;
+  private boolean lowerClothesBE;
 
   private boolean hardTwoHandedWeapons;
   
@@ -63,12 +64,13 @@ public class GroupOptions {
   }
 
   public void getDefaults() {
-    Preferences prefs = Preferences.userNodeForPackage(OptionsDialog.class);
+    Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
     setEarlyTwoHanded(prefs.getBoolean("EarlyLeftHanded", true));
     setFastAERegeneration(prefs.getBoolean("HighAERegeneration", true));
     setQvatStunned(prefs.getBoolean("QvatUseKO", false));
     setQvatMarkers(Markers.isUsingMarkers());
     heavyClothes = prefs.getBoolean("HeavyClothes", false);
+    lowerClothesBE = prefs.getBoolean("LowerClothesBE", true);
     hardTwoHandedWeapons = prefs.getBoolean("Hard2HWeapons", true);
     prefs = Preferences.userRoot().node("dsa/data/impl");
     setFullFirstStep(prefs.getBoolean("FullFirstStep", true));
@@ -76,7 +78,7 @@ public class GroupOptions {
     setQvatUseWV(prefs.getBoolean("QvatUseWV", false));
   }
 
-  private static int fileVersion = 4;
+  private static int fileVersion = 5;
 
   public void writeToFile(PrintWriter out) throws IOException {
     out.println(fileVersion);
@@ -89,6 +91,7 @@ public class GroupOptions {
     out.println(heavyClothes ? 1 : 0);
     out.println(hardTwoHandedWeapons ? 1 : 0);
     out.println(qvatUseWV ? 1 : 0);
+    out.println(lowerClothesBE ? 1 : 0);
     out.println("-- End Options --");
     changed = false;
   }
@@ -169,6 +172,15 @@ public class GroupOptions {
       Preferences prefs = Preferences.userNodeForPackage(OptionsDialog.class);
       qvatUseWV = prefs.getBoolean("QvatUseWV", false);
     }
+    if (version > 4) {
+      lowerClothesBE = "1".equals(line);
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+    }
+    else {
+      lowerClothesBE = !heavyClothes;
+    }
     while (line != null && !line.equals("-- End Options --")) {
       line = in.readLine();
       lineNr++;
@@ -206,15 +218,23 @@ public class GroupOptions {
     this.fullFirstStep = fullFirstStep;
     changed = true;
   }
-
-  public boolean hasHeavyClothes() {
-    return heavyClothes;
+  
+  public enum ClothesBE {
+	  Normal,
+	  Lower,
+	  Items
   }
 
-  public void setHeavyClothes(boolean heavyClothes) {
-    if (heavyClothes != this.heavyClothes) {
+  public ClothesBE getClothesBE() {
+    return heavyClothes ? ClothesBE.Normal : (lowerClothesBE ? ClothesBE.Lower : ClothesBE.Items);
+  }
+
+  public void setClothesBE(ClothesBE clothesBE) {
+	boolean heavyClothes = clothesBE == ClothesBE.Normal;
+	boolean lowerBE = clothesBE == ClothesBE.Lower; 
+    if (heavyClothes != this.heavyClothes || lowerBE != lowerClothesBE) {
       this.heavyClothes = heavyClothes;
-      loadCorrectFiles();
+      lowerClothesBE = lowerBE;
       changed = true;
     }
   }
@@ -273,24 +293,11 @@ public class GroupOptions {
   }
 
   public void loadCorrectFiles() {
-    String armourFile = heavyClothes ? "Ruestungen2.dat" : "Ruestungen.dat";
     String weaponsFile = hardTwoHandedWeapons ? "Waffen.dat" : "Waffen2.dat";
     String ownWeaponsFile = "Eigene_Waffen.dat";
-    String ownArmoursFile = "Eigene_Ruestungen.dat";
     String dirPath = dsa.util.Directories.getApplicationPath() + "daten" 
         + java.io.File.separator;
     String userDirPath = dsa.util.Directories.getUserDataPath();
-    try {
-      dsa.model.data.Armours armours = dsa.model.data.Armours.getInstance();
-      armours.saveUserDefinedArmours(userDirPath + ownArmoursFile);
-      armours.loadFile(dirPath + armourFile);
-      armours.loadUserDefinedArmours(userDirPath + ownArmoursFile);
-    }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(null,
-          "Fehler beim Laden der Rüstungen!\nFehlermeldung: " + e.getMessage(),
-          "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
-    }
     try {
       dsa.model.data.Weapons weapons = dsa.model.data.Weapons.getInstance();
       weapons.storeUserDefinedWeapons(userDirPath + ownWeaponsFile);

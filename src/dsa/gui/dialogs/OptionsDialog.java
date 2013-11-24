@@ -104,7 +104,7 @@ public final class OptionsDialog extends BGDialog {
   
   private JCheckBox wvBox = null;
 
-  private JCheckBox heavyClothesBox = null;
+  private JComboBox clothesBEBox = null;
 
   private JCheckBox twohwBox = null;
 
@@ -265,7 +265,7 @@ public final class OptionsDialog extends BGDialog {
     changed = changed || paBasisBox.isSelected() != options.hasQvatPABasis();
     changed = changed || koBox.isSelected() != options.hasQvatStunned();
     changed = changed
-        || heavyClothesBox.isSelected() == options.hasHeavyClothes();
+        || clothesBEBox.getSelectedIndex() != options.getClothesBE().ordinal();
     changed = changed || twohwBox.isSelected() != options.hasHard2HWeapons();
     if (!changed) return true;
     String[] values = { "Diese Gruppe", "Neu erstellte Gruppen",
@@ -281,7 +281,7 @@ public final class OptionsDialog extends BGDialog {
       options.setQvatUseWV(wvBox.isSelected());
       options.setQvatPABasis(paBasisBox.isSelected());
       options.setQvatStunned(koBox.isSelected());
-      options.setHeavyClothes(!heavyClothesBox.isSelected());
+      options.setClothesBE(GroupOptions.ClothesBE.values()[clothesBEBox.getSelectedIndex()]);
       options.setHard2HWeapons(twohwBox.isSelected());
       dsa.gui.util.OptionsChange.fireOptionsChanged();
     }
@@ -290,7 +290,8 @@ public final class OptionsDialog extends BGDialog {
       prefs.putBoolean("HighAERegeneration", aeBox.isSelected());
       prefs.putBoolean("QvatUseKO", koBox.isSelected());
       prefs.putBoolean("QvatUseWV", wvBox.isSelected());
-      prefs.putBoolean("HeavyClothes", !heavyClothesBox.isSelected());
+      prefs.putBoolean("HeavyClothes", clothesBEBox.getSelectedIndex() == GroupOptions.ClothesBE.Normal.ordinal());
+      prefs.putBoolean("LowerClothesBE", clothesBEBox.getSelectedIndex() == GroupOptions.ClothesBE.Lower.ordinal());
       prefs.putBoolean("Hard2HWeapons", twohwBox.isSelected());
       Preferences.userNodeForPackage(Markers.class).putBoolean(
           "QvatUseMarkers", markersBox.isSelected());
@@ -312,7 +313,7 @@ public final class OptionsDialog extends BGDialog {
     wvBox.setSelected(options.qvatUseWV());
     fullStepBox.setSelected(options.hasFullFirstStep());
     paBasisBox.setSelected(options.hasQvatPABasis());
-    heavyClothesBox.setSelected(!options.hasHeavyClothes());
+    clothesBEBox.setSelectedIndex(options.getClothesBE().ordinal());
     twohwBox.setSelected(options.hasHard2HWeapons());
     versionCheckBox.setSelected(prefs.getBoolean("VersionCheckAtStart", true));
 
@@ -510,6 +511,9 @@ public final class OptionsDialog extends BGDialog {
       rulesPanel.add(getAEBox(), null);
       rulesPanel.add(getFullStepBox(), null);
       rulesPanel.add(getLeftHandBox(), null);
+      JLabel clothesLabel = new JLabel("Behinderung durch Kleidung:");
+      clothesLabel.setBounds(10, 70, 170, 21);
+      rulesPanel.add(clothesLabel, null);
       rulesPanel.add(getHeavyClothesBox(), null);
       rulesPanel.add(getTwoHWBox(), null);
     }
@@ -631,13 +635,15 @@ public final class OptionsDialog extends BGDialog {
    * 	
    * @return javax.swing.JCheckBox	
    */
-  private JCheckBox getHeavyClothesBox() {
-    if (heavyClothesBox == null) {
-      heavyClothesBox = new JCheckBox();
-      heavyClothesBox.setBounds(new java.awt.Rectangle(10, 70, 251, 21));
-      heavyClothesBox.setText("Kleidung ohne Gewicht und BE");
+  private JComboBox getHeavyClothesBox() {
+    if (clothesBEBox == null) {
+    	clothesBEBox = new JComboBox();
+    	clothesBEBox.setBounds(new java.awt.Rectangle(180, 70, 151, 21));
+    	clothesBEBox.addItem("Normal");
+    	clothesBEBox.addItem("BE 1 niedriger");
+    	clothesBEBox.addItem("BE von Einzelkleidung");
     }
-    return heavyClothesBox;
+    return clothesBEBox;
   }
 
   /**

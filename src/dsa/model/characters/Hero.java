@@ -432,4 +432,10 @@ public interface Hero extends Printable, Fighter, ThingCarrier {
   void setStepDifference(int difference);
   
   boolean canPay(int price, dsa.model.data.Thing.Currency currency);
+  
+  String getKnownNPCs();
+  void setKnownNPCs(String text);
+  
+  String getKnownPCs();
+  void setKnownPCs(String text);
 }

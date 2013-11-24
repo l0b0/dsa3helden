@@ -200,7 +200,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
   }
   
   private void buyItem() {
-    ShopDialog dialog = new ShopDialog(this, new ThingsProvider(true));
+    ShopDialog dialog = new ShopDialog(this, new ThingsProvider());
     dialog.setVisible(true);
     if (dialog.wasClosedByOK()) {
       Map<String, Integer> cart = dialog.getBoughtItems();

@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
+import dsa.control.ClothesBE;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Printable;
@@ -31,6 +32,8 @@ import dsa.model.characters.Property;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
+import dsa.model.data.Cloth;
+import dsa.model.data.Clothes;
 import dsa.model.data.Currencies;
 import dsa.model.data.Talents;
 import dsa.model.data.Thing;
@@ -251,6 +254,9 @@ public class CharacterPrinter extends AbstractPrinter {
     printMagicAttributes(character, table, "");
     
     printAdventures(character, table);
+    
+    table.addItem("SCS", character.getKnownPCs());
+    table.addItem("NSCS", character.getKnownNPCs());
     // ...
 
   }
@@ -464,12 +470,19 @@ public class CharacterPrinter extends AbstractPrinter {
       table.addItem("LB", "");
     }
 
+    int ks = 0;
     for (String clothesName : character.getClothes()) {
       table.addItem("Kna", clothesName, true);
       int tweight = dsa.model.data.Things.getInstance().getThing(clothesName)
           .getWeight();
       table.addItem("Kuz", tweight, true);
+      Cloth cloth = Clothes.getInstance().getCloth(clothesName);
+      if (cloth != null) {
+    	  table.addItem("Ks", cloth.getKS(), true);
+    	  ks += cloth.getKS();
+      }
     }
+    table.addItem("KSU", ks);
     if (character.getClothes().length == 0) {
       table.addItem("Kna", "");
       table.addItem("Kuz", "");
@@ -709,8 +722,8 @@ public class CharacterPrinter extends AbstractPrinter {
       table.addItem("Rn", armour.getName(), true);
       table.addItem("rs" + armourNr, armour.getRS());
       table.addItem("Rs", armour.getRS(), true);
-      table.addItem("rb" + armourNr, armour.getBE());
-      table.addItem("Rb", armour.getBE(), true);
+      table.addItem("rb" + armourNr, ClothesBE.getBE(armour));
+      table.addItem("Rb", ClothesBE.getBE(armour), true);
       table.addItem("rg" + armourNr, armour.getWeight());
       table.addItem("Rg", armour.getWeight(), true);
       weight += armour.getWeight();

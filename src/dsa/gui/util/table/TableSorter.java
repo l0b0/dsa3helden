@@ -173,7 +173,7 @@ public class TableSorter extends AbstractTableModel {
     	for (int i = 0; i < size; ++i) {
     		int column = prefs.getInt(name + "SorterColumn" + i, -1);
     		int direction = prefs.getInt(name + "SorterDirection" + i, NOT_SORTED);
-    		if (column != -1) {
+    		if (column != -1 && tableModel.getColumnCount() > column) {
     			sortingColumns.add(new Directive(column, direction));
     		}
     	}

@@ -27,19 +27,21 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import dsa.gui.dialogs.ItemProviders.ThingsProvider;
-import dsa.gui.tables.ThingsTable;
+import dsa.gui.dialogs.ItemProviders.ClothesProvider;
+import dsa.gui.tables.ClothesTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.data.Animal;
+import dsa.model.data.Cloth;
+import dsa.model.data.Clothes;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectionDialog {
+public final class ClothSelectionDialog extends dsa.gui.dialogs.AbstractSelectionDialog {
 
-  public ThingSelectionDialog(javax.swing.JFrame owner) {
-    super(owner, "Gegenstand hinzufügen", new ThingsProvider(),
-        "AusrüstungSelector");
+  public ClothSelectionDialog(javax.swing.JFrame owner) {
+    super(owner, "Kleidung hinzufügen", new ClothesProvider(),
+        "KleidungSelector");
     initialize();
     fillTable();
   }
@@ -69,15 +71,15 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
   private JButton getNewButton() {
     if (newButton == null) {
       newButton = new JButton(ImageManager.getIcon("increase"));
-      newButton.setToolTipText("Neuen Gegenstand anlegen");
+      newButton.setToolTipText("Neue Kleidung anlegen");
       newButton.setBounds(365, 5, 40, 25);
       newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this);
+          ClothDialog dialog = new ClothDialog(ClothSelectionDialog.this);
           dialog.setVisible(true);
           if (dialog.getThing() != null)
             if (showSingularItems() || !dialog.getThing().isSingular())
-              ((ThingsTable) mTable).addThing(dialog.getThing(), dialog.getThing().getName(), true);
+              ((ClothesTable) mTable).addThing(dialog.getThing(), dialog.getThing().getName(), true);
         }
       });
     }
@@ -87,18 +89,20 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
   private JButton getEditButton() {
     if (editButton == null) {
       editButton = new JButton(ImageManager.getIcon("edit"));
-      editButton.setToolTipText("Gegenstand bearbeiten");
+      editButton.setToolTipText("Kleidung bearbeiten");
       editButton.setBounds(455, 5, 40, 25);
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Thing thing = Things.getInstance().getThing(mTable.getSelectedItem());
           if (thing == null) return;
-          ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this, thing);
+          Cloth cloth = Clothes.getInstance().getCloth(thing.getName());
+          if (cloth == null) return;
+          ClothDialog dialog = new ClothDialog(ClothSelectionDialog.this, cloth);
           dialog.setVisible(true);
           if (dialog.getThing() != null) {
-            ((ThingsTable) mTable).removeThing(thing.getName());
+            ((ClothesTable) mTable).removeThing(thing.getName());
             if (showSingularItems() || !thing.isSingular())
-              ((ThingsTable) mTable).addThing(thing, thing.getName(), true);
+              ((ClothesTable) mTable).addThing(thing, thing.getName(), true);
             if (getCallback() != null) {
               getCallback().itemChanged(thing.getName());
             }
@@ -113,7 +117,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     if (deleteButton == null) {
       deleteButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       deleteButton.setDisabledIcon(ImageManager.getIcon("decrease"));
-      deleteButton.setToolTipText("Gegenstand löschen");
+      deleteButton.setToolTipText("Kleidung löschen");
       deleteButton.setBounds(410, 5, 40, 25);
       deleteButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -127,11 +131,12 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
   protected void removeThing() {
     String thing = mTable.getSelectedItem();
     int result = javax.swing.JOptionPane.showConfirmDialog(this,
-        "Gegenstand wird bei allen geladenen Helden entfernt. Sicher?",
-        "Gegenstand entfernen", javax.swing.JOptionPane.YES_NO_OPTION);
+        "Kleidung wird bei allen geladenen Helden entfernt. Sicher?",
+        "Kleidung entfernen", javax.swing.JOptionPane.YES_NO_OPTION);
     if (result == javax.swing.JOptionPane.NO_OPTION) return;
     for (dsa.model.characters.Hero c : Group.getInstance()
         .getAllCharacters()) {
+      c.removeClothes(thing);
       while (c.getThingCount(thing) > 0)
         c.removeThing(thing, false);
       for (int i = 0; i < c.getNrOfAnimals(); ++i) {
@@ -141,8 +146,9 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
         }
       }
     }
-    ((ThingsTable) mTable).removeSelectedThing();
+    ((ClothesTable) mTable).removeSelectedThing();
     Things.getInstance().removeThing(thing);
+    Clothes.getInstance().removeCloth(thing);
   }
 
   protected void updateDeleteButton() {

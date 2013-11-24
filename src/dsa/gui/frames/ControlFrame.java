@@ -78,6 +78,7 @@ import dsa.model.characters.Property;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
+import dsa.model.data.Clothes;
 import dsa.model.data.Opponents;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
@@ -237,6 +238,14 @@ public final class ControlFrame extends SubFrame
       JOptionPane.showMessageDialog(this,
           "Benutzerdefinierte Paradehilfen konnten nicht gespeichert werden. Grund:\n"
               + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+    try {
+    	Clothes.getInstance().writeUserDefinedCloths(baseDir + "Eigene_Kleidung.dat");
+    }
+    catch (IOException e) {
+        JOptionPane.showMessageDialog(this,
+                "Benutzerdefiniert Kleidung konnte nicht gespeichert werden. Grund:\n"
+                    + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);    	
     }
     try {
       Opponents.getOpponentsDB().writeToFile(baseDir + "Eigene_Gegner.dat", true);
@@ -1015,6 +1024,29 @@ public final class ControlFrame extends SubFrame
       temp.add(ritualsButton);
       frameButtons.put("Sonderfertigkeiten", ritualsButton);
 
+      personsButton = new JToggleButton("Personen");
+      personsButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (frame != null && frame.isVisible()) {
+            frame.dispose();
+            frame = null;
+          }
+          else {
+            frame = new PersonsFrame();
+            frame.addWindowListener(new WindowAdapter() {
+              public void windowClosing(java.awt.event.WindowEvent e) {
+                ControlFrame.this.personsButton.setSelected(false);
+              }
+            });
+            frame.setVisible(true);
+          }
+        }
+
+        private PersonsFrame frame = null;
+      });
+      temp.add(personsButton);
+      frameButtons.put("Personen", personsButton);
+
       magicButton = new JToggleButton("Magie");
       magicButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1583,6 +1615,8 @@ public final class ControlFrame extends SubFrame
   private JToggleButton langButton;
 
   private JToggleButton bgButton;
+  
+  private JToggleButton personsButton;
 
   private JToggleButton imageButton;
 

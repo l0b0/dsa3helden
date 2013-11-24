@@ -27,6 +27,7 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import dsa.control.ClothesBE;
 import dsa.gui.util.table.TableSorter;
 import dsa.model.data.Armour;
 import dsa.util.Optional;
@@ -142,7 +143,7 @@ public class ArmoursTable extends AbstractTable {
     Object[] rowData = new Object[5];
     rowData[getNameColumn()] = name;
     rowData[getRSColumn()] = armour.getRS();
-    rowData[getBEColumn()] = armour.getBE();
+    rowData[getBEColumn()] = ClothesBE.getBE(armour);
     rowData[getWeightColumn()] = armour.getWeight();
     rowData[getWorthColumn()] = new Optional<Integer>(armour.getWorth());
     mModel.addRow(rowData);

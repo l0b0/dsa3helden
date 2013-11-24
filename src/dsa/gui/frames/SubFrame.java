@@ -146,6 +146,12 @@ public abstract class SubFrame extends JFrame
     int h = prefs.getInt(title + "h", 100);
     return new Rectangle(x, y, w, h);
   }
+  
+  protected boolean hasSavedFrameBounds() {
+	Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+	int x = prefs.getInt(getTitle() + "x", -1);
+	return x != -1;  
+  }
 
   public SubFrame() {
     super();

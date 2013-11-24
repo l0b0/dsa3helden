@@ -19,6 +19,7 @@
  */
 package dsa.gui.dialogs;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -93,6 +94,7 @@ public abstract class AbstractSelectionDialog extends BGDialog {
 
     addSubclassSpecificButtons(lowerPanel);
 
+    lowerPanel.setPreferredSize(new Dimension(510, 35));
     panel.add(lowerPanel, java.awt.BorderLayout.SOUTH);
 
     JPanel upperPanel = new JPanel();

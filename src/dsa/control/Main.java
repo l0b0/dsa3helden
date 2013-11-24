@@ -28,6 +28,7 @@ import dsa.gui.frames.FrameLayouts;
 import dsa.gui.frames.SubFrame;
 import dsa.gui.lf.LookAndFeels;
 import dsa.model.DataFactory;
+import dsa.model.data.Clothes;
 import dsa.model.data.Currencies;
 import dsa.model.data.Shields;
 import dsa.model.data.Talents;
@@ -92,7 +93,7 @@ public class Main {
       Talents.getInstance().loadUserTalents(userDataPath + "Eigene_Talente.dat");
       Talents.getInstance().loadUserSpells(userDataPath + "Eigene_Zauber.dat");
       Currencies.getInstance().readCurrencies(dirPath + "Waehrungen.dat");
-      // Armours.getInstance().loadFile(dirPath + "Ruestungen.dat");
+      Armours.getInstance().loadFile(dirPath + "Ruestungen2.dat");
       Armours.getInstance().loadUserDefinedArmours(userDataPath + "Eigene_Ruestungen.dat");
       //Weapons.getInstance().loadFile(dirPath + "Waffen.dat");
       Weapons.getInstance().loadUserDefinedWeapons(
@@ -103,6 +104,8 @@ public class Main {
       Shields.getInstance().readFile(dirPath + "Schilde.dat");
       Shields.getInstance().readUserDefinedFile(
           userDataPath + "Eigene_Parade.dat");
+      Clothes.getInstance().readFromFile(dirPath + "Kleidung.dat", false);
+      Clothes.getInstance().readFromFile(userDataPath + "Eigene_Kleidung.dat", true);
       FrameLayouts layouts = FrameLayouts.getInstance();
       layouts.readFromFile(FrameLayouts.getDefaultLayoutsFilename(), true);
       if (layouts.getStoredLayouts().length == 0) {

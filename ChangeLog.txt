@@ -1,3 +1,13 @@
+Version 1.9.0
+-------------
+- Fenster "Personen" für bekannte SCs und NSCs hinzugefügt
+- Fúr Kleidung Kälteschutz und Behinderung hinzugefügt
+- Option (Hausregel), dass Behinderung pro Kleidungsstück
+  gerechnet wird
+- Bugfix: Einstellungs-Defaults für neue Gruppen speichern 
+  funktionierte nicht
+- Menüabstand bei Walnut-L&F korrigiert
+
 Version 1.8.4
 -------------
 - Ergebnisse der Aktionen im Fenster "Kampf (Spieler)" können in die

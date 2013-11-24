@@ -39,6 +39,7 @@ import java.util.TreeSet;
 
 import static dsa.model.characters.Energy.*;
 import static dsa.model.characters.Property.*;
+import dsa.control.ClothesBE;
 import dsa.control.Fighting;
 import dsa.control.filetransforms.FileType;
 import dsa.control.printing.Printer;
@@ -1081,7 +1082,7 @@ public final class HeroImpl extends AbstractThingCarrier
     changed = true;
   }
 
-  private static final int FILE_VERSION = 49;
+  private static final int FILE_VERSION = 50;
 
   /*
    * (non-Javadoc)
@@ -1275,6 +1276,11 @@ public final class HeroImpl extends AbstractThingCarrier
       file.println(secondHandOpponentWeapon);
       // version 47
       printContainers(file);
+      // version 50
+      file.println(knownNPCs);
+      file.println("-- End NPCs --");
+      file.println(knownPCs);
+      file.println("-- End PCs --");
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1836,6 +1842,11 @@ public final class HeroImpl extends AbstractThingCarrier
     if (version > 46) {
       lineNr = readContainers(file, lineNr);
     }
+    knownPCs = "";
+    knownNPCs = "";
+    if (version > 49) {
+    	lineNr = readPersonData(file, lineNr);
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -2242,6 +2253,34 @@ public final class HeroImpl extends AbstractThingCarrier
       }
     }
     return lineNr;
+  }
+  
+  private int readPersonData(BufferedReader file, int lineNr) throws IOException {
+	    boolean inData = true;
+	    while (inData) {
+	      lineNr++;
+	      String line = file.readLine();
+	      testEmpty(line);
+	      if (line == null || line.equals("-- End NPCs --"))
+	        inData = false;
+	      else {
+	        if (knownNPCs.length() > 0) knownNPCs += System.getProperty("line.separator");
+	        knownNPCs += line;
+	      }
+	    }
+	    inData = true;
+	    while (inData) {
+		      lineNr++;
+		      String line = file.readLine();
+		      testEmpty(line);
+		      if (line == null || line.equals("-- End PCs --"))
+		        inData = false;
+		      else {
+		        if (knownPCs.length() > 0) knownPCs += System.getProperty("line.separator");
+		        knownPCs += line;
+		      }
+		}	    
+	    return lineNr;
   }
 
   private int readThings(BufferedReader file, int lineNr) throws IOException {
@@ -3341,7 +3380,7 @@ public final class HeroImpl extends AbstractThingCarrier
     int be = 0;
     for (String armourName : armours) {
       Armour armour = Armours.getInstance().getArmour(armourName);
-      if (armour != null) be += armour.getBE();
+      if (armour != null) be += ClothesBE.getBE(armour);
     }
     return be - beModification > 0 ? be - beModification : 0;
   }
@@ -3651,8 +3690,11 @@ public final class HeroImpl extends AbstractThingCarrier
   }
 
   public void removeClothes(String item) {
-    clothes.remove(item);
-    changed = true;
+	if (clothes.contains(item)) {
+      clothes.remove(item);
+      fireWeightChanged();
+      changed = true;
+	}
   }
 
   public String[] getClothes() {
@@ -4431,4 +4473,33 @@ public final class HeroImpl extends AbstractThingCarrier
   protected final void setChanged() {
     changed = true;
   }
+  
+  private String knownPCs = "";
+  private String knownNPCs = "";
+
+	@Override
+	public String getKnownNPCs() {
+		return knownNPCs;
+	}
+	
+	@Override
+	public String getKnownPCs() {
+		return knownPCs;
+	}
+	
+	@Override
+	public void setKnownNPCs(String text) {
+		if (text != null && !knownNPCs.equals(text)) {
+			knownNPCs = text;
+			changed = true;
+		}
+	}
+	
+	@Override
+	public void setKnownPCs(String text) {
+		if (text != null && !knownPCs.equals(text)) {
+			knownPCs = text;
+			changed = true;
+		}
+	}
 }

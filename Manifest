@@ -1,0 +1,12 @@
+Main-Class: dsa.control.Main
+Class-Path: 
+  images.jar 
+  libraries/synthetica.jar 
+  libraries/syntheticaBlueIce.jar 
+  libraries/syntheticaBlueSteel.jar 
+  libraries/syntheticaGreenDream.jar 
+  libraries/syntheticaSilverMoon.jar 
+  libraries/syntheticaWalnut.jar 
+  libraries/skinlf.jar 
+  libraries/jdic.jar 
+

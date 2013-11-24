@@ -58,6 +58,8 @@ public class CharacterType {
   private final String defaultNameRegion;
 
   private final File prototypeFile;
+  
+  private final boolean canBeMagicDilletant;
 
   CharacterType(File file) throws IOException {
     int lineNr = 0;
@@ -199,8 +201,13 @@ public class CharacterType {
       }
       line = in.readLine();
       lineNr++;
+      boolean dilletant = false;
       if (line != null && !line.trim().equals("")) {
-        try {
+        if (line.equals("M")) {
+          dilletant = true;
+          talentReducement = 0;
+        }
+        else try {
           talentReducement = Integer.parseInt(line);
         }
         catch (NumberFormatException e) {
@@ -211,6 +218,7 @@ public class CharacterType {
       else
         talentReducement = 0;
       typeName = fileName.substring(0, fileName.lastIndexOf('.'));
+      canBeMagicDilletant = dilletant;
     }
     finally {
       if (in != null) {
@@ -290,6 +298,10 @@ public class CharacterType {
       prototype = DataFactory.getInstance().createHeroFromFile(prototypeFile);
     }
     return prototype;
+  }
+  
+  public boolean canBeMagicDilletant() {
+    return canBeMagicDilletant;
   }
 
 }

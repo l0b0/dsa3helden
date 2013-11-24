@@ -104,13 +104,19 @@ public class SpellTable extends AbstractTable {
 
     mSorter.setSortingListener(this);
   }
+  
+  public void setMagicDilletant(boolean dilletant) {
+    isDilletant = dilletant;
+  }
+  
+  private boolean isDilletant;
 
   public void addSpell(Spell spell) {
     Object[] rowData = new Object[4];
     rowData[getNameColumn()] = spell.getName();
     rowData[getCategoryColumn()] = spell.getCategory();
     rowData[getOriginColumn()] = spell.getOrigin();
-    rowData[getSkillColumn()] = SpellStartValues.getInstance().getStartValue(
+    rowData[getSkillColumn()] = isDilletant ? 0 : SpellStartValues.getInstance().getStartValue(
         characterType, spell.getName());
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);

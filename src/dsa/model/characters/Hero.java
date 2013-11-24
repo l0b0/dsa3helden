@@ -436,4 +436,8 @@ public interface Hero extends Printable, Fighter {
   void readThingsFromFile(long thingTypes, File f) throws IOException;
   
   void fireActiveWeaponsChanged();
+
+  boolean isMagicDilletant();
+
+  void setIsMagicDilettant(boolean dt);
 }

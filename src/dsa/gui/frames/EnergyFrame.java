@@ -572,8 +572,18 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
             + "Wieviele Punkte sollen auf die AE gelegt werden?");
         dialog.setQuestion("Punkte auf AE:");
         dialog.setMinimum(0);
-        dialog.setMaximum(increase);
-        dialog.setDefault(increase / 2);
+        int max = increase;
+        if (currentHero.isMagicDilletant()) {
+          max = 2;
+          if (increase < 3) max = increase - 1;
+        }
+        dialog.setMaximum(max);
+        int def = increase / 2;
+        if (currentHero.isMagicDilletant()) {
+          def = max;
+          if (def == 2) def = 1;
+        }
+        dialog.setDefault(def);
         dialog.setLocationRelativeTo(EnergyFrame.this);
         boolean goOn = false;
         do {
@@ -777,7 +787,23 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
   void doRegeneration() {
     int missingLE = currentHero.getDefaultEnergy(Energy.LE)
         - currentHero.getCurrentEnergy(Energy.LE);
-    if (currentHero.hasEnergy(Energy.AE)
+    if (currentHero.isMagicDilletant()) {
+      int missingAE = currentHero.getDefaultEnergy(Energy.AE)
+        - currentHero.getCurrentEnergy(Energy.AE);
+      int aeChange = 0;
+      if (missingAE > 0 && missingLE < currentHero.getDefaultEnergy(Energy.LE) / 2) {
+        currentHero.changeCurrentEnergy(Energy.AE, 1);
+        aeChange = 1;
+      }
+      int value = Dice.roll(6);
+      value = Math.min(value, missingLE);
+      currentHero.changeCurrentEnergy(Energy.LE, value);
+      JOptionPane.showMessageDialog(this, "LE: " + value
+          + " Punkte regeneriert.\nAE: " + 
+          ((aeChange > 0) ? "1 Punkt" : "0 Punkte") + " regeneriert.", "Regeneration",
+          JOptionPane.INFORMATION_MESSAGE);
+    }
+    else if (currentHero.hasEnergy(Energy.AE)
         && currentHero.getCurrentEnergy(Energy.AE) < currentHero
             .getDefaultEnergy(Energy.AE)) {
       int missingAE = currentHero.getDefaultEnergy(Energy.AE)

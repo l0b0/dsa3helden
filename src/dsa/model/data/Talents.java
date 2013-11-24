@@ -396,7 +396,7 @@ public class Talents {
         }
         else {
           tokenizer = new StringTokenizer(line, ";");
-          if (tokenizer.countTokens() != (spells ? 6 : 5)) {
+          if (tokenizer.countTokens() < (spells ? 8 : 5)) {
             throw new IOException("Zeile " + lineNr + ": Syntaxfehler in Talent");
           }
           String name = tokenizer.nextToken();
@@ -422,15 +422,19 @@ public class Talents {
             }
           else
             increases = 1;
-          Talent talent = spells ? DataFactory.getInstance()
-              .createSpell(name, attributes.get(att1s), attributes.get(att2s),
-                  attributes.get(att3s), tokenizer.nextToken(),
-                  tokenizer.nextToken()) : DataFactory.getInstance()
-              .createNormalTalent(name, attributes.get(att1s),
-                  attributes.get(att2s), attributes.get(att3s), increases);
-          if (!spells) allTalents.addLast(talent);
-          talentsByName.put(name, talent);
-          categoryTalents.addLast(talent);
+          try {
+            Talent talent = spells ? DataFactory.getInstance()
+                .createSpell(name, attributes.get(att1s), attributes.get(att2s),
+                    attributes.get(att3s), tokenizer) : DataFactory.getInstance()
+                .createNormalTalent(name, attributes.get(att1s),
+                    attributes.get(att2s), attributes.get(att3s), increases);
+            if (!spells) allTalents.addLast(talent);
+            talentsByName.put(name, talent);
+            categoryTalents.addLast(talent);
+          }
+          catch (IOException e) {
+            throw new IOException("Zeile " + lineNr + ": " + e.getMessage());
+          }
         }
         line = in.readLine();
         lineNr++;

@@ -89,6 +89,10 @@ public final class RitualsSelectionDialog extends BGDialog {
     if (currentHero != null) {
       List<String> rituals = Rituals.getInstance().getAllRituals(
           currentHero.getInternalType());
+      if (currentHero.isMagicDilletant()) {
+        rituals.add("Magisches Meisterhandwerk");
+        rituals.add("Schutzgeist");
+      }
       heroRituals = currentHero.getRituals();
       for (String r : rituals) {
         if (!heroRituals.contains(r)) {
@@ -102,6 +106,9 @@ public final class RitualsSelectionDialog extends BGDialog {
       String ritual = ritualsList.getSelectedValue().toString();
       boolean canGetRitual = Rituals.getInstance().isRitualAvailable(ritual,
           heroRituals);
+      if (currentHero != null && currentHero.isMagicDilletant()) {
+        canGetRitual = true;
+      }
       getAddTestButton().setEnabled(
           (Rituals.getInstance().getRitualLearningTestData(ritual) != null)
               && canGetRitual);

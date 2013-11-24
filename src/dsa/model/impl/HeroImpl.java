@@ -822,10 +822,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
     boolean isSpell = Talents.getInstance().getTalent(talent).isSpell();
     if (isSpell && getOverallSpellIncreaseTries() == 0
-        && getSpellOrTalentIncreaseTries() == 0)
+        && getSpellOrTalentIncreaseTries() == 0 && !isMagicDilletant())
       return 0;
     else if (!isSpell && getOverallTalentIncreaseTries() == 0
         && getSpellOrTalentIncreaseTries() == 0)
+      return 0;
+    else if (isSpell && isMagicDilletant() && getOverallTalentIncreaseTries() < 2)
       return 0;
     else if (hasTalent(talent))
       return talents.get(talent).remainingIncreases;
@@ -977,15 +979,31 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       }
     }
     if (Talents.getInstance().getTalent(talent).isSpell()) {
-      if (overallSpellIncreaseTries > 0)
-        overallSpellIncreaseTries--;
-      else
-        overallSpellOrTalentIncreaseTries--;
-      if (overallSpellIncreaseTries == 0
-          && overallSpellOrTalentIncreaseTries == 0) {
-        for (String n : talents.keySet()) {
-          if (Talents.getInstance().getTalent(n).isSpell()) {
-            talents.get(n).remainingIncreases = 0;
+      if (isMagicDilletant()) {
+        if (overallTalentIncreaseTries > 0) {
+          overallTalentIncreaseTries -= 2;
+          if (overallTalentIncreaseTries < 0) overallTalentIncreaseTries = 0;
+        }
+        if (overallTalentIncreaseTries == 0
+            && overallSpellOrTalentIncreaseTries == 0) {
+          for (String n : talents.keySet()) {
+            if (!Talents.getInstance().getTalent(n).isSpell()) {
+              talents.get(n).remainingIncreases = 0;
+            }
+          }
+        }
+      }
+      else {
+        if (overallSpellIncreaseTries > 0)
+          overallSpellIncreaseTries--;
+        else
+          overallSpellOrTalentIncreaseTries--;
+        if (overallSpellIncreaseTries == 0
+            && overallSpellOrTalentIncreaseTries == 0) {
+          for (String n : talents.keySet()) {
+            if (Talents.getInstance().getTalent(n).isSpell()) {
+              talents.get(n).remainingIncreases = 0;
+            }
           }
         }
       }
@@ -1056,7 +1074,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static final int FILE_VERSION = 42;
+  private static final int FILE_VERSION = 43;
 
   /*
    * (non-Javadoc)
@@ -1239,6 +1257,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println(hasStumbled ? "1" : "0");
       // version 42
       file.println(farRangedFightParams.writeToString());
+      // version 43
+      file.println(magicDilletant ? "1" : "0");
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1751,6 +1771,13 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       farRangedFightParams = new FarRangedFightParams(line);
     }
     else farRangedFightParams = new FarRangedFightParams();
+    if (version > 42) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      magicDilletant = "1".equals(line);
+    }
+    else magicDilletant = false;
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -2942,6 +2969,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       if ((aePlus > 0) && (this.getDefaultEnergy(Energy.AE) + aePlus > 30)) {
         throw new LEAEIncreaseException(
             "Eine Sharizad darf nicht mehr als 30 ASP haben.");
+      }
+    }
+    if (isMagicDilletant()) {
+      if (lePlus < 1) {
+        throw new LEAEIncreaseException(
+            "Ein Magiedilettant muss die LE mindestens um 1 erhöhen.");
       }
     }
     mLEIncreaseTries--;
@@ -4137,5 +4170,18 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   public FarRangedFightParams getFarRangedFightParams() {
     return farRangedFightParams;
+  }
+  
+  private boolean magicDilletant = false;
+
+  public boolean isMagicDilletant() {
+    return magicDilletant;
+  }
+
+  public void setIsMagicDilettant(boolean dt) {
+    if (magicDilletant != dt) {
+      magicDilletant = dt;
+      changed = true;
+    }
   }
 }

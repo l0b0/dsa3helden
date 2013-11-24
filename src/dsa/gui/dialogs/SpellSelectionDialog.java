@@ -56,6 +56,7 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
   protected void fillTable() {
     List<Talent> talents = Talents.getInstance().getTalentsInCategory("Zauber");
     SpellTable table = (SpellTable) mTable;
+    table.setMagicDilletant(mHero.isMagicDilletant());
     listen = false;
     for (Talent t : talents) {
       if (!mHero.hasTalent(t.getName()) && isDisplayed(t.getName())) {

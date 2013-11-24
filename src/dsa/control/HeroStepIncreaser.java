@@ -285,6 +285,9 @@ public class HeroStepIncreaser {
         if (maxIncrease < 0) maxIncrease = 0;
         if (aeIncrease > maxIncrease) aeIncrease = maxIncrease;
       }
+      if (hero.isMagicDilletant()) {
+        aeIncrease = (increase > 4) ? 2 : ((increase > 1) ? 1 : 0);
+      }
       try {
         hero.increaseLEAndAE(increase - aeIncrease, aeIncrease);
         log += "\nLE um " + (increase - aeIncrease) + " auf " + hero.getDefaultEnergy(Energy.LE) + " erhöht";
@@ -332,7 +335,7 @@ public class HeroStepIncreaser {
   }
   
   private void increaseSpells() {
-    if (hero.getOverallSpellIncreaseTries() + hero.getSpellOrTalentIncreaseTries() < 1) return;
+    if (!hero.isMagicDilletant() && (hero.getOverallSpellIncreaseTries() + hero.getSpellOrTalentIncreaseTries() < 1)) return;
     ArrayList<TalentData> spellsUnder16 = new ArrayList<TalentData>();
     ArrayList<TalentData> allSpells = new ArrayList<TalentData>();
     for (String category : Talents.getInstance().getKnownCategories()) {
@@ -349,11 +352,12 @@ public class HeroStepIncreaser {
     // first pass: only spells lower than 16
     increaseSpells(spellsUnder16);
     // second pass: all spells (also those lower than 16)
-    increaseSpells(allSpells);
+    if (!hero.isMagicDilletant()) increaseSpells(allSpells);
   }
   
   private void increaseSpells(ArrayList<TalentData> spells) {
     int increaseTries = hero.getOverallSpellIncreaseTries() + hero.getSpellOrTalentIncreaseTries(); 
+    if (hero.isMagicDilletant()) increaseTries = spells.size() * 3;
     if (increaseTries < 1) return;
     // split the candidates into several categories (see below)
     ArrayList<TalentData> with3Increases = new ArrayList<TalentData>();

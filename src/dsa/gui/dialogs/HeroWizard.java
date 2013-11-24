@@ -52,6 +52,7 @@ import dsa.gui.util.PropertyLabel;
 import dsa.model.DataFactory;
 import dsa.model.Date;
 import dsa.model.DiceSpecification;
+import dsa.model.characters.Energy;
 import dsa.model.characters.Group;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
@@ -675,6 +676,7 @@ public final class HeroWizard extends BGDialog {
     private JCheckBox autoStepIncreaseBox;
     private JCheckBox autoStepShowLog;
     private JSpinner  autoStepSpinner;
+    private JCheckBox dilletantBox;
 
     public ThirdPage() {
       super();
@@ -710,12 +712,29 @@ public final class HeroWizard extends BGDialog {
       autoStepShowLog.setEnabled(false);
       autoStepPanel.add(autoStepShowLog, null);
       add(autoStepPanel, null);
+      JPanel dilletantPanel = new JPanel();
+      dilletantPanel.setLayout(null);
+      dilletantPanel.setBorder(BorderFactory.createTitledBorder(
+          BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Magiebegabung"));
+      dilletantBox = new JCheckBox("Magiedilletant", false);
+      dilletantBox.setBounds(8, 20, 300, 20);
+      dilletantBox.setToolTipText("Voraussetzungen: KL 10, IN 13, AG 6, spez. Heldentyp");
+      dilletantPanel.add(dilletantBox, null);
+      dilletantPanel.setPreferredSize(new java.awt.Dimension(300, 55));
+      dilletantPanel.setBounds(12, 345, 360, 55);
+      add(dilletantPanel, null);
     }
 
     public void reInitialize() {
       panel.setName(name != null ? name : "");
       panel.setSex(female);
       panel.setDefaultRegion(characterType.getDefaultNameRegion());
+      boolean dt = characterType.canBeMagicDilletant();
+      if (properties[Property.KL.ordinal()] < 10) dt = false;
+      if (properties[Property.IN.ordinal()] < 13) dt = false;
+      if (properties[Property.AG.ordinal()] < 6) dt = false;
+      dilletantBox.setEnabled(dt);
+      if (!dt) dilletantBox.setSelected(false);
     }
 
     public String getCharacterName() {
@@ -739,6 +758,10 @@ public final class HeroWizard extends BGDialog {
     
     public boolean showLog() {
       return autoStepShowLog.isSelected();
+    }
+    
+    public boolean isMagicDilletant() {
+      return dilletantBox.isSelected();
     }
   }
 
@@ -823,7 +846,15 @@ public final class HeroWizard extends BGDialog {
     hero.setHeight("" + height);
     hero.setWeight("" + (height - characterType.getWeightLoss()));
     hero.setHairColor(characterType.getHairColor(Dice.roll(20) - 1));
-    hero.setStand(characterType.getOrigin(Dice.roll(20) - 1));
+    String stand = "arm";
+    for (int i = 0; i < 20; ++i) {
+      String test = characterType.getOrigin(Dice.roll(20) - 1);
+      if (!test.contains("adlig") && !test.contains("wohlhabend") && !test.contains("adel")) {
+        stand = test;
+        break;
+      }
+    }
+    hero.setStand(stand);
     hero.setEyeColor(Looks.getMatchingEyeColor(hero.getHairColor()));
     hero.setNativeTongue(language);
     int day = Dice.roll(30);
@@ -961,7 +992,16 @@ public final class HeroWizard extends BGDialog {
     hero.setPrintingTemplateFile("");
     hero.setPicture("");
     setInitialMoney(hero);
-    hero.toStepOne(characterType.getTalentReducement());
+    int talentReducement = characterType.getTalentReducement();
+    if (getThirdPage().isMagicDilletant()) {
+      talentReducement = 30;
+      hero.setIsMagicDilettant(true);
+      hero.setHasEnergy(Energy.AE, true);
+      hero.setDefaultEnergy(Energy.AE, Dice.roll(6) + 3);
+      hero.addRitual("Magisches Meisterhandwerk");
+      hero.addRitual("Schutzgeist");
+    }
+    hero.toStepOne(talentReducement);
     int stepToIncrease = getThirdPage().increaseToStep();
     if (stepToIncrease > 1) {
       int apToGive = stepToIncrease * (stepToIncrease - 1) * 50;

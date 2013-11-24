@@ -261,10 +261,13 @@ public final class SpellFrame extends TalentFrame {
       currentHero.addTalent(item);
       int talentStartValue = SpellStartValues.getInstance().getStartValue(
           currentHero.getInternalType(), item);
+      if (currentHero.isMagicDilletant()) talentStartValue = 0;
       currentHero.setDefaultTalentValue(item, talentStartValue);
       currentHero.setCurrentTalentValue(item, talentStartValue);
-      currentHero.setTalentIncreaseTriesPerStep(item, 
-          SpellStartValues.getInstance().getIncreasesPerStep(currentHero.getInternalType(), item));
+      int talentIncreases = SpellStartValues.getInstance().getIncreasesPerStep(currentHero.getInternalType(), item);
+      if (currentHero.isMagicDilletant()) talentIncreases = 1;
+      if (talentIncreases < 1) talentIncreases = 1; 
+      currentHero.setTalentIncreaseTriesPerStep(item, talentIncreases);
       dialog.updateTable();
       reupdateData();
     }

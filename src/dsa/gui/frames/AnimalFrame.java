@@ -43,7 +43,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 
 import dsa.gui.dialogs.AnimalProbeDialog;
 import dsa.gui.dialogs.ThingSelectionDialog;
@@ -71,6 +73,16 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
   public Animal getAnimal() {
     return animal;
   }
+  
+  JPanel center, grid;
+  
+  private void updateData()
+  {
+    if (grid != null) center.remove(grid);
+    grid = getGrid();
+    center.add(grid, BorderLayout.NORTH);
+    invalidate();
+  }
 
   public AnimalFrame(Animal a, boolean setSize) {
     super(ThingTransfer.Flavors.Thing, a.getName());
@@ -90,9 +102,9 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     l4.setPreferredSize(new java.awt.Dimension(GAP, GAP));
     contentPane.add(l4, BorderLayout.EAST);
     
-    JPanel center = new JPanel(new BorderLayout());
-    
-    JPanel grid = getGrid();
+    center = new JPanel(new BorderLayout());
+
+    grid = getGrid();
     center.add(grid, BorderLayout.NORTH);
 
     thingsPanel = getThingsPanel();
@@ -388,7 +400,24 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
       grid.add(label, c);
       c.gridx++;
       Animal.AttributeType type = animal.getAttributeType(i);
-      if (type == Animal.AttributeType.eString) {
+      if (animal.getAttributeTitle(i).equals("AP")) {
+        JTextField tf = new JTextField();
+        tf.setText(animal.getAttributeValue(i).toString());
+        textFields.put(i, tf);
+        tf.setEditable(false);
+        grid.add(tf, c);
+        c.gridx++;
+        JButton button = new JButton(ImageManager.getIcon("increase"));
+        button.setPreferredSize(new java.awt.Dimension(40, 18));
+        button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            increaseAP();
+          }
+        });
+        grid.add(button, c);
+        c.gridx--;
+      }
+      else if (type == Animal.AttributeType.eString) {
         JTextField tf = new JTextField();
         tf.setText(animal.getAttributeValue(i).toString());
         tf.getDocument().addDocumentListener(new MyDocumentListener(i));
@@ -443,6 +472,26 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
         }
       }
       c.gridx--;
+      if (animal.getAttributeTitle(i).equals("AP")) {
+        if ((i > animal.getNrOfAttributes() / 2) && (column < 3)) {
+          column = 4;
+          row = 0;
+        }
+        ++row;
+        JLabel label2 = new JLabel("Stufe: ");
+        c.gridx = column;
+        c.gridy = row;
+        grid.add(label2, c);
+        c.gridx++;
+        int ap = ((Integer)animal.getAttributeValue(i)).intValue();
+        int step = calcStep(ap);
+        JLabel label3 = new JLabel("" + step);
+        grid.add(label3, c);
+        c.gridx++;
+        JLabel label4 = new JLabel("");
+        grid.add(label4, c);
+        c.gridx -= 2;
+      }
     }
     ++row;
     c.gridy = row;
@@ -450,6 +499,106 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
         BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
         "Eigenschaften"));
     return grid;
+  }
+  
+  private int calcStep(int ap) {
+    return (int) Math.floor(0.5 + 0.01 * Math.sqrt(2500 + 200 * ap));
+  }
+
+  private void increaseAP() {
+    String apS = javax.swing.JOptionPane.showInputDialog(this,
+        "Im letzten Abenteuer verdiente AP:", "AP erhöhen",
+        JOptionPane.PLAIN_MESSAGE);
+    if (apS == null) return;
+    int ap = 0;
+    try {
+      ap = Integer.parseInt(apS);
+      if (ap < 0) throw new NumberFormatException("");
+    }
+    catch (NumberFormatException ex) {
+      JOptionPane.showMessageDialog(this,
+          "Bitte eine positive ganze Zahl eingeben.", "Fehler",
+          JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    int index = findAttributeIndex("AP");
+    int oldAP = ((Integer)animal.getAttributeValue(index)).intValue();
+    int oldStep = calcStep(oldAP);
+    int newAP = oldAP + ap;
+    animal.setAttributeValue(index, Integer.valueOf(newAP));
+    int newStep = calcStep(newAP);
+    if (newStep > oldStep) {
+      String message = animal.getName() + " ist um " + (newStep - oldStep) + ((newStep - oldStep > 1) ? " Stufen" : " Stufe")
+        + " gestiegen!";
+      JOptionPane.showMessageDialog(this, message, "Stufenanstieg", JOptionPane.INFORMATION_MESSAGE);
+      while (newStep > oldStep) {
+        Object[] options = new Object[] {"AT", "PA" };
+        int result = JOptionPane.showOptionDialog(this, "Soll die AT oder die PA erhöht werden?", "Stufenanstieg", JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "AT");
+        increaseAttribute(result == 0 ? "AT" : "PA");
+        ArrayList<String> attrs = new ArrayList<String>();
+        attrs.add("MU");
+        attrs.add("KL");
+        attrs.add("IN");
+        attrs.add("CH");
+        attrs.add("GE");
+        attrs.add("FF");
+        attrs.add("KK");
+        attrs.add("GS");
+        attrs.add("MR");
+        result = JOptionPane.showOptionDialog(this, "Welche Eigenschaft soll erhöht werden?", "Stufenanstieg", JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, attrs.toArray(), attrs.get(0));
+        increaseAttribute(attrs.get(result));
+        attrs.remove(attrs.get(result));
+        result = JOptionPane.showOptionDialog(this, "Welche Eigenschaft soll außerdem erhöht werden?", "Stufenanstieg", JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, attrs.toArray(), attrs.get(0));
+        increaseAttribute(attrs.get(result));
+        increaseAttribute("LE");
+        ++oldStep;
+      }
+    }
+    updateData();
+  }
+  
+  private void increaseAttribute(String name) {
+    int index = findAttributeIndex(name);
+    if (animal.getAttributeType(index) == Animal.AttributeType.eInt) {
+      increaseIntegerAttribute(index);
+    }
+    else {
+      increaseStringAttribute(index);
+    }
+  }
+  
+  private void increaseIntegerAttribute(int index) {
+    int oldValue = ((Integer)animal.getAttributeValue(index)).intValue();
+    animal.setAttributeValue(index, Integer.valueOf(oldValue + 1));
+  }
+  
+  private void increaseStringAttribute(int index) {
+    String oldValue = animal.getAttributeValue(index).toString();
+    StringTokenizer toks = new StringTokenizer(oldValue, "/");
+    String newValue = "";
+    while (toks.hasMoreTokens()) {
+      if (newValue.length() > 0) newValue = newValue + "/";
+      String tok = toks.nextToken();
+      try {
+        int old = Integer.parseInt(tok);
+        newValue = newValue + (old + 1);
+      }
+      catch (NumberFormatException e) {
+        newValue = newValue + tok;
+      }
+    }
+    animal.setAttributeValue(index, newValue);
+  }
+  
+  private int findAttributeIndex(String name) {
+    int index = 0;
+    for (int i = 0; i < animal.getNrOfAttributes(); ++i) {
+      if (animal.getAttributeTitle(i).equals(name)) {
+        index = i;
+        break;
+      }
+    }    
+    return index;
   }
 
   protected boolean addItem(String item, ExtraThingData extraData) {

@@ -146,6 +146,9 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
       else if (currentHero.hasExtraAEIncrease()) {
         magicTypeCombo.setSelectedIndex(2);
       }
+      else if (currentHero.isMagicDilletant()) {
+        magicTypeCombo.setSelectedIndex(3);
+      }
       else {
         magicTypeCombo.setSelectedIndex(0);
       }
@@ -336,6 +339,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
       magicTypeCombo.addItem("Normal");
       magicTypeCombo.addItem("Magier");
       magicTypeCombo.addItem("Geode");
+      magicTypeCombo.addItem("Magiedilettant");
       magicTypeLabel
           .setToolTipText("Magier: mit großer Meditation; Geode: mit seperater AE-Steigerung");
       magicTypeCombo.addActionListener(new ActionListener() {
@@ -343,8 +347,10 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
           if (!listenForChanges) return;
           boolean gm = magicTypeCombo.getSelectedIndex() == 1;
           boolean ea = magicTypeCombo.getSelectedIndex() == 2;
+          boolean dt = magicTypeCombo.getSelectedIndex() == 3;
           currentHero.setHasExtraAEIncrease(ea);
           currentHero.setCanDoGreatMeditation(gm);
+          currentHero.setIsMagicDilettant(dt);
           checkFixedAEIncrAvailability();
         }
       });

@@ -103,6 +103,10 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
   }
 
   private void checkRemoveButton() {
+    if (currentHero.isMagicDilletant()) {
+      getRemoveButton().setEnabled(true);
+      return;
+    }
     String ritual = ritualsList.getSelectedValue().toString();
     List<String> test = currentHero.getRituals();
     test.remove(ritual);

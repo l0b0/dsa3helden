@@ -96,7 +96,7 @@ public class SpellStartValues {
         if (in != null) in.close();
       }
       for (Talent spell : Talents.getInstance().getTalentsInCategory("Zauber")) {
-        if (!startValues.containsKey(spell.getName())) {
+        if (!((dsa.model.talents.Spell)spell).isUserDefined() && !startValues.containsKey(spell.getName())) {
           javax.swing.JOptionPane.showMessageDialog(null, 
               "Warnung: die Datei " + file.getName() + " enthält nicht für alle Zauber Angaben!\n"
               + "Fehlender Zauber: " + spell.getName(), "Heldenverwaltung", javax.swing.JOptionPane.WARNING_MESSAGE);

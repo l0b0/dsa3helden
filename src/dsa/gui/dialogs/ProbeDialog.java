@@ -19,6 +19,7 @@
  */
 package dsa.gui.dialogs;
 
+import java.awt.Color;
 import java.awt.Frame;
 
 import javax.swing.JButton;
@@ -153,6 +154,7 @@ public final class ProbeDialog extends BGDialog {
       String formatted = new java.text.DecimalFormat("#0.00#")
           .format(successPercent);
       jLabel2.setText("Erfolgswahrscheinlichkeit: " + formatted + "%");
+      jLabel2.setForeground(successPercent >= 50.0 ? Color.GREEN : Color.RED);    
     }
     else {
       int value = 0;
@@ -172,6 +174,7 @@ public final class ProbeDialog extends BGDialog {
       String formatted = new java.text.DecimalFormat("#0.00#")
           .format(successPercent);
       jLabel2.setText("Erfolgswahrscheinlichkeit: " + formatted + "%");
+      jLabel2.setForeground(successPercent >= 50.0 ? Color.GREEN : Color.RED);
     }
   }
 

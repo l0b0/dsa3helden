@@ -21,6 +21,7 @@ package dsa.model.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.StringTokenizer;
 
 import dsa.model.DataFactory;
 import dsa.model.characters.Hero;
@@ -133,14 +134,14 @@ public class DataFactoryImpl extends DataFactory {
    */
   public dsa.model.talents.Spell createSpell(String arg0,
       dsa.model.characters.Property arg1, dsa.model.characters.Property arg2,
-      dsa.model.characters.Property arg3, String category, String origin) {
-    return new SpellImpl(arg0, arg1, arg2, arg3, 1, category, origin, false);
+      dsa.model.characters.Property arg3, StringTokenizer spellAttributes) throws IOException {
+    return new SpellImpl(arg0, arg1, arg2, arg3, 1, spellAttributes, false);
   }
 
   public dsa.model.talents.Spell createUserDefinedSpell(String arg0,
       dsa.model.characters.Property arg1, dsa.model.characters.Property arg2,
       dsa.model.characters.Property arg3, String category, String origin) {
-    return new SpellImpl(arg0, arg1, arg2, arg3, 1, category, origin, true);
+    return new SpellImpl(arg0, arg1, arg2, arg3, 1, category, origin);
   }
 
   @Override

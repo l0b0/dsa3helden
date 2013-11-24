@@ -20,6 +20,7 @@
 package dsa.model;
 
 import java.io.File;
+import java.util.StringTokenizer;
 
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
@@ -54,7 +55,7 @@ public abstract class DataFactory {
   public abstract Talent createOtherTalent(String name, int increases);
 
   public abstract Spell createSpell(String name, Property p1, Property p2,
-      Property p3, String category, String origin);
+      Property p3, StringTokenizer spellAttributes) throws java.io.IOException;
 
   public abstract Spell createUserDefinedSpell(String name, Property p1,
       Property p2, Property p3, String category, String origin);

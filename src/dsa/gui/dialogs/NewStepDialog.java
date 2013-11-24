@@ -64,6 +64,7 @@ public class NewStepDialog extends BGDialog {
     this.setTitle("Heldenverwaltung");
     this.setModal(true);
     this.setLocationRelativeTo(getParent());
+    this.getRootPane().setDefaultButton(okButton);
   }
 
   public String getHelpPage() {

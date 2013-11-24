@@ -1,3 +1,10 @@
+Version 1.5.2
+-------------
+- AE-Kosten von Zaubern werden verwaltet
+- Stufe von Vertrauten wird verwaltet, Stufenanstieg unterstützt
+- Update-Check verbessert
+- Magiedilettanten werden unterstützt
+
 Version 1.5.1
 -------------
 - Wechsel zu Java 6

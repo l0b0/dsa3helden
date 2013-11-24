@@ -19,6 +19,10 @@
  */
 package dsa.model.talents;
 
+import java.util.List;
+
+import dsa.model.DiceSpecification;
+
 /**
  * 
  */
@@ -29,5 +33,55 @@ public interface Spell extends NormalTalent {
   String getOrigin();
   
   boolean isUserDefined();
+  
+  int getNrOfVariants();
+  
+  String getVariantName(int variant);
+  
+  enum CostType {
+    Fixed,
+    Variable,
+    Custom,
+    Multiplied,
+    Quadratic,
+    Step,
+    Permanent,
+    LP,
+    Special
+  }
+  
+  public static class Cost {
+    public CostType getCostType() { return mCostType; }
+    public DiceSpecification getCost() { return mDiceSpecification; }
+    public int getMinimumCost() { return mMinimum; }
+    public String getText() { return mText; }
+    
+    public Cost(CostType t, DiceSpecification ds, int minimum, String text) {
+      mCostType = t;
+      if (ds != null) {
+        assert(t != CostType.Step && t != CostType.Special);
+        mDiceSpecification = ds;
+      }
+      else {
+        assert(t == CostType.Step || t == CostType.Special);
+        mDiceSpecification = DiceSpecification.create(0, 6, 0);
+      }
+      mMinimum = minimum;
+      mText = text;
+      if (!mText.equals("")) {
+        assert(t == CostType.Variable || t == CostType.Multiplied || t == CostType.Quadratic);
+      }
+      else {
+        assert(t != CostType.Variable && t != CostType.Multiplied && t != CostType.Quadratic);
+      }
+    }
+    
+    private CostType mCostType;
+    private DiceSpecification mDiceSpecification;
+    private int mMinimum;
+    private String mText;
+  }
+  
+  List<Cost> getCosts(int variant);
 
 }

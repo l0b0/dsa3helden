@@ -44,13 +44,9 @@ import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -64,7 +60,7 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
 import dsa.control.GroupOperations;
-import dsa.control.Version;
+import dsa.control.OnlineOperations;
 import dsa.util.Directories;
 import dsa.gui.dialogs.AnimalSelectionDialog;
 import dsa.gui.dialogs.OptionsDialog;
@@ -121,7 +117,7 @@ public final class ControlFrame extends SubFrame
     if (checkForNewVersion) {
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          (new Thread(new UpdateChecker(false))).start();
+          OnlineOperations.checkForUpdate(ControlFrame.this, false);
         }
       });
     }
@@ -170,7 +166,7 @@ public final class ControlFrame extends SubFrame
    * 
    * 
    */
-  protected void saveAndExit() {
+  public void saveAndExit() {
     if (!GroupOperations.autoSaveAll(this)) return;
     try {
       FrameLayouts.getInstance().storeToFile(Directories.getUserHomePath() + "Fensterlayout.dat");
@@ -1651,84 +1647,6 @@ public final class ControlFrame extends SubFrame
     private TalentFrame frame = null;
   };
   
-  private class UpdateChecker implements Runnable {
-    
-    public UpdateChecker(boolean verbose) {
-      this.verbose = verbose;
-      this.state = 0;
-    }
-    
-    private boolean verbose;
-    private int state;
-    private String message;
-    
-    public void run() {
-      if (state == 0) {
-        final String urlS = "http://www.ruedenauer.net/Software/dsa/helden_version.txt";
-        dsa.gui.util.ProgressMonitor monitor = null;
-        if (verbose) {
-          monitor = new dsa.gui.util.ProgressMonitor(ControlFrame.this, "Suche nach neuer Version ...");
-        }
-        try {
-          URL url = new URL(urlS);
-          BufferedReader in = new BufferedReader(new InputStreamReader(url
-              .openStream()));
-          try {
-            String line = in.readLine();
-            Version thisVersion = Version.getCurrentVersion();
-            Version serverVersion = Version.parse(line);
-            int result = thisVersion.compareTo(serverVersion);
-            if (result == -1) {
-              if (!verbose || !monitor.isCanceled()) state = 1;
-            }
-            else if (verbose && !monitor.isCanceled()) {
-              state = 2;
-            }
-          }
-          finally {
-            in.close();
-          }
-        }
-        catch (java.net.MalformedURLException e) {
-          e.printStackTrace();
-          state = 0;
-        }
-        catch (java.io.IOException e) {
-          if (monitor != null && !monitor.isCanceled()) state = 3;
-          message = e.getMessage();
-        }
-        catch (java.text.ParseException e) {
-          if (monitor != null && !monitor.isCanceled()) state = 3;
-          message = e.getMessage();
-        }
-        finally {
-          if (monitor != null && !monitor.isCanceled()) monitor.close();
-        }
-        if (state > 0) {
-          javax.swing.SwingUtilities.invokeLater(this);
-        }
-      }
-      else if (state == 1) {
-        if (JOptionPane.showConfirmDialog(
-            ControlFrame.this,
-            "Eine neuere Version ist verfügbar!\nSoll die Homepage geöffnet werden?",
-            "Heldenverwaltung", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-          showHomepage(true);
-        }
-      }
-      else if (state == 2) {
-        JOptionPane.showMessageDialog(ControlFrame.this,
-            "Es ist keine neuere Version verfügbar.", "Heldenverwaltung",
-            JOptionPane.INFORMATION_MESSAGE);
-      }
-      else if (state == 3) {
-        JOptionPane.showMessageDialog(ControlFrame.this,
-            "Ein Fehler ist bei der Versionsabfrage aufgetreten:\n"
-              + message, "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
-      }
-    }
-  };
-
   /**
    * This method initializes jJMenuBar
    * 
@@ -1845,7 +1763,7 @@ public final class ControlFrame extends SubFrame
       updateCheckItem.setMnemonic(java.awt.event.KeyEvent.VK_P);
       updateCheckItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          (new Thread(new UpdateChecker(true))).start();
+          OnlineOperations.checkForUpdate(ControlFrame.this, true);
         }
       });
     }
@@ -1859,34 +1777,7 @@ public final class ControlFrame extends SubFrame
       mailItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
       mailItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          Desktop desktop = null;
-          if (Desktop.isDesktopSupported()) {
-            desktop = Desktop.getDesktop();
-            if (!desktop.isSupported(Desktop.Action.OPEN)) {
-              desktop = null;
-            }
-          }
-          if (desktop == null) {
-            JOptionPane.showMessageDialog(ControlFrame.this, "Das Betriebssystem erlaubt keine direkte Mail-Erstellung.\n"
-                + "Bitte schreibe manuell an joerg@ruedenauer.net.", 
-                "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
-          }
-          try {
-            String messageURI = "joerg@ruedenauer.net?subject=Heldenverwaltung "
-                + dsa.control.Version.getCurrentVersionString();
-            desktop.mail(new URI("mailto", messageURI, null));
-          }
-          catch (URISyntaxException ex) {
-            ex.printStackTrace();
-          }
-          catch (IOException ex) {
-            JOptionPane.showMessageDialog(ControlFrame.this,
-                "Die E-Mail kann nicht erstellt werden. Fehler:\n"
-                    + ex.getMessage()
-                    + "\nBitte schreibe manuell an joerg@ruedenauer.net.",
-                "Fehler", JOptionPane.ERROR_MESSAGE);
-          }
+          OnlineOperations.mailToAuthor(ControlFrame.this);
         }
       });
     }
@@ -1941,41 +1832,11 @@ public final class ControlFrame extends SubFrame
       homepageItem.setMnemonic(java.awt.event.KeyEvent.VK_H);
       homepageItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          showHomepage(false);
+          OnlineOperations.showHomepage(ControlFrame.this);
         }
       });
     }
     return homepageItem;
-  }
-
-  private void showHomepage(boolean download) {
-    String url = "http://www.ruedenauer.net/Software/dsa/helden.html";
-    if (download) url += "#Download";
-    Desktop desktop = null;
-    if (Desktop.isDesktopSupported()) {
-      desktop = Desktop.getDesktop();
-      if (!desktop.isSupported(Desktop.Action.OPEN)) {
-        desktop = null;
-      }
-    }
-    if (desktop == null) {
-      JOptionPane.showMessageDialog(ControlFrame.this, "Das Betriebssystem erlaubt keinen direkten Browser-Aufruf."
-          + "\nBitte öffne manuell " + url,
-          "Fehler", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-    try {
-      desktop.browse(new URI(url));
-    }
-    catch (URISyntaxException ex) {
-      ex.printStackTrace();
-    }
-    catch (IOException ex) {
-      JOptionPane.showMessageDialog(ControlFrame.this,
-          "Die Homepage konnte nicht geöffnet werden. Fehler:\n"
-              + ex.getMessage() + "\nBitte öffne manuell " + url, "Fehler",
-          JOptionPane.ERROR_MESSAGE);
-    }
   }
 
   private JMenuItem getOptionsItem() {
@@ -2006,7 +1867,7 @@ public final class ControlFrame extends SubFrame
               + "\n        von Jörg Rüdenauer\n" + "\nIch danke:"
               + "\n        Frank Willberger" + "\n        Birgit Bucher"
               + "\n        allen weiteren Betatestern\n"
-              + "\nSpezieller Dank an Dirk Oz" + "\n";
+              + "\nSpezieller Dank an Dirk 'Oz' Oetmann" + "\n";
           JOptionPane.showMessageDialog(ControlFrame.this, text, "Über",
               JOptionPane.INFORMATION_MESSAGE);
         }

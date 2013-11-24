@@ -87,8 +87,8 @@ public class Main {
       Talents.getInstance().loadSpells(dirPath + "Zauber.dat");
       Talents.getInstance().readFavorites(dirPath + "Favoriten.dat");
       Talents.getInstance().loadLanguages(dirPath + "Sprachen.dat");
-      Talents.getInstance().loadUserTalents(dirPath + "Eigene_Talente.dat");
-      Talents.getInstance().loadUserSpells(dirPath + "Eigene_Zauber.dat");
+      Talents.getInstance().loadUserTalents(userDataPath + "Eigene_Talente.dat");
+      Talents.getInstance().loadUserSpells(userDataPath + "Eigene_Zauber.dat");
       Currencies.getInstance().readCurrencies(dirPath + "Waehrungen.dat");
       // Armours.getInstance().loadFile(dirPath + "Ruestungen.dat");
       Armours.getInstance().loadUserDefinedArmours(userDataPath + "Eigene_Ruestungen.dat");

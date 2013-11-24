@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
@@ -46,6 +47,7 @@ import javax.swing.text.NumberFormatter;
 
 import dsa.control.Dice;
 import dsa.gui.dialogs.ProbeDialog;
+import dsa.gui.dialogs.SpellProbeDialog;
 import dsa.gui.lf.Colors;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.table.FormattedTextFieldCellEditor;
@@ -517,8 +519,9 @@ class TalentFrame extends SubFrame implements CharactersObserver,
     public void actionPerformed(ActionEvent e) {
       String talent = (String) mSorter.getValueAt(mButtonClickedRow,
           getNameDummyColumn());
-      ProbeDialog dialog = new ProbeDialog(TalentFrame.this, currentHero,
-          talent);
+      boolean spell = Talents.getInstance().getTalent(talent).isSpell();
+      JDialog dialog = spell ? new SpellProbeDialog(TalentFrame.this, currentHero, talent) 
+        : new ProbeDialog(TalentFrame.this, currentHero, talent);
       dialog.setLocationRelativeTo(TalentFrame.this);
       dialog.setVisible(true);
     };

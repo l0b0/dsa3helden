@@ -1,7 +1,14 @@
+Version 1.9.1
+-------------
+- Es kann in PDF-Formulare neueren Formats gedruckt werden
+- Kälteschutz der Wollhose korrigiert
+- Robusteres Laden von relativen nicht existenten Dateipfaden
+- Unterstützung von Java 7 (neue Versionen der Look & Feels)
+
 Version 1.9.0
 -------------
 - Fenster "Personen" für bekannte SCs und NSCs hinzugefügt
-- Fúr Kleidung Kälteschutz und Behinderung hinzugefügt
+- Für Kleidung Kälteschutz und Behinderung hinzugefügt
 - Option (Hausregel), dass Behinderung pro Kleidungsstück
   gerechnet wird
 - Bugfix: Einstellungs-Defaults für neue Gruppen speichern 

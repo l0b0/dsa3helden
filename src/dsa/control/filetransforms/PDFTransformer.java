@@ -67,7 +67,7 @@ class PDFTransformer extends AbstractFileTransformer {
             // #21 is '!' in pdf
             fieldName = "!" + fieldName.substring(3);
           }
-          else {
+          else if (!fieldName.startsWith("!")) {
             continue; // can't be a tag
           }
           performer.restart();

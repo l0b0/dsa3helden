@@ -57,6 +57,8 @@ public class HelpButtonTitlePane extends JPanel
             dialog = (Dialog)window;
         if(SyntheticaWalnutLookAndFeel.get("Synthetica.rootPane.titlePane.opaque", window) != null)
           setOpaque(SyntheticaWalnutLookAndFeel.getBoolean("Synthetica.rootPane.titlePane.opaque", window));
+        if(!isOpaque() && !SyntheticaLookAndFeel.isWindowOpacityEnabled(window))
+            setDoubleBuffered(false);
         int xGap = 4;
         javax.swing.border.Border titleBorder = BorderFactory.createEmptyBorder(3, 0, 4, 0);
         setLayout(new BoxLayout(this, 2));
@@ -117,6 +119,7 @@ public class HelpButtonTitlePane extends JPanel
             add(Box.createHorizontalStrut(xGap));
         }
         titleLabel = getTitle() == null ? new JLabel("") : new JLabel(" ");
+        titleLabel.setName("RootPane.title");
         titleLabel.setBorder(titleBorder);
         titleLabel.setFont(titleLabel.getFont().deriveFont(1));
         add(titleLabel);
@@ -439,11 +442,27 @@ public class HelpButtonTitlePane extends JPanel
         SynthContext sc = new SynthContext(iFrame, Region.INTERNAL_FRAME_TITLE_PANE, ss, state);
         if(SyntheticaWalnutLookAndFeel.getBoolean("Synthetica.rootPane.titlePane.dropShadow", window) && selected)
         {
+            BufferedImage bufferedimage = new BufferedImage(tw, th, 2);
+            java.awt.Graphics2D graphics2d = bufferedimage.createGraphics();
+            graphics2d.setFont(titleLabel.getFont());
+            graphics2d.drawString(title, 0, fm.getAscent());
+            graphics2d.dispose();
+            DropShadow dropshadow = new DropShadow(bufferedimage);
+            dropshadow.setDistance(SyntheticaLookAndFeel.getInt("Synthetica.rootPane.titlePane.dropShadow.distance", window, -5));
+            dropshadow.setShadowColor(SyntheticaLookAndFeel.getColor("Synthetica.rootPane.titlePane.dropShadow.color", window, dropshadow.getShadowColor()));
+            dropshadow.setQuality(SyntheticaLookAndFeel.getBoolean("Synthetica.rootPane.titlePane.dropShadow.highQuality", window, dropshadow.getHighQuality()));
+            dropshadow.setShadowOpacity((float)SyntheticaLookAndFeel.getInt("Synthetica.rootPane.titlePane.dropShadow.opacity", window, (int)(dropshadow.getShadowOpacity() * 100F)) / 100F);
+            dropshadow.setShadowSize(SyntheticaLookAndFeel.getInt("Synthetica.rootPane.titlePane.dropShadow.size", window, dropshadow.getShadowSize()));
+            int l1 = SyntheticaLookAndFeel.getInt("Synthetica.rootPane.titlePane.dropShadow.xOffset", window, 0);
+            int i2 = SyntheticaLookAndFeel.getInt("Synthetica.rootPane.titlePane.dropShadow.yOffset", window, 0);
+            dropshadow.paintShadow(g, tx + l1, ty + i2);
+        	/*
             BufferedImage image = new BufferedImage(tw, th, 2);
             Graphics g2 = image.createGraphics();
             g2.setFont(titleLabel.getFont());
             g2.drawString(title, 0, fm.getAscent());
             g2.dispose();
+            
             DropShadow ds = new DropShadow(image);
             ds.setDistance(SyntheticaWalnutLookAndFeel.getInt("Synthetica.rootPane.titlePane.dropShadow.distance", window, -5));
             if(SyntheticaWalnutLookAndFeel.getColor("Synthetica.rootPane.titlePane.dropShadow.color", window) != null)
@@ -451,10 +470,26 @@ public class HelpButtonTitlePane extends JPanel
             if(SyntheticaWalnutLookAndFeel.get("Synthetica.rootPane.titlePane.dropShadow.highQuality", window) != null)
                 ds.setQuality(SyntheticaWalnutLookAndFeel.getBoolean("Synthetica.rootPane.titlePane.dropShadow.highQuality", window));
             ds.paintShadow(g, tx, ty);
+            */
         }
+        /*
         g.setColor(ss.getColor(sc, ColorType.FOREGROUND));
         g.setFont(titleLabel.getFont());
         ss.getGraphicsUtils(sc).paintText(sc, g, title, tx, ty, -1);
+        */
+        g.setFont(titleLabel.getFont());
+        if(SyntheticaLookAndFeel.getBoolean("Synthetica.rootPane.titlePane.title.etchedTop", window))
+        {
+            g.setColor(Color.BLACK);
+            ss.getGraphicsUtils(sc).paintText(sc, g, title, tx, ty - 1, -2);
+        }
+        if(SyntheticaLookAndFeel.getBoolean("Synthetica.rootPane.titlePane.title.etchedBottom", window))
+        {
+            g.setColor(Color.WHITE);
+            ss.getGraphicsUtils(sc).paintText(sc, g, title, tx, ty + 1, -2);
+        }
+        g.setColor(ss.getColor(sc, ColorType.FOREGROUND));
+        ss.getGraphicsUtils(sc).paintText(sc, g, title, tx, ty, -2);
     }
 
     private void close()

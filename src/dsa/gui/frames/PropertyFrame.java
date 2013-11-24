@@ -327,6 +327,7 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
     scrollPane.setViewportView(scrolledPanel);
     scrollPane.setOpaque(false);
     scrollPane.getViewport().setOpaque(false);
+    scrollPane.setBorder(null);
 
     // this.setSize(getBounds().width, (nrOfTalents + 1) * 27 +
     // getSubclassSpecificSizeOffset().height);

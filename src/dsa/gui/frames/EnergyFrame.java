@@ -451,6 +451,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     scrollPane.setViewportView(scrolledPanel);
     scrollPane.getViewport().setOpaque(false);
     scrollPane.setOpaque(false);
+    scrollPane.setBorder(null);
 
     JPanel bottomPanel = new JPanel(new java.awt.FlowLayout(
         java.awt.FlowLayout.CENTER, 12, 12));

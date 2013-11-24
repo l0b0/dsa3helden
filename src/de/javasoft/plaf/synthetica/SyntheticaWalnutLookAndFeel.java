@@ -218,9 +218,9 @@ public class SyntheticaWalnutLookAndFeel extends SynthLookAndFeel {
   }
 
   private void reinit() {
-    ((MenuPainter) MenuPainter.getInstance()).reinitialize();
-    ((TreePainter) TreePainter.getInstance()).reinitialize();
-    ((TabbedPanePainter) TabbedPanePainter.getInstance()).reinitialize();
+    MenuPainter.reinitialize();
+    TreePainter.reinitialize();
+    TabbedPanePainter.reinitialize();
   }
 
   private void installSyntheticaDefaults() {

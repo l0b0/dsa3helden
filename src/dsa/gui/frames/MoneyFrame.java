@@ -340,6 +340,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       jContentPane = new JScrollPane(innerPanel);
       jContentPane.setOpaque(false);
       jContentPane.getViewport().setOpaque(false);
+      jContentPane.setBorder(null);
     }
     return jContentPane;
   }

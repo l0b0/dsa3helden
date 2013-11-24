@@ -22,6 +22,7 @@ package dsa.control;
 import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import dsa.gui.frames.ControlFrame;
 import dsa.gui.frames.FrameLayouts;
@@ -119,6 +120,7 @@ public class Main {
       javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
           "Fehler beim Laden der Daten", javax.swing.JOptionPane.ERROR_MESSAGE);
     }
+    
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         createAndShowGUI();
@@ -133,6 +135,11 @@ public class Main {
 
   private static void createAndShowGUI() {
     try {
+      // Synthetica licence
+      String[] li = {"Licensee=Jörg Rüdenauer", "LicenseRegistrationNumber=NCJR110913", "Product=Synthetica", "LicenseType=Non Commercial", "ExpireDate=--.--.----", "MaxVersion=2.999.999"};
+      UIManager.put("Synthetica.license.info", li);
+      UIManager.put("Synthetica.license.key", "6B3713D8-767BE153-5CA73FFD-BB277655-EDA39A83");
+        
       LookAndFeels.setLastLookAndFeel();
       ControlFrame mainFrame = new ControlFrame(startFiles == null);
       mainFrame.setVisible(true);

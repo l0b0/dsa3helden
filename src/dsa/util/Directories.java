@@ -43,16 +43,25 @@ public class Directories {
       return null;
   }
 
-  public static String getAbsolutePath(String relativePath, File f) throws IOException {
+  public static String getAbsolutePath(String relativePath, File f)  {
     if (relativePath == null || relativePath.equals("")) {
       return "";
     }
-    File test = new File(relativePath);
-    if (test.isAbsolute()) return test.getCanonicalPath();
-    if (f.getParentFile() == null) return relativePath;
-    String p1 = f.getParentFile().getCanonicalPath();
-    p1 += File.separator + relativePath;
-    return new File(p1).getCanonicalPath();
+    try {
+	    File test = new File(relativePath);
+	    if (test.isAbsolute()) return test.getCanonicalPath();
+	    if (f.getParentFile() == null) return relativePath;
+    }
+    catch (IOException e) {
+    }
+    try {
+	    String p1 = f.getParentFile().getCanonicalPath();
+	    p1 += File.separator + relativePath;
+	    return new File(p1).getCanonicalPath();
+    }
+    catch (IOException e) {
+    	return relativePath;
+    }
   }
 
   public static String getRelativePath(String absolutePath, File f) throws IOException {

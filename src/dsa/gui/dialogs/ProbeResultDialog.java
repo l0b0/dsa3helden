@@ -19,6 +19,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
@@ -51,9 +52,25 @@ public class ProbeResultDialog extends BGDialog {
 		dialog.setVisible(true);
 	}
 
+	public static void showDialog(Frame parent, String message, String title, ImageIcon icon)
+	{
+		ProbeResultDialog dialog = new ProbeResultDialog(parent, icon);
+		dialog.setTitle(title);
+		dialog.setText(message);
+		dialog.setVisible(true);
+	}
+
 	public static void showDialog(Dialog parent, String message, String title)
 	{
 		ProbeResultDialog dialog = new ProbeResultDialog(parent);
+		dialog.setTitle(title);
+		dialog.setText(message);
+		dialog.setVisible(true);
+	}
+
+	public static void showDialog(Dialog parent, String message, String title, ImageIcon icon)
+	{
+		ProbeResultDialog dialog = new ProbeResultDialog(parent, icon);
 		dialog.setTitle(title);
 		dialog.setText(message);
 		dialog.setVisible(true);
@@ -73,14 +90,27 @@ public class ProbeResultDialog extends BGDialog {
 		initialize();
 	}
 	
+	public ProbeResultDialog(Frame parent, ImageIcon icon) {
+		super(parent);
+		this.icon = icon;
+		initialize();
+	}
+	
 	public ProbeResultDialog(Dialog parent) {
 		super(parent);
+		initialize();
+	}
+
+	public ProbeResultDialog(Dialog parent, ImageIcon icon) {
+		super(parent);
+		this.icon = icon;
 		initialize();
 	}
 
 	private String text = "";
 	private JScrollPane jScrollPane = null;
 	private JLabel textLabel = null;
+	private ImageIcon icon = null;
 	
 	public void setText(String text)
 	{
@@ -119,19 +149,24 @@ public class ProbeResultDialog extends BGDialog {
 			jLabel2 = new JLabel();
 			jLabel2.setText("JLabel");
 			jLabel2.setPreferredSize(new Dimension(5, 5));
-			jLabel1 = new JLabel();
-			jLabel1.setText("");
-			jLabel1.setPreferredSize(new Dimension(5, 5));
 			jLabel = new JLabel();
 			jLabel.setPreferredSize(new Dimension(5, 5));
 			jContentPane = new JPanel();
 			jContentPane.setLayout(new BorderLayout());
 			jContentPane.setSize(new Dimension(277, 178));
 			jContentPane.add(jLabel, BorderLayout.NORTH);
-			jContentPane.add(jLabel1, BorderLayout.WEST);
 			jContentPane.add(jLabel2, BorderLayout.EAST);
 			jContentPane.add(getJPanel(), BorderLayout.SOUTH);
 			jContentPane.add(getJPanel1(), BorderLayout.CENTER);
+			if (icon != null) {
+				jContentPane.add(getIconPanel(), BorderLayout.WEST);
+			}
+			else {
+				jLabel1 = new JLabel();
+				jLabel1.setText("");
+				jLabel1.setPreferredSize(new Dimension(5, 5));
+				jContentPane.add(jLabel1, BorderLayout.WEST);				
+			}
 		}
 		return jContentPane;
 	}
@@ -168,6 +203,19 @@ public class ProbeResultDialog extends BGDialog {
 			jPanel1.add(getJScrollPane(), BorderLayout.CENTER);
 		}
 		return jPanel1;
+	}
+	
+	private JPanel iconPanel;
+	private JLabel iconLabel;
+	
+	private JPanel getIconPanel() {
+		if (iconPanel == null) {
+			iconPanel = new JPanel();
+			iconPanel.setLayout(new BorderLayout());
+			iconLabel = new JLabel(icon);
+			iconPanel.add(iconLabel, BorderLayout.NORTH);
+		}
+		return iconPanel;
 	}
 
 	/**

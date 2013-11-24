@@ -1,3 +1,10 @@
+Version 1.8.4
+-------------
+- Ergebnisse der Aktionen im Fenster "Kampf (Spieler)" können in die
+  Zwischenablage kopiert werden
+- Visuelles Feedback beim Steigern von Talenten, Eigenschaften und
+  Zaubern
+
 Version 1.8.3
 -------------
 - Regeneration kann für alle Helden in der Gruppe gleichzeitig gemacht

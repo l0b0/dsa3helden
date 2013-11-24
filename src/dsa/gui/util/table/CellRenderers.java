@@ -37,11 +37,12 @@ public final class CellRenderers {
     boolean shallBeOpaque(int column);
     boolean shallBeGray(int row, int column);
     Color getForeground(int row, int column);
+    Color getBackground(int row, int column);
   }
   
-  private static final class GreyingCellRenderer extends DefaultTableCellRenderer {
+  private static class GreyingCellRenderer extends DefaultTableCellRenderer {
     
-    private ColourSelector mCallbacks;
+    protected ColourSelector mCallbacks;
     
     private static final Color BACKGROUND_GRAY = new Color(238, 238, 238);
     
@@ -59,6 +60,22 @@ public final class CellRenderers {
       ((JComponent) comp).setOpaque(isSelected || mCallbacks.shallBeOpaque(column));
       return comp;
     }
+  }
+  
+  private static final class ColouringCellRenderer extends GreyingCellRenderer {
+	  public ColouringCellRenderer(ColourSelector selector) {
+		  super(selector);
+	  }
+	  
+	    public Component getTableCellRendererComponent(JTable table, Object value,
+	            boolean isSelected, boolean hasFocus, int row, int column) {
+	          Component comp = super.getTableCellRendererComponent(table, value,
+	              isSelected, hasFocus, row, column);
+	          Color background = mCallbacks.getBackground(row, column);
+	          if (background != null)
+	        	  comp.setBackground(background);
+	          return comp;
+	    }	  
   }
 
   private static final class NormalCellRenderer extends DefaultTableCellRenderer {
@@ -107,6 +124,10 @@ public final class CellRenderers {
     return new GreyingCellRenderer(selector);
   }
   
+  public static DefaultTableCellRenderer createColouringCellRenderer(ColourSelector selector) {
+	return new ColouringCellRenderer(selector);
+  }
+	  
   public static TableCellRenderer createNormalCellRenderer() {
     return new NormalCellRenderer();
   }

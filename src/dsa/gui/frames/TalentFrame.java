@@ -28,6 +28,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -37,6 +38,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -143,6 +145,13 @@ class TalentFrame extends SubFrame implements CharactersObserver,
     if (!currentHero.hasTalent(talentName)) return Color.BLACK;
     int value = currentHero.getCurrentTalentValue(talentName);
     return (value == 0) ? Color.BLACK : (value > 0 ? Color.GREEN : Color.RED);
+  }
+  
+  private HashMap<String, Color> backgrounds = new HashMap<String, Color>();
+  
+  public Color getBackground(int row, int column) {
+	  String name = (String) mSorter.getValueAt(row, getNameDummyColumn());
+	  return backgrounds.containsKey(name) ? backgrounds.get(name) : null; 
   }
   
   public boolean shallBeOpaque(int column) {
@@ -348,12 +357,12 @@ class TalentFrame extends SubFrame implements CharactersObserver,
         new NumberFormatter(NumberFormat.getIntegerInstance()), this);
     numberEditor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
     numberEditor.addCellEditorListener(new TalentChanger());
-    DefaultTableCellRenderer greyingRenderer = CellRenderers.createGreyingCellRenderer(this);
-    greyingRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+    DefaultTableCellRenderer colouringRenderer = CellRenderers.createColouringCellRenderer(this);
+    colouringRenderer.setHorizontalAlignment(SwingConstants.CENTER);
     tcm.addColumn(new javax.swing.table.TableColumn(getDefaultValueColumn(),
-        25, greyingRenderer, numberEditor));
+        25, colouringRenderer, numberEditor));
     tcm.addColumn(new javax.swing.table.TableColumn(getCurrentValueColumn(),
-        25, greyingRenderer, numberEditor));
+        25, colouringRenderer, numberEditor));
     JToggleButton lockButton = TableButtonInput.createToggleButton(ImageManager.getIcon("locked"));
     mLockButtons = TableButtonInput.createButtonCellRenderer(lockButton,
         new DefaultTableCellRenderer());
@@ -538,7 +547,7 @@ class TalentFrame extends SubFrame implements CharactersObserver,
     };
   };
 
-  protected void tryTalentIncrease(String talent) {
+  protected void tryTalentIncrease(final String talent) {
     Hero hero = TalentFrame.this.currentHero;
     if (hero == null) return;
     if (!hero.hasTalent(talent)) {
@@ -561,14 +570,30 @@ class TalentFrame extends SubFrame implements CharactersObserver,
     int currentValue = hero.getDefaultTalentValue(talent);
     int diceThrow = Dice.roll(6) + Dice.roll(6);
     if (currentValue > 9) diceThrow += Dice.roll(6);
+    boolean success = diceThrow > currentValue;
     if (((Boolean) mSorter.getValueAt(mButtonClickedRow, getLockColumn()))
         .booleanValue()
         || Group.getInstance().getGlobalUnlock()) {
-      if (diceThrow > currentValue) hero.changeTalentValue(talent, 1);
+      if (success) {
+    	  hero.changeTalentValue(talent, 1);
+      }
     }
     else {
-      hero.removeTalentIncreaseTry(talent, diceThrow > currentValue);
+      hero.removeTalentIncreaseTry(talent, success);
     }
+    backgrounds.put(talent, success ? Color.GREEN : Color.RED);
+    final int row = mButtonClickedRow;
+    mTable.repaint(mTable.getCellRect(row, getDefaultValueColumn(), true));
+    mTable.repaint(mTable.getCellRect(row, getCurrentValueColumn(), true));
+    Timer timer = new Timer(250, new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		backgrounds.remove(talent);
+    	    mTable.repaint(mTable.getCellRect(row, getDefaultValueColumn(), true));
+    	    mTable.repaint(mTable.getCellRect(row, getCurrentValueColumn(), true));
+    	}
+    });
+    timer.setRepeats(false);
+    timer.start();
   }
 
   private class Increaser implements ActionListener {

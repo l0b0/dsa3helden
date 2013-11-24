@@ -44,6 +44,7 @@ import javax.swing.event.DocumentListener;
 import dsa.control.Dice;
 import dsa.control.Fighting;
 import dsa.control.Markers;
+import dsa.gui.dialogs.ProbeResultDialog;
 import dsa.gui.dialogs.WeaponsSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.dialogs.fighting.ProjectileAttackDialog;
@@ -1024,8 +1025,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           s += "Trefferpunkte: " + tp;
         }
         ImageIcon icon = ImageManager.getIcon(weapon1 ? "attack1" : "attack2");
-        JOptionPane.showMessageDialog(this, s, "Attacke",
-            JOptionPane.PLAIN_MESSAGE, icon);
+        ProbeResultDialog.showDialog(this, s, "Attacke", icon);
       }
     }
     catch (NumberFormatException e) {
@@ -1066,8 +1066,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         s += "Qualität: " + q + "\n";
         s += calcWeaponlessTP(atRoll == 1, q);
         ImageIcon icon = ImageManager.getIcon("attack1");
-        JOptionPane.showMessageDialog(this, s, "Attacke",
-            JOptionPane.PLAIN_MESSAGE, icon);
+        ProbeResultDialog.showDialog(this, s, "Attacke", icon);
       }
     }
     catch (NumberFormatException e) {
@@ -1190,8 +1189,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     else
       s += "Daneben.";
-    JOptionPane
-        .showMessageDialog(this, s, "Attacke", JOptionPane.PLAIN_MESSAGE);
+    ProbeResultDialog.showDialog(this, s, "Attacke");
   }
 
   /**
@@ -1257,20 +1255,21 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       return 0;
     }
     else if (d == 1) {
-      JOptionPane.showMessageDialog(this, "Mit einer 1 perfekt pariert!",
-          "Parade", JOptionPane.PLAIN_MESSAGE, icon);
+    	ProbeResultDialog.showDialog(this, "Mit einer 1 perfekt pariert!",
+          "Parade", icon);
       return (paValue - q - Markers.getMarkers(currentHero)) / 2;
     }
     else if (d <= paValue - q - Markers.getMarkers(currentHero)) {
-      JOptionPane.showMessageDialog(this, "Mit einer " + d + " pariert.",
-          "Parade", JOptionPane.PLAIN_MESSAGE, icon);
+    	ProbeResultDialog.showDialog(this, "Mit einer " + d + " pariert.",
+          "Parade", icon);
       return 0;
     }
     else {
+      ProbeResultDialog.showDialog(this, "Mit einer " + d + " nicht pariert.",
+			"Parade", icon);
       int tp = -1;
       while (tp < 0) {
-        Object temp = JOptionPane.showInputDialog(this, "Mit einer " + d
-            + " nicht pariert. Trefferpunkte:", "Parade",
+        Object temp = JOptionPane.showInputDialog(this, "Trefferpunkte:", "Parade",
             JOptionPane.PLAIN_MESSAGE, icon, null, "");
         if (temp == null) return 0;
         String text = temp.toString();
@@ -1298,17 +1297,17 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     if (d == 2) {
       int r = Dice.roll(20);
       if (r <= currentHero.getCurrentProperty(Property.KK) - 7) {
-        JOptionPane
-            .showMessageDialog(
+        ProbeResultDialog
+            .showDialog(
                 this,
                 "Patzer! Beinahe die Waffe verloren, aber der Rettungswurf ist geglückt.",
-                "Patzer", JOptionPane.PLAIN_MESSAGE);
+                "Patzer");
       }
       else {
-        JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
+    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
             + " verliert "
             + (currentHero.getSex().startsWith("m") ? "seine" : "ihre")
-            + " Waffe!", "Patzer", JOptionPane.PLAIN_MESSAGE);
+            + " Waffe!", "Patzer");
         int bfRoll = Dice.roll(6) + Dice.roll(6);
         String weapon = weapon1 ? hand1Box.getSelectedItem().toString()
             : hand2Box.getSelectedItem().toString();
@@ -1340,8 +1339,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
               bf1Label.setText("" + bf);
             else
               bf2Label.setText("" + bf);
-            JOptionPane.showMessageDialog(this, "Die Waffe bleibt ganz.",
-                "Patzer", JOptionPane.PLAIN_MESSAGE);
+            ProbeResultDialog.showDialog(this, "Die Waffe bleibt ganz.",
+                "Patzer");
           }
         }
       }
@@ -1350,25 +1349,24 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       int r = Dice.roll(20);
       if (r <= currentHero.getCurrentProperty(Property.KK) - 7
           - Markers.getMarkers(currentHero)) {
-        JOptionPane
-            .showMessageDialog(
+    	  ProbeResultDialog.showDialog(
                 this,
                 "Patzer! Beinahe die Waffe verloren, aber der Rettungswurf ist geglückt.",
-                "Patzer", JOptionPane.PLAIN_MESSAGE);
+                "Patzer");
       }
       else {
-        JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
+    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
             + " verliert "
             + (currentHero.getSex().startsWith("m") ? "seine" : "ihre")
-            + " Waffe!", "Patzer", JOptionPane.PLAIN_MESSAGE);
+            + " Waffe!", "Patzer");
       }
     }
     else if (d <= 5) {
       int bfRoll = Dice.roll(6) + Dice.roll(6);
       String weapon = weapon1 ? hand1Box.getSelectedItem().toString()
           : hand2Box.getSelectedItem().toString();
-      JOptionPane.showMessageDialog(this, "Patzer! Die Waffe ist beschädigt.",
-          "Patzer", JOptionPane.PLAIN_MESSAGE);
+      ProbeResultDialog.showDialog(this, "Patzer! Die Waffe ist beschädigt.",
+          "Patzer");
       int bf = 0;
       if (weapon1 || !mode.equals("Waffe + Parade, separat")) {
         bf = currentHero.getBF(weapon, 1);
@@ -1391,8 +1389,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           bf1Label.setText("" + bf);
         else
           bf2Label.setText("" + bf);
-        JOptionPane.showMessageDialog(this, "Die Waffe bleibt ganz.", "Patzer",
-            JOptionPane.PLAIN_MESSAGE);
+        ProbeResultDialog.showDialog(this, "Die Waffe bleibt ganz.", "Patzer");
       }
     }
     else if (d <= 8) {
@@ -1406,13 +1403,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-        JOptionPane.showMessageDialog(this, "Patzer! Beinahe wäre "
-            + currentHero.getName() + " gestolpert.", "Parade",
-            JOptionPane.PLAIN_MESSAGE);
+    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe wäre "
+            + currentHero.getName() + " gestolpert.", "Parade");
       }
       else {
-        JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
-            + " stolpert!", "Patzer", JOptionPane.PLAIN_MESSAGE);
+    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
+            + " stolpert!", "Patzer");
         currentHero.setHasStumbled(true);
       }
     }
@@ -1427,13 +1423,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-        JOptionPane.showMessageDialog(this, "Patzer! Beinahe wäre "
-            + currentHero.getName() + " gestürzt.", "Parade",
-            JOptionPane.PLAIN_MESSAGE);
+    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe wäre "
+            + currentHero.getName() + " gestürzt.", "Patzer");
       }
       else {
-        JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
-            + " stürzt!", "Patzer", JOptionPane.PLAIN_MESSAGE);
+    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
+            + " stürzt!", "Patzer");
         currentHero.setGrounded(true);
         groundBox.setSelected(true);
       }
@@ -1449,16 +1444,15 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-        JOptionPane.showMessageDialog(this, "Patzer! Beinahe hätte "
-            + currentHero.getName() + " sich selbst verletzt.", "Parade",
-            JOptionPane.PLAIN_MESSAGE);
+    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe hätte "
+            + currentHero.getName() + " sich selbst verletzt.", "Patzer");
       }
       else {
         ImageIcon icon = ImageManager.getIcon("hit");
         int damage = Dice.roll(6);
-        JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
+        ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
             + " verletzt sich selbst!\n" + damage + " Schadenspunkte.",
-            "Patzer", JOptionPane.PLAIN_MESSAGE, icon);
+            "Patzer", icon);
         doHit(damage + currentHero.getRS());
       }
     }
@@ -1473,16 +1467,16 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-        JOptionPane.showMessageDialog(this, "Patzer! Beinahe hätte "
+    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe hätte "
             + currentHero.getName() + " sich selbst schwer verletzt.",
-            "Parade", JOptionPane.PLAIN_MESSAGE);
+            "Patzer");
       }
       else {
         ImageIcon icon = ImageManager.getIcon("hit");
         int damage = Dice.roll(6) + Dice.roll(6);
-        JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
+        ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
             + " verletzt sich selbst schwer!\n" + damage + " Schadenspunkte.",
-            "Patzer", JOptionPane.PLAIN_MESSAGE, icon);
+            "Patzer", icon);
         doHit(damage + currentHero.getRS());
       }
     }
@@ -1491,8 +1485,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private void breakWeapon(boolean weapon1) {
     String weapon = weapon1 ? hand1Box.getSelectedItem().toString() : hand2Box
         .getSelectedItem().toString();
-    JOptionPane.showMessageDialog(this, "Die Waffe zerbricht!", "Patzer",
-        JOptionPane.PLAIN_MESSAGE);
+    ProbeResultDialog.showDialog(this, "Die Waffe zerbricht!", "Patzer");
     String mode = modeBox.getSelectedItem().toString();
     if (!weapon1 && !mode.equals("Zwei Waffen")) {
       currentHero.removeShield(weapon);
@@ -1743,18 +1736,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       doFumble(true);
     }
     else if (d == 1) {
-      JOptionPane.showMessageDialog(this, "Mit einer 1 perfekt ausgewichen!",
-          "Ausweichen", JOptionPane.PLAIN_MESSAGE, icon);
+      ProbeResultDialog.showDialog(this, "Mit einer 1 perfekt ausgewichen!",
+          "Ausweichen", icon);
     }
     else if (d <= aw + b - q - be - Markers.getMarkers(currentHero)) {
-      JOptionPane.showMessageDialog(this, "Mit einer " + d + " ausgewichen.",
-          "Ausweichen", JOptionPane.PLAIN_MESSAGE, icon);
+    	ProbeResultDialog.showDialog(this, "Mit einer " + d + " ausgewichen.",
+          "Ausweichen", icon);
     }
     else {
+      ProbeResultDialog.showDialog(this, "Mit einer " + d + " nicht ausgewichen.",
+    		  "Ausweichen", icon);
       int tp = -1;
       while (tp < 0) {
-        Object temp = JOptionPane.showInputDialog(this, "Mit einer " + d
-            + " nicht ausgewichen. Trefferpunkte:", "Ausweichen",
+        Object temp = JOptionPane.showInputDialog(this, "Trefferpunkte:", "Ausweichen",
             JOptionPane.PLAIN_MESSAGE, icon, null, "");
         if (temp == null) return;
         String text = temp.toString();

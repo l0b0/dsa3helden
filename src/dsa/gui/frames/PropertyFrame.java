@@ -42,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.Timer;
 import javax.swing.text.NumberFormatter;
 
 import dsa.control.HeroStepIncreaser;
@@ -431,15 +432,36 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
       if (hero == null) return;
       boolean goodProperty = property.ordinal() <= Property.KK.ordinal();
       HeroStepIncreaser increaser = new HeroStepIncreaser(hero);
+      boolean success = false;
       if (goodProperty) {
-        increaser.tryToIncreaseGoodProperty(property);
+        success = increaser.tryToIncreaseGoodProperty(property);
       }
       else {
-        increaser.tryToDecreaseBadProperty(property);
+        success = increaser.tryToDecreaseBadProperty(property);
       }
       if (!lock.isSelected() && !Group.getInstance().getGlobalUnlock()) {
         hero.removePropertyChangeTry(goodProperty);
       }
+      
+      int index = 0;
+      while (index < properties.size() && properties.get(index) != property)
+    	  ++index;
+      if (index >= defaultValues.size())
+    	  return;
+      
+      final int displayIndex = index;
+      final Color oldColor = defaultValues.get(displayIndex).getBackground();
+      Color color = success ? Color.GREEN : Color.RED;
+      defaultValues.get(displayIndex).setBackground(color);
+      currentValues.get(displayIndex).setBackground(color);
+      Timer timer = new Timer(250, new ActionListener() {
+    	  public void actionPerformed(ActionEvent e) {
+    		 defaultValues.get(displayIndex).setBackground(oldColor);
+    		 currentValues.get(displayIndex).setBackground(oldColor);
+    	  }
+      });
+      timer.setRepeats(false);
+      timer.start();
       updateData();
     }
 

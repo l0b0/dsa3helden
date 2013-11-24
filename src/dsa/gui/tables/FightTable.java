@@ -161,6 +161,10 @@ public final class FightTable
     public Color getForeground(int row, int column) {
       return Color.BLACK;
     }
+    
+    public Color getBackground(int row, int column) {
+      return null;
+    }
   }
 
   public FightTable(Client client) {

@@ -103,6 +103,7 @@ abstract class AbstractPrinter implements Printer {
       table.addItem("APminus" + app, ((step * (step + 1) * 50) - character.getAP()));
       table.addItem("titel" + app, character.getTitle());
       table.addItem("haut" + app, character.getSkin());
+      table.addItem("SO" + app, character.getSO());
     }
     else {
       table.addItem("name" + app, "");
@@ -126,7 +127,8 @@ abstract class AbstractPrinter implements Printer {
       table.addItem("nst" + app, "");
       table.addItem("APminus" + app, "");
       table.addItem("titel" + app, "");
-      table.addItem("haut" + app, "");      
+      table.addItem("haut" + app, "");    
+      table.addItem("SO" + app, "");
     }
   }
 
@@ -166,13 +168,18 @@ abstract class AbstractPrinter implements Printer {
       table.addItem("ke" + app, character.getDefaultEnergy(Energy.KE));
       table.addItem("ko" + app, character.getDefaultEnergy(Energy.KO));
       table.addItem("aus" + app, character.getDefaultEnergy(Energy.AU));
+      String ake = "";
+      if (character.hasEnergy(Energy.KE)) ake = "" + character.getDefaultEnergy(Energy.KE);
+      else if (character.hasEnergy(Energy.AE)) ake = "" + character.getDefaultEnergy(Energy.AE);
+      table.addItem("ake" + app, ake);
     }
     else {
       table.addItem("le" + app, "");
       table.addItem("ae" + app, "");
       table.addItem("ke" + app, "");
       table.addItem("ko" + app, "");
-      table.addItem("aus" + app, "");      
+      table.addItem("aus" + app, ""); 
+      table.addItem("ake" + app, "");
     }
   }
 
@@ -270,7 +277,7 @@ abstract class AbstractPrinter implements Printer {
       Adventure[] adventures = character.getAdventures();
       for (Adventure adventure : adventures) {
         table.addItem("Abenteuer", adventure.getName(), true);
-        table.addItem("AbtAP", adventure.getAp(), true);
+        table.addItem("AbtAP", adventure.getAP(), true);
       }
       if (adventures.length == 0) {
         table.addItem("Abenteuer", "");

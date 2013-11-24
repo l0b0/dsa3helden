@@ -113,6 +113,11 @@ public class Main {
       }
     });
   }
+  
+  public static void exit(int retCode)
+  {
+    System.exit(retCode);
+  }
 
   private static void createAndShowGUI() {
     try {

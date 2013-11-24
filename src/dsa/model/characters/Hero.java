@@ -446,5 +446,13 @@ public interface Hero extends Printable, Fighter {
   
   void removeAdventure(int index);
   
+  void moveAdventureUp(int index);
+  
+  void moveAdventureDown(int index);
+  
   Adventure[] getAdventures();
+  
+  int getSO();
+  
+  void setSO(int so);
 }

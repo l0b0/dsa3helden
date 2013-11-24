@@ -213,7 +213,7 @@ public final class ErrorHandlingDialog extends BGDialog {
       quitButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           ErrorHandlingDialog.this.dispose();
-          System.exit(1);
+          dsa.control.Main.exit(1);
         }
       });
     }

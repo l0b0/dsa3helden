@@ -52,6 +52,12 @@ import dsa.model.characters.Hero;
 import dsa.model.data.CharacterType;
 import dsa.model.data.CharacterTypes;
 import dsa.model.data.Looks;
+import javax.swing.JPanel;
+import java.awt.Rectangle;
+import javax.swing.BorderFactory;
+import javax.swing.border.TitledBorder;
+import javax.swing.border.EtchedBorder;
+import java.lang.Integer;
 
 /**
  * 
@@ -170,7 +176,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
    */
   private void initialize() {
     this.setTitle("Grunddaten");
-    // this.setSize(new java.awt.Dimension(739,313));
+    // this.setSize(new Dimension(569, 398));
     this.setContentPane(getJContentPane());
   }
 
@@ -182,11 +188,11 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private javax.swing.JPanel getJContentPane() {
     if (jContentPane == null) {
       jLabel13 = new JLabel();
-      jLabel13.setBounds(new java.awt.Rectangle(16, 191, 103, 15));
       jLabel13.setText("Titel:");
+      jLabel13.setBounds(new Rectangle(10, 40, 103, 15));
       jLabel12 = new JLabel();
-      jLabel12.setBounds(new java.awt.Rectangle(320, 103, 112, 15));
       jLabel12.setText("Hautfarbe:");
+      jLabel12.setBounds(new Rectangle(10, 60, 112, 15));
       jLabel11 = new JLabel();
       jLabel10 = new JLabel();
       jLabel9 = new JLabel();
@@ -201,68 +207,34 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       jLabel = new JLabel();
       jContentPane = new javax.swing.JPanel();
       jContentPane.setLayout(null);
-      jLabel.setBounds(16, 15, 96, 16);
       jLabel.setText("Name:");
-      jLabel1.setBounds(16, 37, 96, 16);
+      jLabel.setBounds(new Rectangle(10, 20, 96, 16));
       jLabel1.setText("Typ:");
-      jLabel2.setBounds(16, 59, 96, 16);
+      jLabel1.setBounds(new Rectangle(10, 40, 96, 16));
       jLabel2.setText("Geschlecht:");
-      jLabel3.setBounds(16, 81, 96, 16);
+      jLabel2.setBounds(new Rectangle(320, 20, 111, 16));
       jLabel3.setText("Gottheit:");
-      jLabel4.setBounds(16, 103, 109, 16);
+      jLabel3.setBounds(new Rectangle(10, 20, 96, 16));
       jLabel4.setText("Stand der Eltern:");
-      jLabel5.setBounds(16, 169, 96, 16);
+      jLabel4.setBounds(new Rectangle(10, 60, 109, 16));
       jLabel5.setText("Geburtsort:");
+      jLabel5.setBounds(new Rectangle(10, 40, 96, 16));
       jLabel6.setText("Geburtstag:");
-      jLabel6.setLocation(16, 147);
-      jLabel6.setSize(110, 16);
+      jLabel6.setBounds(new Rectangle(10, 20, 110, 16));
       jLabel7.setText("Alter (Jahre):");
-      jLabel7.setLocation(320, 147);
-      jLabel7.setSize(110, 16);
+      jLabel7.setBounds(new Rectangle(320, 20, 110, 16));
       jLabel8.setText("Größe (Halbfinger):");
-      jLabel8.setLocation(320, 59);
-      jLabel8.setSize(125, 16);
+      jLabel8.setBounds(new Rectangle(320, 40, 121, 16));
       jLabel9.setText("Gewicht (Stein):");
-      jLabel9.setSize(110, 16);
-      jLabel9.setLocation(320, 81);
+      jLabel9.setBounds(new Rectangle(320, 60, 110, 16));
       jLabel10.setText("Haarfarbe:");
-      jLabel10.setLocation(16, 125);
-      jLabel10.setSize(110, 16);
+      jLabel10.setBounds(new Rectangle(10, 20, 111, 16));
       jLabel11.setText("Augenfarbe:");
-      jLabel11.setLocation(320, 125);
-      jLabel11.setSize(110, 16);
-      jContentPane.add(jLabel, null);
-      jContentPane.add(jLabel1, null);
-      jContentPane.add(jLabel2, null);
-      jContentPane.add(jLabel3, null);
-      jContentPane.add(jLabel4, null);
-      jContentPane.add(jLabel5, null);
-      jContentPane.add(getNameField(), null);
-      jContentPane.add(jLabel6, null);
-      jContentPane.add(jLabel7, null);
-      jContentPane.add(getSexCombo(), null);
-      jContentPane.add(getTypeField(), null);
-      jContentPane.add(getGodBox(), null);
-      jContentPane.add(getStandCombo(), null);
-      jContentPane.add(getBirthplaceField(), null);
-      jContentPane.add(getNameButton(), null);
-      jContentPane.add(getBirthPlaceButton(), null);
-      jContentPane.add(jLabel8, null);
-      jContentPane.add(jLabel9, null);
-      jContentPane.add(jLabel10, null);
-      jContentPane.add(jLabel11, null);
-      jContentPane.add(getBirthdayField(), null);
-      jContentPane.add(getAgeSpinner(), null);
-      jContentPane.add(getHeightSpinner(), null);
-      jContentPane.add(getWeightSpinner(), null);
-      jContentPane.add(getHairField(), null);
-      jContentPane.add(getEyeCombo(), null);
-      jContentPane.add(getBirthdayButton(), null);
-      jContentPane.add(jLabel12, null);
-      jContentPane.add(getSkinField(), null);
-      jContentPane.add(jLabel13, null);
-      jContentPane.add(getTitleField(), null);
-      jContentPane.add(getHairButton(), null);
+      jLabel11.setBounds(new Rectangle(10, 40, 110, 16));
+      jContentPane.add(getJPanel(), null);
+      jContentPane.add(getJPanel1(), null);
+      jContentPane.add(getJPanel2(), null);
+      jContentPane.add(getJPanel3(), null);
     }
     return jContentPane;
   }
@@ -275,7 +247,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getNameField() {
     if (nameField == null) {
       nameField = new JTextField();
-      nameField.setBounds(135, 15, 310, 16);
+      nameField.setBounds(new Rectangle(125, 20, 310, 16));
       nameField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           if (PhysFrame.this.disableChanges) return;
@@ -307,7 +279,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JComboBox getSexCombo() {
     if (sexCombo == null) {
       sexCombo = new JComboBox();
-      sexCombo.setBounds(135, 59, 128, 16);
+      sexCombo.setBounds(new Rectangle(445, 20, 86, 16));
       sexCombo.addItem("weiblich");
       sexCombo.addItem("männlich");
       sexCombo.addActionListener(new ActionListener() {
@@ -330,7 +302,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getTypeField() {
     if (typeField == null) {
       typeField = new JTextField();
-      typeField.setBounds(135, 37, 310, 16);
+      typeField.setBounds(new Rectangle(125, 40, 310, 16));
       typeField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           updateType();
@@ -366,8 +338,8 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JComboBox getGodBox() {
     if (godBox == null) {
       godBox = new JComboBox();
-      godBox.setBounds(135, 81, 128, 16);
       godBox.setEditable(true);
+      godBox.setBounds(new Rectangle(125, 20, 131, 16));
       for (God god : God.values())
         godBox.addItem(god.toString());
       godBox.addActionListener(new ActionListener() {
@@ -392,7 +364,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JComboBox getStandCombo() {
     if (standCombo == null) {
       standCombo = new JComboBox();
-      standCombo.setBounds(135, 103, 169, 16);
+      standCombo.setBounds(new Rectangle(125, 60, 176, 16));
       standCombo.addPopupMenuListener(new PopupMenuListener() {
         public void popupMenuCanceled(PopupMenuEvent e) {
         }
@@ -432,7 +404,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getBirthplaceField() {
     if (birthPlaceField == null) {
       birthPlaceField = new JTextField();
-      birthPlaceField.setBounds(135, 169, 310, 16);
+      birthPlaceField.setBounds(new Rectangle(125, 40, 310, 16));
       birthPlaceField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           if (PhysFrame.this.disableChanges) return;
@@ -467,8 +439,8 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JButton getNameButton() {
     if (nameButton == null) {
       nameButton = new JButton();
-      nameButton.setBounds(455, 15, 36, 16);
       nameButton.setText("...");
+      nameButton.setBounds(new Rectangle(445, 20, 36, 16));
       nameButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectName();
@@ -499,8 +471,8 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JButton getBirthPlaceButton() {
     if (birthPlaceButton == null) {
       birthPlaceButton = new JButton();
-      birthPlaceButton.setBounds(455, 169, 36, 16);
       birthPlaceButton.setText("...");
+      birthPlaceButton.setBounds(new Rectangle(445, 40, 36, 16));
       birthPlaceButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectBirthPlace();
@@ -526,8 +498,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getBirthdayField() {
     if (birthDayField == null) {
       birthDayField = new JTextField();
-      birthDayField.setSize(128, 16);
-      birthDayField.setLocation(135, 147);
+      birthDayField.setBounds(new Rectangle(125, 20, 128, 16));
     }
     return birthDayField;
   }
@@ -540,8 +511,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JSpinner getAgeSpinner() {
     if (ageSpinner == null) {
       ageSpinner = new JSpinner();
-      ageSpinner.setSize(57, 16);
-      ageSpinner.setLocation(455, 147);
+      ageSpinner.setBounds(new Rectangle(445, 20, 57, 16));
       ageSpinner.setModel(getSpinnerNumberModel());
       ageSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent evt) {
@@ -577,8 +547,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JSpinner getHeightSpinner() {
     if (heightSpinner == null) {
       heightSpinner = new JSpinner();
-      heightSpinner.setSize(57, 16);
-      heightSpinner.setLocation(455, 59);
+      heightSpinner.setBounds(new Rectangle(445, 40, 57, 16));
       heightSpinner.setModel(getSpinnerNumberModel1());
       heightSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent evt) {
@@ -613,8 +582,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JSpinner getWeightSpinner() {
     if (weightSpinner == null) {
       weightSpinner = new JSpinner();
-      weightSpinner.setLocation(455, 81);
-      weightSpinner.setSize(57, 16);
+      weightSpinner.setBounds(new Rectangle(445, 60, 57, 16));
       weightSpinner.setModel(getSpinnerNumberModel2());
       weightSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent evt) {
@@ -649,8 +617,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getHairField() {
     if (hairField == null) {
       hairField = new JTextField();
-      hairField.setSize(128, 16);
-      hairField.setLocation(135, 125);
+      hairField.setBounds(new Rectangle(125, 20, 131, 16));
       hairField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           if (PhysFrame.this.disableChanges) return;
@@ -679,7 +646,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JButton getHairButton() {
     if (hairButton == null) {
       hairButton = new JButton("...");
-      hairButton.setBounds(268, 125, 36, 16);
+      hairButton.setBounds(new Rectangle(270, 20, 36, 16));
       hairButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectHair();
@@ -712,7 +679,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       }
       menu.add(subMenu);
     }
-    menu.getPopupMenu().show(jContentPane, 268, 125 + 16);
+    menu.getPopupMenu().show(jPanel, 270, 20 + 16);
   }
 
   /**
@@ -723,8 +690,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JComboBox getEyeCombo() {
     if (eyeCombo == null) {
       eyeCombo = new JComboBox();
-      eyeCombo.setSize(128, 16);
-      eyeCombo.setLocation(455, 125);
+      eyeCombo.setBounds(new Rectangle(125, 40, 131, 16));
       eyeCombo.addPopupMenuListener(new PopupMenuListener() {
         public void popupMenuCanceled(PopupMenuEvent e) {
         }
@@ -824,6 +790,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getEyeCombo().setSelectedItem(currentHero.getEyeColor());
       getTitleField().setText(currentHero.getTitle());
       getSkinField().setText(currentHero.getSkin());
+      getSoSpinner().getModel().setValue(currentHero.getSO());
     }
     else {
       getNameField().setText("");
@@ -840,6 +807,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getEyeCombo().setSelectedItem("");
       getTitleField().setText("");
       getSkinField().setText("");
+      getSoSpinner().getModel().setValue(8);
     }
     getStandCombo().setEnabled(hasHero);
     getNameField().setEnabled(hasHero);
@@ -859,6 +827,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     getHairField().setEditable(hasHero);
     getNameButton().setEnabled(hasHero);
     getTypeField().setEnabled(hasHero);
+    getSoSpinner().setEnabled(hasHero);
 
     getBirthdayField().setEnabled(hasHero);
     getBirthdayField().setEditable(false);
@@ -897,6 +866,18 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
 
   private JTextField titleField = null;
 
+  private JPanel jPanel = null;
+
+  private JPanel jPanel1 = null;
+
+  private JLabel jLabel14 = null;
+
+  private JPanel jPanel2 = null;
+
+  private JSpinner soSpinner = null;
+
+  private JPanel jPanel3 = null;
+
   /**
    * This method initializes jButton2
    * 
@@ -906,8 +887,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     if (birthdayButton == null) {
       birthdayButton = new JButton();
       birthdayButton.setText("...");
-      birthdayButton.setSize(36, 16);
-      birthdayButton.setLocation(268, 147);
+      birthdayButton.setBounds(new Rectangle(265, 20, 36, 16));
       birthdayButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectBirthday();
@@ -937,7 +917,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getSkinField() {
     if (skinField == null) {
       skinField = new JTextField();
-      skinField.setBounds(new java.awt.Rectangle(455, 103, 128, 16));
+      skinField.setBounds(new Rectangle(125, 60, 131, 16));
       skinField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           if (PhysFrame.this.disableChanges) return;
@@ -969,7 +949,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JTextField getTitleField() {
     if (titleField == null) {
       titleField = new JTextField();
-      titleField.setBounds(new java.awt.Rectangle(135, 191, 310, 16));
+      titleField.setBounds(new Rectangle(125, 40, 310, 16));
       titleField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           if (PhysFrame.this.disableChanges) return;
@@ -991,5 +971,128 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       });
     }
     return titleField;
+  }
+
+  /**
+   * This method initializes jPanel	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getJPanel() {
+    if (jPanel == null) {
+      jPanel = new JPanel();
+      jPanel.setLayout(null);
+      jPanel.setBounds(new Rectangle(10, 90, 541, 91));
+      jPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Aussehen", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel.add(jLabel2, null);
+      jPanel.add(getSexCombo(), null);
+      jPanel.add(jLabel8, null);
+      jPanel.add(getHeightSpinner(), null);
+      jPanel.add(jLabel10, null);
+      jPanel.add(getHairField(), null);
+      jPanel.add(getHairButton(), null);
+      jPanel.add(jLabel9, null);
+      jPanel.add(getWeightSpinner(), null);
+      jPanel.add(jLabel12, null);
+      jPanel.add(getSkinField(), null);
+      jPanel.add(jLabel11, null);
+      jPanel.add(getEyeCombo(), null);
+    }
+    return jPanel;
+  }
+
+  /**
+   * This method initializes jPanel1	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getJPanel1() {
+    if (jPanel1 == null) {
+      jLabel14 = new JLabel();
+      jLabel14.setBounds(new Rectangle(320, 20, 116, 16));
+      jLabel14.setText("Sozialstatus:");
+      jPanel1 = new JPanel();
+      jPanel1.setLayout(null);
+      jPanel1.setBounds(new Rectangle(10, 190, 541, 71));
+      jPanel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Gesellschaft", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel1.add(jLabel13, null);
+      jPanel1.add(getTitleField(), null);
+      jPanel1.add(jLabel3, null);
+      jPanel1.add(getGodBox(), null);
+      jPanel1.add(jLabel14, null);
+      jPanel1.add(getSoSpinner(), null);
+    }
+    return jPanel1;
+  }
+
+  /**
+   * This method initializes jPanel2	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getJPanel2() {
+    if (jPanel2 == null) {
+      jPanel2 = new JPanel();
+      jPanel2.setLayout(null);
+      jPanel2.setBounds(new Rectangle(10, 270, 541, 91));
+      jPanel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Geburt", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel2.add(jLabel6, null);
+      jPanel2.add(getBirthdayField(), null);
+      jPanel2.add(getBirthdayButton(), null);
+      jPanel2.add(jLabel7, null);
+      jPanel2.add(getAgeSpinner(), null);
+      jPanel2.add(jLabel5, null);
+      jPanel2.add(getBirthplaceField(), null);
+      jPanel2.add(jLabel4, null);
+      jPanel2.add(getStandCombo(), null);
+      jPanel2.add(getBirthPlaceButton(), null);
+    }
+    return jPanel2;
+  }
+
+  /**
+   * This method initializes soSpinner	
+   * 	
+   * @return javax.swing.JSpinner	
+   */
+  private JSpinner getSoSpinner() {
+    if (soSpinner == null) {
+      SpinnerNumberModel spinnerNumberModel3 = new SpinnerNumberModel();
+      spinnerNumberModel3.setMinimum(Integer.valueOf(0));
+      spinnerNumberModel3.setMaximum(Integer.valueOf(21));
+      spinnerNumberModel3.setStepSize(Integer.valueOf(1));
+      soSpinner = new JSpinner();
+      soSpinner.setBounds(new Rectangle(443, 20, 58, 16));
+      soSpinner.setModel(spinnerNumberModel3);
+      soSpinner.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent evt) {
+          if (PhysFrame.this.disableChanges) return;
+          if (PhysFrame.this.currentHero == null) return;
+          PhysFrame.this.currentHero.setSO(
+              ((Integer)getSoSpinner().getModel().getValue()).intValue());
+        }
+      });
+    }
+    return soSpinner;
+  }
+
+  /**
+   * This method initializes jPanel3	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getJPanel3() {
+    if (jPanel3 == null) {
+      jPanel3 = new JPanel();
+      jPanel3.setLayout(null);
+      jPanel3.setBounds(new Rectangle(10, 10, 541, 71));
+      jPanel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Allgemein", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel3.add(jLabel, null);
+      jPanel3.add(getNameField(), null);
+      jPanel3.add(jLabel1, null);
+      jPanel3.add(getTypeField(), null);
+      jPanel3.add(getNameButton(), null);
+    }
+    return jPanel3;
   }
 } // @jve:decl-index=0:visual-constraint="18,8"

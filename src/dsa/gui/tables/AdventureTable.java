@@ -178,10 +178,19 @@ public class AdventureTable extends AbstractTable implements
     return (Integer) mSorter.getValueAt(row, getIndexColumn());
   }
   
+  public void selectItemWithIndex(int index) {
+    for (int row = 0; row < mTable.getRowCount(); ++row) {
+      if (((Integer)mSorter.getValueAt(row, getIndexColumn())).intValue() == index) {
+        setSelectedRow(row);
+        break;
+      }
+    }
+  }
+  
   public void addAdventure(Adventure adventure) {
     Object[] rowData = new Object[3];
     rowData[getNameColumn()] = adventure.getName();
-    rowData[getAPColumn()] = adventure.getAp();
+    rowData[getAPColumn()] = adventure.getAP();
     rowData[getIndexColumn()] = adventure.getIndex();
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);

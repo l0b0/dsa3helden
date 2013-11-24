@@ -1077,7 +1077,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static final int FILE_VERSION = 44;
+  private static final int FILE_VERSION = 45;
 
   /*
    * (non-Javadoc)
@@ -1264,6 +1264,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println(magicDilletant ? "1" : "0");
       // version 44
       printAdventures(file);
+      // version 45
+      file.println(so);
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1390,7 +1392,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     file.println(adventures.size());
     for (Adventure adventure : adventures) {
       file.println(adventure.getName());
-      file.println(adventure.getAp());
+      file.println(adventure.getAP());
       adventure.setChanged(false);
     }
   }
@@ -1796,6 +1798,13 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     if (version > 43) {
       lineNr = readAdventures(file, lineNr);
     }
+    if (version > 44) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      so = parseInt(line, lineNr);
+    }
+    else so = 8;
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -4244,8 +4253,46 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   }
 
   public void removeAdventure(int index) {
+    if (index >= adventures.size()) return;
     adventures.remove(index);
+    for (int i = index; i < adventures.size(); ++i) {
+      adventures.get(i).setIndex(i);
+    }
     changed = true;
+  }
+  
+  public void moveAdventureUp(int index) {
+    if (index >= adventures.size()) return;
+    if (index == 0) return;
+    Adventure adv = adventures.get(index);
+    adventures.remove(index);
+    adventures.get(index - 1).setIndex(index);
+    adv.setIndex(index - 1);
+    adventures.add(index - 1, adv);
+    changed = true;
+  }
+  
+  public void moveAdventureDown(int index) {
+    if (index + 1 >= adventures.size()) return;
+    Adventure adv = adventures.get(index);
+    adventures.remove(index);
+    adventures.get(index).setIndex(index);
+    adv.setIndex(index + 1);
+    adventures.add(index + 1, adv);
+    changed = true;
+  }
+  
+  private int so = 8;
+
+  public int getSO() {
+    return so;
+  }
+
+  public void setSO(int so) {
+    if (so != this.so) {
+      this.so = so;
+      changed = true;
+    }
   }
   
 }

@@ -115,7 +115,10 @@ public final class ChangeLogDialog extends BGDialog {
       downloadButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           dispose();
-          OnlineOperations.downloadSetup((JFrame)ChangeLogDialog.this.getParent(), version);
+          java.awt.Container parent = ChangeLogDialog.this.getParent();
+          if (parent instanceof JFrame) {
+            OnlineOperations.downloadSetup((JFrame)parent, version);
+          }
         }
       });
     }

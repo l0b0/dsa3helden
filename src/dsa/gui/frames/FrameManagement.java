@@ -151,7 +151,7 @@ public class FrameManagement {
 
   private static final class ApplicationCloser implements Runnable {
     public void run() {
-      System.exit(0);
+      dsa.control.Main.exit(0);
     }
   }
 

@@ -1,3 +1,11 @@
+Version 1.5.5
+-------------
+- Fenster "Grunddaten" optisch überarbeitet
+- Sozialstatus hinzugefügt
+- Neue Drucktags: !SO und !ake
+- Abenteuer lassen sich umsortieren
+- Heldentypen aus FHI hinzugefügt
+
 Version 1.5.4
 -------------
 - Bei der AE-Regeneration wird der Bonus separat aufgeführt

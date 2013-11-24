@@ -253,6 +253,8 @@ public final class StepFrame extends SubFrame
       jPanel2.setPreferredSize(new Dimension(70, 100));
       jPanel2.add(getAddAdventureButton(), null);
       jPanel2.add(getRemoveAdventureButton(), null);
+      jPanel2.add(getAdventureUpButton(), null);
+      jPanel2.add(getAdventureDownButton(), null);
     }
     return jPanel2;
   }
@@ -336,7 +338,7 @@ public final class StepFrame extends SubFrame
       switch (JOptionPane.showConfirmDialog(this, "Auch die AP entfernen?", "Abenteuer entfernen", 
           JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE)) {
       case JOptionPane.YES_OPTION:
-        currentHero.changeAP(-currentHero.getAdventures()[index].getAp());
+        currentHero.changeAP(-currentHero.getAdventures()[index].getAP());
         break;
       case JOptionPane.NO_OPTION:
         break;
@@ -348,6 +350,58 @@ public final class StepFrame extends SubFrame
       removeAdventureButton.setEnabled(currentHero.getAdventures().length > 0);
       updateData();
     }
+  }
+  
+  private JButton adventureUpButton;
+  
+  private JButton getAdventureUpButton() {
+    if (adventureUpButton == null) {
+      adventureUpButton = new JButton();
+      adventureUpButton.setToolTipText("Nach oben schieben");
+      adventureUpButton.setIcon(dsa.gui.util.ImageManager.getIcon("up"));
+      adventureUpButton.setBounds(new Rectangle(10, 60, 51, 21));
+      adventureUpButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          adventureUp();
+        }
+      });
+    }
+    return adventureUpButton;
+  }
+  
+  private void adventureUp() {
+    int index = adventureTable.getSelectedItemIndex();
+    if (index > 0) {
+      currentHero.moveAdventureUp(index);
+      updateData();
+      adventureTable.selectItemWithIndex(index - 1);
+    }
+  }
+
+  private JButton adventureDownButton;
+  
+  private JButton getAdventureDownButton() {
+    if (adventureDownButton == null) {
+      adventureDownButton = new JButton();
+      adventureDownButton.setToolTipText("Nach unten schieben");
+      adventureDownButton.setIcon(dsa.gui.util.ImageManager.getIcon("down"));
+      adventureDownButton.setBounds(new Rectangle(10, 90, 51, 21));
+      adventureDownButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          adventureDown();
+        }
+      });
+    }
+    return adventureDownButton;
+  }
+  
+  private void adventureDown() {
+    int index = adventureTable.getSelectedItemIndex();
+    if (index + 1 < currentHero.getAdventures().length) {
+      currentHero.moveAdventureDown(index);
+      updateData();
+      adventureTable.selectItemWithIndex(index + 1);
+    }    
   }
 
   /**
@@ -451,7 +505,7 @@ public final class StepFrame extends SubFrame
     Adventure[] adventures = currentHero.getAdventures();
     for (Adventure adventure : adventures) {
       if (adventure.getName().equals(name)) {
-        adventure.setAp(adventure.getAp() + ap);
+        adventure.setAP(adventure.getAP() + ap);
         return;
       }
     }
@@ -672,7 +726,7 @@ public final class StepFrame extends SubFrame
   }
 
   public void changeAP(int index, int ap) {
-    currentHero.getAdventures()[index].setAp(ap);
+    currentHero.getAdventures()[index].setAP(ap);
   }
 
   public void changeName(int index, String newName) {

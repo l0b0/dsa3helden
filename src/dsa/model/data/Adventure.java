@@ -29,6 +29,12 @@ public class Adventure {
   public int getIndex() {
     return index;
   }
+  
+  public void setIndex(int newIndex) {
+    if (index == newIndex) return;
+    index = newIndex;
+    changed = true;
+  }
 
   public Adventure(int index, String name, int ap) {
     this.name = name;
@@ -37,11 +43,11 @@ public class Adventure {
     changed = false;
   }
 
-  public int getAp() {
+  public int getAP() {
     return ap;
   }
 
-  public void setAp(int ap) {
+  public void setAP(int ap) {
     if (this.ap == ap) return;
     this.ap = ap;
     changed = true;

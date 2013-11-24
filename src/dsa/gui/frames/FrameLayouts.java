@@ -24,9 +24,11 @@ import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -89,13 +91,6 @@ public class FrameLayouts {
         SubFrame frame = (SubFrame) c;
         frames.add(frame.getTitle());
         bounds.add(frame.getBounds());
-      }
-    }
-    
-    public void discardBounds() {
-      bounds.clear();
-      for (String frame : frames) {
-        bounds.add(SubFrame.getSavedFrameBounds(frame));
       }
     }
     
@@ -318,7 +313,7 @@ public class FrameLayouts {
     File file = new File(fileName);
     if (!file.exists()) return;
     
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
     try {
       String title = in.readLine();
       while (title != null && !"".equals(title)) {
@@ -338,11 +333,15 @@ public class FrameLayouts {
     
   }
   
-  public void readFromFile(String filename/*, boolean secondStart*/) throws IOException {
+  public void readFromFile(String filename/*, boolean secondStart*/, boolean useNativeEncoding) throws IOException {
     layouts.clear();
     File file = new File(filename);
     if (!file.exists()) return;
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = null;
+    if (useNativeEncoding)
+    	in = new BufferedReader(new FileReader(file));
+    else
+    	in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
     try {
       String line = in.readLine();
       testEmpty(line);

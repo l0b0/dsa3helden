@@ -103,8 +103,14 @@ public class DataFactoryImpl extends DataFactory {
    */
   public Hero createHeroFromFile(File file) throws IOException {
     HeroImpl hero = new HeroImpl();
-    hero.readFromFile(file);
+    hero.readFromFile(file, false);
     return hero;
+  }
+  
+  public Hero createHeroFromPrototypeFile(File file) throws java.io.IOException {
+	HeroImpl hero = new HeroImpl();
+	hero.readFromFile(file, true);
+	return hero;
   }
   
   private static String getStringDiff(String first, String second)

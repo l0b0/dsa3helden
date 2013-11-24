@@ -542,7 +542,13 @@ public final class ControlFrame extends SubFrame
       Preferences prefs = Preferences
           .userNodeForPackage(dsa.gui.PackageID.class);
       if (hero != null) {
-        prefs.putInt(hero.getName() + "_AnimalFrameCount", animalFrames.size());
+    	String name = hero.getName();
+    	String keyExt = "_AnimalFrameCount";
+    	if (name.length() + keyExt.length() > Preferences.MAX_KEY_LENGTH)
+    	{
+    		name = name.substring(0, Preferences.MAX_KEY_LENGTH - keyExt.length());
+    	}
+        prefs.putInt(name + keyExt, animalFrames.size());
         int nr = 0;
         for (String animal : animalFrames.keySet()) {
           int index = -1;
@@ -552,7 +558,7 @@ public final class ControlFrame extends SubFrame
               break;
             }
           }
-          prefs.putInt(hero.getName() + "_AnimalFrame_" + nr, index);
+          prefs.putInt(name + "_AnimalFrame_" + nr, index);
           ++nr;
         }
       }
@@ -605,10 +611,16 @@ public final class ControlFrame extends SubFrame
     if (openFrames) {
       Preferences prefs = Preferences
           .userNodeForPackage(dsa.gui.PackageID.class);
+      String name = hero.getName();
+	  String keyExt = "_AnimalFrameCount";
+	  if (name.length() + keyExt.length() > Preferences.MAX_KEY_LENGTH)
+	  {
+		name = name.substring(0, Preferences.MAX_KEY_LENGTH - keyExt.length());
+	  }
       int nrOfOpenFrames = prefs
-          .getInt(hero.getName() + "_AnimalFrameCount", 0);
+          .getInt(name + "_AnimalFrameCount", 0);
       for (int i = 0; i < nrOfOpenFrames; ++i) {
-        int index = prefs.getInt(hero.getName() + "_AnimalFrame_" + i, -1);
+        int index = prefs.getInt(name + "_AnimalFrame_" + i, -1);
         if (index != -1) {
           editAnimal(index, false);
         }

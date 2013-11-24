@@ -22,9 +22,11 @@ package dsa.model.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.ArrayList;
@@ -101,7 +103,7 @@ public class Weapons {
 
   private static String[] sCategories = { "Raufen", "Boxen", "Hruruzat",
       "Ringen", "Äxte und Beile", "Dolche", "Infanteriewaffen", "Linkshändig",
-      "Kettenwaffen", "Peitschen", "Scharfe Hiebwaffen", "Schwerter",
+      "Kettenwaffen", "Peitsche", "Scharfe Hiebwaffen", "Schwerter",
       "Speere und Stäbe", "Stichwaffen", "Stumpfe Hiebwaffen", "Zweihänder",
       "Lanzenreiten", "Schußwaffen", "Wurfwaffen", "Schleuder" };
 
@@ -208,7 +210,7 @@ public class Weapons {
     for (int i = 0; i < weapons.size(); ++i) {
       weapons.get(i).clear();
     }
-    BufferedReader in = new BufferedReader(new FileReader(filename));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO-8859-1"));;
     try {
       int lineNr = 0;
       String line = in.readLine();

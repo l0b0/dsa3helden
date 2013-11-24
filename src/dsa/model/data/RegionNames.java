@@ -21,8 +21,9 @@ package dsa.model.data;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class RegionNames {
@@ -87,7 +88,7 @@ public class RegionNames {
     nobleLastNames.clear();
     String fileName = file.getName();
     region = fileName.substring(0, fileName.indexOf('.'));
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));;
     try {
       ArrayList<String> current = lastNames;
       String line = in.readLine();

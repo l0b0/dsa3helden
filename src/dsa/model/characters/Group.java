@@ -21,9 +21,12 @@ package dsa.model.characters;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -246,10 +249,10 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     return changed || options.isChanged() || opponents.wasChanged();
   }
   
-  private static final int GROUP_VERSION = 7;
+  private static final int GROUP_VERSION = 8;
 
   public void writeToFile(java.io.File f) throws java.io.IOException {
-    PrintWriter file = new PrintWriter(new FileWriter(f));
+    PrintWriter file = new PrintWriter(new OutputStreamWriter(new FileOutputStream(f), "ISO-8859-1"));
     try {
       file.println(GROUP_VERSION); // version
       for (String path : filePaths) {
@@ -292,6 +295,11 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     }
     catch (NumberFormatException e) {
       throw new IOException("Dateiformat falsch");
+    }
+    if (version > 7) {
+    	file.close();
+    	file = new BufferedReader(new InputStreamReader(new FileInputStream(f), "ISO-8859-1"));
+    	file.readLine();
     }
     line = file.readLine();
     testEmpty(line);
@@ -359,7 +367,15 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     }
     opponents = new Opponents();
     if (version >= 5) {
-      opponents.readFromFile(file, f.getName(), true);
+      line = file.readLine();
+      testEmpty(line);
+      try {
+    	  int opponentsVersion = Integer.parseInt(line);
+    	  opponents.readFromFile(file, opponentsVersion, f.getName(), true);
+      }
+      catch (NumberFormatException e) {
+    	  throw new IOException("Falsche Gegner-Version in " + f.getName());
+      }
     }
     date = new Date(1, Date.Month.Praios, 17, Date.Era.nach, Date.Event.Hal);
     if (version >= 6) {

@@ -195,7 +195,7 @@ public class OnlineOperations {
         try {
           URL url = new URL(urlS);
           BufferedReader in = new BufferedReader(new InputStreamReader(url
-              .openStream()));
+              .openStream(), "ISO-8859-1"));
           try {
             StringBuffer sb = new StringBuffer();
             String line = in.readLine();

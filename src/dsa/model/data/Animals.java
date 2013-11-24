@@ -21,8 +21,9 @@ package dsa.model.data;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -168,7 +169,7 @@ public class Animals {
   private void readFile(File file) throws IOException {
     lineNr = 0;
     fileName = file.getName();
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
     try {
       String line = in.readLine();
       lineNr++;

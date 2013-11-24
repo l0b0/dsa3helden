@@ -104,9 +104,9 @@ public class Main {
       Shields.getInstance().readUserDefinedFile(
           userDataPath + "Eigene_Parade.dat");
       FrameLayouts layouts = FrameLayouts.getInstance();
-      layouts.readFromFile(FrameLayouts.getDefaultLayoutsFilename());
+      layouts.readFromFile(FrameLayouts.getDefaultLayoutsFilename(), true);
       if (layouts.getStoredLayouts().length == 0) {
-        layouts.readFromFile(FrameLayouts.getOldLayoutsFilename());
+        layouts.readFromFile(FrameLayouts.getOldLayoutsFilename(), false);
       }
       if (layouts.getStoredLayouts().length == 0) {
         layouts.readDefaultLayouts(dirPath + "StandardLayouts.dat");

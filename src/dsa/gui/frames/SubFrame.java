@@ -26,9 +26,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import java.util.prefs.BackingStoreException;
@@ -62,10 +63,10 @@ public abstract class SubFrame extends JFrame
           + File.separator + "allframebounds_"
           + dsa.control.Version.getCurrentVersionString() + ".dat");
       if (file.exists()) {
-        out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
+        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "ISO-8859-1")));
       }
       else {
-        out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO-8859-1")));
       }
       String line = getTitle() + ";" + r.x + ";" + r.y + ";" + r.width + ";"
           + r.height;

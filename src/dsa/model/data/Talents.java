@@ -24,9 +24,11 @@ import static dsa.model.characters.Property.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -120,7 +122,7 @@ public class Talents {
   }
 
   public void loadFightingTalents(String fileName) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1"));
     try {
       String line = in.readLine();
       int lineNr = 1;
@@ -161,7 +163,7 @@ public class Talents {
   }
 
   public void loadLanguages(String fileName) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1"));
     try {
       String line = in.readLine();
       int lineNr = 1;
@@ -284,7 +286,7 @@ public class Talents {
   public void loadUserSpells(String fileName) throws IOException {
     File file = new File(fileName);
     if (!file.exists()) return;
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = new BufferedReader(new FileReader(fileName));
     try {
       int lineNr = 0;
       String line = in.readLine();
@@ -374,7 +376,7 @@ public class Talents {
     attributes.put("FF", FF);
     attributes.put("GE", GE);
     attributes.put("KK", KK);
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1"));
     try {
       String line = in.readLine();
       int lineNr = 1;
@@ -493,7 +495,7 @@ public class Talents {
   // }
 
   public void readFavorites(String fileName) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+	BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1"));
     try {
       String line = in.readLine();
       LinkedList<Talent> favorites = new LinkedList<Talent>();

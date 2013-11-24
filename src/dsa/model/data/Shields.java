@@ -22,9 +22,11 @@ package dsa.model.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,7 +100,13 @@ public class Shields {
     int lineNr = 0;
     File file = new File(fileName);
     if (!file.exists()) return;
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = null;
+    if (userDefined) {
+    	in = new BufferedReader(new FileReader(file));
+    }
+    else {
+    	in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
+    }
     try {
       String line = in.readLine();
       lineNr++;
@@ -143,7 +151,7 @@ public class Shields {
           String line = s.getName() + ";" + s.getPaMod() + ";" + s.getPaMod2()
               + ";" + s.getAtMod() + ";" + s.getBeMod() + ";" + s.getFkMod()
               + ";" + s.getBF() + ";" + s.getWeight() + ";" + s.getWorth()
-              + ";" + s.isSingular();
+              + ";" + (s.isSingular() ? 1 : 0);
           out.println(line);
         }
       }

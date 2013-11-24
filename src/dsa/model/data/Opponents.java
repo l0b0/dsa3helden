@@ -22,9 +22,13 @@ package dsa.model.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.HashMap;
@@ -103,25 +107,31 @@ public class Opponents {
       File file = new File(filename);
       if (!file.exists()) return;
     }
-    BufferedReader in = new BufferedReader(new FileReader(filename));
+    BufferedReader in = null;
+    if (userDefined) {
+    	in = new BufferedReader(new FileReader(filename));
+    }
+    else {
+    	in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO-8859-1"));
+    }
     try {
-      readFromFile(in, filename, userDefined);
+      String line = in.readLine();
+      int version = 1;
+      try {
+        version = Integer.parseInt(line);
+      }
+      catch (NumberFormatException e) {
+        throw new IOException("Falsche Version in " + filename);
+      }
+      readFromFile(in, version, filename, userDefined);
     }
     finally {
       if (in != null) in.close();
     }
   }
   
-  public void readFromFile(BufferedReader in, String filename, boolean userDefined) throws IOException {
+  public void readFromFile(BufferedReader in, int version, String filename, boolean userDefined) throws IOException {
     String line = in.readLine();
-    int version = 1;
-    try {
-      version = Integer.parseInt(line);
-    }
-    catch (NumberFormatException e) {
-      throw new IOException("Falsche Version in " + filename);
-    }
-    line = in.readLine();
     while (line != null && !line.equals("-- End Opponents --")) {
       try {
         Opponent o = Opponent.createOpponent(line, version, userDefined);
@@ -136,12 +146,14 @@ public class Opponents {
     changed = false;    
   }
   
-  public void writeToFile(String fileName) throws IOException {
-    writeToFile(fileName, false);
-  }
-  
   public void writeToFile(String fileName, boolean onlyUserDefined) throws IOException {
-    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+    PrintWriter out = null;
+    if (onlyUserDefined) {
+    	out = new PrintWriter(new FileWriter(fileName));
+    }
+    else {
+    	out = new PrintWriter(new BufferedWriter(new OutputStreamWriter( new FileOutputStream(fileName), "ISO-8859-1")));
+    }
     try {
       writeToFile(out, onlyUserDefined);
       out.flush();
@@ -156,7 +168,7 @@ public class Opponents {
   }
   
   public void writeToFile(PrintWriter out, boolean onlyUserDefined) throws IOException {
-    final int VERSION = 7;
+    final int VERSION = 8;
     out.println(VERSION);
     for (Opponent o : opponents.values()) {
       if (!onlyUserDefined || o.isUserDefined()) {

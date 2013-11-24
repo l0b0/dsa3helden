@@ -20,8 +20,9 @@
 package dsa.model.data;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
@@ -185,7 +186,7 @@ public class Tradezones {
  }
   
   public void readFile(String filename) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(filename));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO-8859-1"));;
     int lineNr = 1;
     String line = in.readLine();
     testEmpty(line);

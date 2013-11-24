@@ -49,7 +49,7 @@ public class SpellStartValues {
     public TypeSpellStarts(File file) throws IOException {
       startValues = new HashMap<String, Integer>();
       increases = new HashMap<String, Integer>();
-      BufferedReader in = new BufferedReader(new FileReader(file));
+      BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
       try {
         int lineNr = 0;
         // ignore first 3 lines

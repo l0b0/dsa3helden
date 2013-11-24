@@ -137,6 +137,7 @@ public final class ProjectileAttackDialog extends BGDialog {
   
   private void saveValues(FarRangedFightParams params1) {
     params1.setDistance(((Number)distanceSpinner.getValue()).intValue());
+    this.distance = params1.getDistance();
     params1.setSize(sizeBox.getSelectedIndex());
     params1.setMovement(movementBox.getSelectedIndex());
     params1.setSight(sightBox.getSelectedIndex());

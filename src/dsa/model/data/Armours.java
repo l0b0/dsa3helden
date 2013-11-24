@@ -22,9 +22,11 @@ package dsa.model.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.TreeMap;
 
@@ -92,7 +94,13 @@ public class Armours {
   }
   
   private void internalLoadFile(String filename, boolean userDefined) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(filename));
+    BufferedReader in = null;
+    if (userDefined) {
+    	in = new BufferedReader(new FileReader(filename));
+    }
+    else {
+    	in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO-8859-1"));;
+    }
     try {
       int lineNr = 0;
       String line = in.readLine();

@@ -9,9 +9,11 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
@@ -202,10 +204,10 @@ public final class GroupOperations {
   }
 
   private static void copyFile(File first, File second) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(first));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(first), "ISO-8859-1"));
     try {
-      PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
-          second)));
+      PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
+          second), "ISO-8859-1")));
       try {
         String s = in.readLine();
         while (s != null) {

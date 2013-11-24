@@ -196,18 +196,9 @@ public final class TableButtonInput {
   }
   
   private static class PretenderButton extends JButton implements FocusPretender {
-    public PretenderButton() {
-      super();
-      mPretendFocus = false;
-    }
     
     public PretenderButton(ImageIcon icon) {
       super(icon);
-      mPretendFocus = false;
-    }
-    
-    public PretenderButton(String text) {
-      super(text);
       mPretendFocus = false;
     }
     
@@ -230,18 +221,12 @@ public final class TableButtonInput {
   }  
 
   private static class PretenderToggleButton extends JToggleButton implements FocusPretender {
-    public PretenderToggleButton() {
-      super();
-      mPretend = false;
-    }
+
     public PretenderToggleButton(ImageIcon icon) {
       super(icon);
       mPretend = false;
     }
-    public PretenderToggleButton(String text) {
-      super(text);
-      mPretend = false;
-    }
+
     public void pretendFocus(boolean pretend) {
       mPretend = pretend;
     }

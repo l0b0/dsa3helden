@@ -273,7 +273,7 @@ public class WeaponsTable extends AbstractTable implements
     setSelectedRow(mModel.getRowCount() - 1);
   }
 
-  @SuppressWarnings("unchecked")
+  // @SuppressWarnings("unchecked")
   public void setWeaponCount(String item, int count) {
     /*if (!hasCount) return;
     for (int i = 0; i < mModel.getRowCount(); ++i) {

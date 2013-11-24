@@ -21,8 +21,9 @@ package dsa.model.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,7 +54,7 @@ public class WiegeImporter {
 
   public static HeroImpl importFromWiege(File file) throws IOException {
     HeroImpl hero = new HeroImpl();
-    BufferedReader in = new BufferedReader(new FileReader(file));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));;
     int /* temprs = 0, tempbe = 0, */tempmu = hero.getDefaultProperty(MU), tempge = hero
         .getDefaultProperty(GE);
     int tempkl = hero.getDefaultProperty(KL), tempch = hero

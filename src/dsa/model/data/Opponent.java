@@ -463,9 +463,11 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     if (this.nrOfAttacks != nrOfAttacks) {
       this.nrOfAttacks = nrOfAttacks;
       ArrayList<String> newWeapons = new ArrayList<String>();
-      for (int i = 0; i < nrOfAttacks; ++i) {
-        int index = (i >= usedWeapons.size()) ? 0 : i;
-        newWeapons.add(usedWeapons.get(index));
+      if (usedWeapons.size() > 0) {
+	      for (int i = 0; i < nrOfAttacks; ++i) {
+	        int index = (i >= usedWeapons.size()) ? 0 : i;
+	        newWeapons.add(usedWeapons.get(index));
+	      }
       }
       usedWeapons = newWeapons;
       changed = true;

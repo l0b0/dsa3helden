@@ -1,3 +1,13 @@
+Version 1.8.1
+-------------
+- Bugfix für Peitschen
+- Bessere Unterstützung von Unicode-Dateisystemen
+- Bugfix für selbst definierte Paradehilfen
+- Bugfix für kleinen Fehler beim Anlegen eigener Gegner
+- Bugfix für kleinen Fehler bei extrem langen Heldennamen
+- Bugfix bzgl. Reichweiten-TP-Ermittlung bei Fernkampfangriffen
+- Korrektur einiger Werte von Fernkampfwaffen gemäß QVAT
+
 Version 1.8.0
 -------------
 - selbst angelegte Gegenstände können Einzelstücke sein

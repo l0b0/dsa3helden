@@ -22,9 +22,11 @@ package dsa.model.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -114,7 +116,7 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
   }
 
   public void loadFile(String fileName) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1"));;
     try {
       int lineNr = 0;
       String line = in.readLine();

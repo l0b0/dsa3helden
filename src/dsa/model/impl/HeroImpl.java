@@ -20,8 +20,13 @@
 package dsa.model.impl;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -1076,7 +1081,7 @@ public final class HeroImpl extends AbstractThingCarrier
     changed = true;
   }
 
-  private static final int FILE_VERSION = 48;
+  private static final int FILE_VERSION = 49;
 
   /*
    * (non-Javadoc)
@@ -1084,7 +1089,7 @@ public final class HeroImpl extends AbstractThingCarrier
    * @see dsa.data.Hero#StoreToFile(java.io.File)
    */
   public void storeToFile(File f, File realFile) throws IOException {
-    PrintWriter file = new PrintWriter(new java.io.FileWriter(f));
+    PrintWriter file = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "ISO-8859-1")));
     try {
       file.println(FILE_VERSION); // version
       file.println(name);
@@ -1390,7 +1395,7 @@ public final class HeroImpl extends AbstractThingCarrier
   }
   
   public void storeThingsToFile(File f) throws IOException  {
-    PrintWriter file = new PrintWriter(new java.io.FileWriter(f));
+    PrintWriter file = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "ISO-8859-1")));
     try {
       file.println(FILE_VERSION);
       file.println("___Ausruestung___");
@@ -1428,6 +1433,11 @@ public final class HeroImpl extends AbstractThingCarrier
       String line = file.readLine();
       testEmpty(line);
       int version = parseInt(line, lineNr);
+      if (version > 48) {
+    	  file.close();
+    	  file = new BufferedReader(new InputStreamReader(new FileInputStream(f), "ISO-8859-1"));
+    	  file.readLine();
+      }
       line = file.readLine(); // "___Ausruestung___"
       if ((thingTypes & THINGS) != 0) {
         clearThings();
@@ -1524,12 +1534,28 @@ public final class HeroImpl extends AbstractThingCarrier
     }
   }
 
-  public void readFromFile(File f) throws IOException {
-    BufferedReader file = new BufferedReader(new java.io.FileReader(f));
+  public void readFromFile(File f, boolean forceEncoding) throws IOException {
+    BufferedReader file = null;
     int lineNr = 0;
-    String line = file.readLine();
-    testEmpty(line);
-    int version = parseInt(line, lineNr);
+    String line = null;
+    int version = 0;
+    if (!forceEncoding) {
+    	file = new BufferedReader(new java.io.FileReader(f));
+        line = file.readLine();
+        testEmpty(line);
+        version = parseInt(line, lineNr);
+        if (version > 48) {
+        	file.close();
+        	file = new BufferedReader(new InputStreamReader(new FileInputStream(f), "ISO-8859-1"));
+        	file.readLine();
+        }
+    }
+    else {
+    	file = new BufferedReader(new InputStreamReader(new FileInputStream(f), "ISO-8859-1"));
+    	line = file.readLine();
+    	testEmpty(line);
+    	version = parseInt(line, lineNr);
+    }
     loadedNewerVersion =  (version > FILE_VERSION);
     lineNr++;
     line = file.readLine();

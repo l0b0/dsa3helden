@@ -20,8 +20,9 @@
 package dsa.model.data;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collections;
 
 public class Looks {
@@ -178,7 +179,7 @@ public class Looks {
   public void readEyeColors(String name) throws IOException {
     fileName = name;
     eyeColors.clear();
-    BufferedReader in = new BufferedReader(new FileReader(name));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(name), "ISO-8859-1"));;
     try {
       String line = in.readLine();
       while (line != null) {
@@ -195,7 +196,7 @@ public class Looks {
     fileName = name;
     hairColors.clear();
     hairCategories.clear();
-    BufferedReader in = new BufferedReader(new FileReader(name));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(name), "ISO-8859-1"));
     try {
       String line = in.readLine();
       while (line != null) {

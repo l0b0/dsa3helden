@@ -21,8 +21,9 @@ package dsa.model.data;
 
 import java.util.List;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
@@ -156,7 +157,7 @@ public class Rituals {
   }
 
   public void readFile(String fileName) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1"));;
     try {
       readAllRituals(in);
     }

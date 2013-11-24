@@ -83,4 +83,5 @@ public abstract class DataFactory {
    * @return
    */
   public abstract Hero createHeroFromFile(File file) throws java.io.IOException;
+  public abstract Hero createHeroFromPrototypeFile(File file) throws java.io.IOException;
 }

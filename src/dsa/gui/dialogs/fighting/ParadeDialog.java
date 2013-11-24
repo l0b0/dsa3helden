@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -100,16 +100,34 @@ public class ParadeDialog extends BGDialog {
    * This method initializes 
    * 
    */
-  public ParadeDialog(JFrame parent, Fighter defender, int atQuality) {
+  public ParadeDialog(JFrame parent, Fighter defender, int atQuality, String attack, String parade) {
   	super(parent, true);
     mDefender = defender;
     this.atQuality = atQuality;
+    attackWeapon = attack;
   	initialize();
     initializeLogic();
     setLocationRelativeTo(parent);
     getRootPane().setDefaultButton(getOkButton());
     setEscapeButton(getCancelButton());
     this.setTitle("Parade von " + Strings.cutTo(mDefender.getName(), ' '));
+    if (parade != null && !"Nichts".equals(parade)) {
+      weaponBox.setSelectedItem(parade);
+      weaponBox.setEnabled(false);
+      canSelectWeapon = false;
+      evadeButton.setEnabled(false);
+      paradeButton.doClick();
+    }
+    else if ("Nichts".equals(parade)) {
+      evadeButton.doClick();
+      paradeButton.setEnabled(false);
+      canSelectWeapon = false;
+    }
+    else {
+      weaponBox.setEnabled(true);
+      canSelectWeapon = true;
+      paradeButton.doClick();
+    }
   }
   
   public ParadeResult getResult() {
@@ -124,6 +142,9 @@ public class ParadeDialog extends BGDialog {
   private ParadeResult mResult = new ParadeResult(ParadeOutcome.Canceled, "");
   private JLabel jLabel2 = null;
   private JComboBox weaponBox = null;
+  
+  private boolean canSelectWeapon;
+  private String attackWeapon;
 
   /**
    * This method initializes this
@@ -191,7 +212,7 @@ public class ParadeDialog extends BGDialog {
     getModButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         int weaponNr = 0;
-        if (weaponBox.isEnabled()) weaponNr = weaponBox.getSelectedIndex();
+        if (paradeButton.isSelected()) weaponNr = weaponBox.getSelectedIndex();
         AtPaModDialog dialog = new AtPaModDialog(ParadeDialog.this, mDefender, weaponNr, extraMod, false);
         dialog.setVisible(true);
         extraMod = dialog.getExtraMod();
@@ -222,7 +243,7 @@ public class ParadeDialog extends BGDialog {
       public void actionPerformed(ActionEvent e) {
         calcResult();
         int weaponNr = 0;
-        if (weaponBox.isEnabled()) weaponNr = weaponBox.getSelectedIndex();
+        if (paradeButton.isSelected()) weaponNr = weaponBox.getSelectedIndex();
         mDefender.setATBonus(weaponNr, bonusForNextAction);
         mDefender.setHasStumbled(false);
         dispose();
@@ -338,7 +359,10 @@ public class ParadeDialog extends BGDialog {
     else {
       weaponNr = weaponBox.getSelectedIndex();
       Optional<Integer> pa = mDefender.getPA(weaponNr);
-      if (pa.hasValue()) toHit = pa.getValue().intValue();
+      if (pa.hasValue()) {
+        toHit = pa.getValue().intValue();
+        toHit = Fighting.getWVModifiedPA(toHit, attackWeapon, weaponBox.getSelectedItem().toString());
+      }
     }
     toHit -= atQuality;
     toHit -= extraMod;
@@ -371,7 +395,7 @@ public class ParadeDialog extends BGDialog {
   }
   
   private void paradeSelected() {
-    weaponBox.setEnabled(true);
+    weaponBox.setEnabled(canSelectWeapon);
     evadeBonusSpinner.setEnabled(false);
     enableRoll();
     rollParade();
@@ -454,13 +478,13 @@ public class ParadeDialog extends BGDialog {
         sp = ((Number) spSpinner.getValue()).intValue();
       }
       String weapon = "";
-      if (weaponBox.isEnabled()) weapon = weaponBox.getSelectedItem().toString();
+      if (paradeButton.isSelected()) weapon = weaponBox.getSelectedItem().toString();
       mResult = new ParadeResult(fumbleType, sp, weapon);
     }
     else {
       boolean hit = resultLabel.getText().startsWith("Nicht");
       String weapon = "";
-      if (weaponBox.isEnabled()) weapon = weaponBox.getSelectedItem().toString();
+      if (paradeButton.isSelected()) weapon = weaponBox.getSelectedItem().toString();
       mResult = new ParadeResult(hit ? ParadeOutcome.Hit : ParadeOutcome.NoHit, weapon);
     }
   }

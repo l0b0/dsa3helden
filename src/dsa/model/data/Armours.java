@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.TreeMap;
 
+import dsa.util.Strings;
+
 public class Armours {
 
   private static Armours instance = new Armours();
@@ -39,7 +41,8 @@ public class Armours {
   }
 
   public Armour getArmour(String name) {
-    return theArmours.containsKey(name) ? theArmours.get(name) : null;
+    String name2 = Strings.getStringWithoutChangeTag(name);
+    return theArmours.containsKey(name2) ? theArmours.get(name2) : null;
   }
 
   public void addArmour(Armour armour) {
@@ -47,7 +50,8 @@ public class Armours {
   }
   
   public void removeArmour(String name) {
-    theArmours.remove(name);
+    String name2 = Strings.getStringWithoutChangeTag(name);
+    theArmours.remove(name2);
   }
 
   public Armour[] getAllArmours() {

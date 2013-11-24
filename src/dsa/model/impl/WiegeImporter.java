@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -681,7 +681,7 @@ public class WiegeImporter {
       if (weapons.getWeapon(name) == null) {
         weapons.addWeapon(new dsa.model.data.Weapon(w6d, constd, category,
             name, bf, kkzuschlag, weight, true, false, false, 
-            dsa.util.Optional.NULL_INT));
+            dsa.util.Optional.NULL_INT, new dsa.model.data.Weapon.WV(4, 4)));
       }
       tempWeapons.add(name);
     }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -178,15 +178,19 @@ public class ThingsTable extends AbstractTable {
   }
 
   public void addThing(Thing thing) {
-    addThing(thing, false);
+    addThing(thing, thing.getName(), false);
+  }
+  
+  public void addThing(Thing thing, String name) {
+    addThing(thing, name, false);
   }
 
-  public void addThing(Thing thing, boolean selectThisThing) {
+  public void addThing(Thing thing, String name, boolean selectThisThing) {
     int colCount = 4;
     if (withCountColumn) ++colCount;
     if (withCategoryColumn) ++colCount;
     Object[] rowData = new Object[colCount];
-    rowData[getNameColumn()] = thing.getName();
+    rowData[getNameColumn()] = name;
     if (withCategoryColumn) rowData[getCategoryColumn()] = thing.getCategory();
     rowData[getWeightColumn()] = new Optional<Integer>(thing.getWeight());
     if (thing.getValue().hasValue()) {

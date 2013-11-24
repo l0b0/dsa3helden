@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -568,14 +568,14 @@ public final class ControlFrame extends SubFrame
       addAnimalButton.setEnabled(false);
       return;
     }
-    addAnimalButton.setEnabled(true);
+    addAnimalButton.setEnabled(!hero.isDifference());
     int nrOfAnimals = hero.getNrOfAnimals();
     for (int i = 0; i < nrOfAnimals; ++i) {
       dsa.model.data.Animal animal = hero.getAnimal(i);
       String entry = animal.getName() + " (" + animal.getCategory() + " )";
       animalsModel.addElement(entry);
     }
-    if (nrOfAnimals > 0) {
+    if (nrOfAnimals > 0 && !hero.isDifference()) {
       animalsList.setSelectedIndex(0);
       editAnimalButton.setEnabled(true);
       deleteAnimalButton.setEnabled(true);
@@ -1672,6 +1672,8 @@ public final class ControlFrame extends SubFrame
       extrasMenu.add(getThingsExportItem());
       extrasMenu.add(getThingsImportItem());
       extrasMenu.addSeparator();
+      extrasMenu.add(getHeroComparisonItem());
+      extrasMenu.addSeparator();
       extrasMenu.add(getUpdateCheckItem());
       extrasMenu.add(getOptionsItem());
     }
@@ -1726,6 +1728,8 @@ public final class ControlFrame extends SubFrame
   
   private JMenuItem thingsImportItem;
   
+  private JMenuItem heroComparisonItem;
+  
   private JMenuItem getThingsExportItem() {
     if (thingsExportItem == null) {
       thingsExportItem = new JMenuItem();
@@ -1754,6 +1758,21 @@ public final class ControlFrame extends SubFrame
       thingsImportItem.setEnabled(false);
     }    
     return thingsImportItem;
+  }
+  
+  private JMenuItem getHeroComparisonItem() {
+    if (heroComparisonItem == null) {
+      heroComparisonItem = new JMenuItem();
+      heroComparisonItem.setText("Helden vergleichen ...");
+      heroComparisonItem.setMnemonic(java.awt.event.KeyEvent.VK_V);
+      heroComparisonItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          GroupOperations.compareHeroes(ControlFrame.this);
+        }
+      });
+      heroComparisonItem.setEnabled(true);
+    }
+    return heroComparisonItem;
   }
 
   private JMenuItem getUpdateCheckItem() {
@@ -2416,14 +2435,14 @@ public final class ControlFrame extends SubFrame
     // openItem.setEnabled(true);
     String path = Group.getInstance().getFilePath(newCharacter);
     saveItem.setEnabled(newCharacter != null && path != null
-        && !path.equals(""));
-    saveAsItem.setEnabled(newCharacter != null);
+        && !path.equals("") && !newCharacter.isDifference());
+    saveAsItem.setEnabled(newCharacter != null && !newCharacter.isDifference());
     // importItem.setEnabled(true);
     // closeItem.setEnabled(true);
     removeItem.setEnabled(newCharacter != null);
-    cloneItem.setEnabled(newCharacter != null);
-    getPrintMenuItem().setEnabled(newCharacter != null);
-    printHeroButton.setEnabled(newCharacter != null);
+    cloneItem.setEnabled(newCharacter != null && !newCharacter.isDifference());
+    getPrintMenuItem().setEnabled(newCharacter != null && !newCharacter.isDifference());
+    printHeroButton.setEnabled(newCharacter != null && !newCharacter.isDifference());
     getThingsExportItem().setEnabled(newCharacter != null);
     getThingsImportItem().setEnabled(newCharacter != null);
     listenForCharacterBox = true;

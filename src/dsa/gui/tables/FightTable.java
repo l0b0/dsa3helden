@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -20,6 +20,7 @@
 package dsa.gui.tables;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -155,6 +156,10 @@ public final class FightTable
 
     public boolean shallBeOpaque(int column) {
       return false;
+    }
+    
+    public Color getForeground(int row, int column) {
+      return Color.BLACK;
     }
   }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -239,16 +239,20 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
     if (currentHero != null) {
       Armours armours = Armours.getInstance();
       for (String name : currentHero.getArmours()) {
-        Armour armour = armours.getArmour(name);
+        String realName = name;
+        if (currentHero.isDifference()) {
+          realName = dsa.util.Strings.getStringWithoutChangeTag(name);
+        }
+        Armour armour = armours.getArmour(realName);
         if (armour != null) {
-          mTable.addArmour(armour);
+          mTable.addArmour(armour, name);
         }
         else
           mTable.addUnknownArmour(name);
       }
       calcSums();
-      removeButton.setEnabled(currentHero.getArmours().length > 0);
-      addButton.setEnabled(true);
+      removeButton.setEnabled(isChangeAllowed() && currentHero.getArmours().length > 0);
+      addButton.setEnabled(isChangeAllowed());
     }
     else {
       sumLabel.setText("Gesamt: RS 0; BE 0; Gewicht 0 Stein");

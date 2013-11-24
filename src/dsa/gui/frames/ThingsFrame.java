@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -230,15 +230,15 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
       for (String name : currentHero.getThings()) {
         Thing thing = things.getThing(name);
         if (thing != null) {
-          mTable.addThing(thing);
+          mTable.addThing(thing, name);
         }
         else
           mTable.addUnknownThing(name);
         mTable.setCount(name, currentHero.getThingCount(name));
       }
       calcSums();
-      removeButton.setEnabled(currentHero.getThings().length > 0);
-      addButton.setEnabled(true);
+      removeButton.setEnabled(!currentHero.isDifference() && currentHero.getThings().length > 0);
+      addButton.setEnabled(!currentHero.isDifference());
     }
     else {
       sumLabel

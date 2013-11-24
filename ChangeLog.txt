@@ -1,3 +1,14 @@
+Version 1.6.0
+-------------
+- Zwei Helden können verglichen werden (Extras-Menü)
+- WV kann verwendet werden (Optionen -> QVAT)
+- Bug beim Drucken von Gegnern, die mehr Attacken als
+  Paraden haben, gefixt
+- Kriegertypen aus Mengbilla hinzugefügt
+- Bugfix: wenn in einer leeren Gruppe ein Held geöffnet 
+  wurde, war der Menüpunkt "Speichern" nicht aktiv
+- Unter Windows Shortcuts zur Hilfe ins Startmenü eingefügt
+
 Version 1.5.5
 -------------
 - Fenster "Grunddaten" optisch überarbeitet
@@ -5,6 +16,7 @@ Version 1.5.5
 - Neue Drucktags: !SO und !ake
 - Abenteuer lassen sich umsortieren
 - Heldentypen aus FHI hinzugefügt
+- PDF-Version der Hilfe hinzugefügt
 
 Version 1.5.4
 -------------

@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -36,6 +36,7 @@ public final class CellRenderers {
   public interface ColourSelector {
     boolean shallBeOpaque(int column);
     boolean shallBeGray(int row, int column);
+    Color getForeground(int row, int column);
   }
   
   private static final class GreyingCellRenderer extends DefaultTableCellRenderer {
@@ -54,6 +55,7 @@ public final class CellRenderers {
           isSelected, hasFocus, row, column);
       comp.setBackground(mCallbacks.shallBeGray(row, column) ? BACKGROUND_GRAY
           : Color.WHITE);
+      comp.setForeground(mCallbacks.getForeground(row, column));
       ((JComponent) comp).setOpaque(isSelected || mCallbacks.shallBeOpaque(column));
       return comp;
     }

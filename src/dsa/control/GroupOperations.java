@@ -21,6 +21,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
+import dsa.gui.dialogs.HeroComparisonDialog;
 import dsa.gui.dialogs.HeroWizard;
 import dsa.gui.dialogs.ThingsImportDialog;
 import dsa.gui.dialogs.YearSelectionDialog;
@@ -29,15 +30,19 @@ import dsa.gui.frames.PhysFrame;
 import dsa.gui.frames.SubFrame;
 import dsa.gui.util.OptionsChange;
 import dsa.model.Date;
+import dsa.model.characters.Energy;
 import dsa.model.characters.Group;
 import dsa.model.characters.Hero;
+import dsa.model.characters.Property;
+import dsa.model.data.Talents;
+import dsa.model.talents.Talent;
 import dsa.util.Directories;
 
 public final class GroupOperations {
   
   private GroupOperations() {}
 
-  private static final class HeroFileFilter extends FileFilter {
+  public static final class HeroFileFilter extends FileFilter {
     public boolean accept(File f) {
       return f.getName().endsWith(".dsahero") || f.isDirectory();
     }
@@ -115,14 +120,83 @@ public final class GroupOperations {
           .put("lastUsedImportPath", dir);
       newCharacter = dsa.model.DataFactory.getInstance().createHeroFromFile(
           file);
-      Group.getInstance().addHero(newCharacter);
-      Group.getInstance().setFilePath(newCharacter, path);
+      Group.getInstance().addHero(newCharacter, path);
       Group.getInstance().setActiveHero(newCharacter);
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(parent, "Laden von " + file.getName()
           + " fehlgeschlagen!\nFehlermeldung: " + e.getMessage(), "Fehler",
           JOptionPane.ERROR_MESSAGE);
+    }
+  }
+  
+  public static void compareHeroes(JFrame parent) {
+    HeroComparisonDialog dialog = new HeroComparisonDialog(parent);
+    dialog.setVisible(true);
+    if (dialog.wasClosedByOK()) {
+      String file1 = dialog.getFirstHeroFile();
+      String file2 = dialog.getSecondHeroFile();
+      Hero firstHero = null;
+      Hero secondHero = null;
+      try {
+        firstHero = dsa.model.DataFactory.getInstance().createHeroFromFile(new File(file1));
+      }
+      catch (IOException e) {
+        JOptionPane.showMessageDialog(parent, "Konnte Held aus Datei " + file1 + " nicht laden!\nFehlermeldung:\n" 
+            + e.getMessage(), "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      try {
+        secondHero = dsa.model.DataFactory.getInstance().createHeroFromFile(new File(file2));
+      }
+      catch (IOException e) {
+        JOptionPane.showMessageDialog(parent, "Konnte Held aus Datei " + file2 + " nicht laden!\nFehlermeldung:\n" 
+            + e.getMessage(), "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      Hero comparison = dsa.model.DataFactory.getInstance().createHeroDifference(firstHero, secondHero);
+      boolean wasChanged = Group.getInstance().isChanged();
+      Group.getInstance().addHero(comparison);
+      Group.getInstance().setActiveHero(comparison);
+      Group.getInstance().setChanged(wasChanged);
+      
+      String result = "Unterschiede zwischen den Helden / Stufen:\n\n";
+      result += comparison.getAP() + " Abenteuerpunkte\n";
+      result += comparison.getStep() + " Stufen\n\n";
+      result += comparison.getCurrentEnergy(Energy.LE) + " Lebenspunkte\n";
+      if (comparison.hasEnergy(Energy.AE)) {
+        result += comparison.getCurrentEnergy(Energy.AE) + " Astralpunkte\n";
+      }
+      if (comparison.hasEnergy(Energy.KE)) {
+        result += comparison.getCurrentEnergy(Energy.KE) + " Karmapunkte\n";
+      }
+      int goodSum = 0; int badSum = 0;
+      for (Property property : Property.values()) {
+        if (property.isGoodProperty()) goodSum += comparison.getCurrentProperty(property);
+        else badSum += comparison.getCurrentProperty(property);
+      }
+      result += "\n" + goodSum + " gute Eigenschaftspunkte\n";
+      result += badSum + " schlechte Eigenschaftspunkte\n\n";
+      int talentSum = 0; int spellSum = 0;
+      for (String category : Talents.getInstance().getKnownCategories()) {
+        if (category.equals("Favoriten")) continue;
+        for (Talent talent : Talents.getInstance().getTalentsInCategory(category)) {
+          if (comparison.hasTalent(talent.getName())) {
+            if (talent.isSpell()) {
+              spellSum += comparison.getCurrentTalentValue(talent.getName());
+            }
+            else {
+              talentSum += comparison.getCurrentTalentValue(talent.getName());
+            }
+          }
+        }
+      }
+      result += talentSum + " Talentpunkte";
+      if (comparison.hasEnergy(Energy.AE)) {
+        result += "\n" + spellSum + " Zauberfertigkeitspunkte";
+      }
+      javax.swing.JOptionPane.showMessageDialog(parent, result, "Heldenverwaltung", 
+          JOptionPane.PLAIN_MESSAGE);
     }
   }
 
@@ -184,7 +258,7 @@ public final class GroupOperations {
 
   public static void saveAllHeroes(JFrame parent) {
     for (Hero c : Group.getInstance().getAllCharacters()) {
-      saveHero(c, parent);
+      if (!c.isDifference()) saveHero(c, parent);
     }
   }
 
@@ -199,7 +273,10 @@ public final class GroupOperations {
         if (!saveHero(hero, parent)) return;
       }
     }
+    boolean isChanged = Group.getInstance().isChanged();
+    isChanged = isChanged || !hero.isDifference();
     Group.getInstance().removeCharacter(hero);
+    Group.getInstance().setChanged(isChanged);
   }
 
   public static void newHero(JFrame parent) {

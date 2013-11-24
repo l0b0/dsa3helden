@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -228,8 +228,8 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
         mTable.setCount(name, currentHero.getThingInWarehouseCount(name));
       }
       calcSums();
-      removeButton.setEnabled(currentHero.getThingsInWarehouse().length > 0);
-      addButton.setEnabled(true);
+      removeButton.setEnabled(!currentHero.isDifference() && currentHero.getThingsInWarehouse().length > 0);
+      addButton.setEnabled(!currentHero.isDifference());
     }
     else {
       sumLabel

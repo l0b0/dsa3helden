@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -222,14 +222,14 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       for (String name : currentHero.getShields()) {
         Shield shield = shields.getShield(name);
         if (shield != null) {
-          mTable.addShield(shield, currentHero.getBF(name));
+          mTable.addShield(shield, name, currentHero.getBF(name));
         }
         else
           mTable.addUnknownShield(name);
       }
       calcSums();
-      removeButton.setEnabled(currentHero.getShields().length > 0);
-      addButton.setEnabled(true);
+      removeButton.setEnabled(!currentHero.isDifference() && currentHero.getShields().length > 0);
+      addButton.setEnabled(!currentHero.isDifference());
     }
     else {
       // sumLabel.setText("Gesamt: RS 0; BE 0; Gewicht 0 Stein");

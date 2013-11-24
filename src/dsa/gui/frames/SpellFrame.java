@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -215,9 +215,9 @@ public final class SpellFrame extends TalentFrame {
 
   protected void updateStaticSubclassSpecificData() {
     getAddButton().setEnabled(
-        currentHero != null && currentHero.hasEnergy(Energy.AE));
+        currentHero != null && !currentHero.isDifference() && currentHero.hasEnergy(Energy.AE));
     getRemoveButton().setEnabled(
-        currentHero != null && currentHero.hasEnergy(Energy.AE));
+        currentHero != null && !currentHero.isDifference() && currentHero.hasEnergy(Energy.AE));
   }
 
   private JButton addButton;

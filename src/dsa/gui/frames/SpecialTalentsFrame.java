@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -68,8 +68,8 @@ public class SpecialTalentsFrame extends TalentFrame {
   }
 
   protected void updateStaticSubclassSpecificData() {
-    getAddButton().setEnabled(currentHero != null);
-    getRemoveButton().setEnabled(currentHero != null);
+    getAddButton().setEnabled(currentHero != null && !currentHero.isDifference());
+    getRemoveButton().setEnabled(currentHero != null && !currentHero.isDifference());
   }
 
   protected Dimension getSubclassSpecificSizeOffset() {

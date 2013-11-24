@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -83,7 +83,8 @@ public class GroupPrinter extends AbstractPrinter {
       for (int i = 0; i < o.getNrOfAttacks(); ++i) {
         table.addItem("Geg" + app, o.getName());
         table.addItem("Gat" + app, o.getAT(i).getValue());
-        table.addItem("Gpa" + app, o.getPA(i).getValue());
+        String opa = o.getPA(i).hasValue() ? "" + o.getPA(i).getValue() : "-";
+        table.addItem("Gpa" + app, opa);
         table.addItem("Gtp" + app, o.getTP(i).toString());
         table.addItem("Grs" + app, o.getRS());
         table.addItem("Gmr" + app, o.getMR());

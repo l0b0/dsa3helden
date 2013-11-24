@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -555,7 +555,6 @@ public class CharacterPrinter extends AbstractPrinter {
           table.addItem("wk" + weaponNr, "");
           table.addItem("Wk", "-", true);
         }
-        table.addItem("wv" + weaponNr, ""); // we don't have WV
         table.addItem("wtp" + weaponNr, tp);
         table.addItem("Wtp", tp, true);
         table.addItem("wb" + weaponNr, character.getBF(name, 0));
@@ -591,6 +590,7 @@ public class CharacterPrinter extends AbstractPrinter {
         table.addItem("wg" + weaponNr, weapon.getWeight());
         table.addItem("Wg", weapon.getWeight(), true);
         weight += weapon.getWeight();
+        table.addItem("wv" + weaponNr, weapon.getWV().toString());
         weaponNr++;
       }
       else {

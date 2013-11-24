@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -550,7 +550,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
    * @see dsa.data.Hero#GetStep()
    */
   public int getStep() {
-    return (int) Math.floor(0.5 + 0.01 * Math.sqrt(2500 + 200 * ap));
+    if (isDifference()) {
+      return mStepDifference;
+    }
+    else {
+      return (int) Math.floor(0.5 + 0.01 * Math.sqrt(2500 + 200 * ap));
+    }
   }
 
   /*
@@ -1077,7 +1082,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static final int FILE_VERSION = 45;
+  private static final int FILE_VERSION = 46;
 
   /*
    * (non-Javadoc)
@@ -1266,6 +1271,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       printAdventures(file);
       // version 45
       file.println(so);
+      // version 46
+      file.println(firstHandOpponentWeapon);
+      file.println(secondHandOpponentWeapon);
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1371,7 +1379,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       if (weapon == null) {
         weapon = new Weapon(1, 0, 5, weaponName, 1,
             new dsa.util.Optional<Integer>(14), 50, true, false, false,
-            dsa.util.Optional.NULL_INT);
+            dsa.util.Optional.NULL_INT, new Weapon.WV(4, 4));
       }
       for (int i = 0; i < weapons.get(weaponName); ++i) {
         weapon.writeToStream(file);
@@ -1805,6 +1813,19 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       so = parseInt(line, lineNr);
     }
     else so = 8;
+    if (version > 45) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      firstHandOpponentWeapon = line;
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      secondHandOpponentWeapon = line;
+    }
+    else {
+      firstHandOpponentWeapon = secondHandOpponentWeapon = "Raufen";
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -4295,4 +4316,49 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
   }
   
+  public boolean isDifference() {
+    return mIsDifference;
+  }
+  
+  private boolean mIsDifference = false;
+  private int      mStepDifference = 0;
+  
+  public void setIsDifference() {
+    mIsDifference = true;
+    changed = false;
+  }
+  
+  public void setStepDifference(int difference) {
+    mStepDifference = difference;
+  }
+  
+  private String firstHandOpponentWeapon;
+  private String secondHandOpponentWeapon;
+
+  public String getOpponentWeapon(int nr) {
+    if (nr == 0) return firstHandOpponentWeapon;
+    else if (nr == 1) return secondHandOpponentWeapon;
+    else return "Nichts";
+  }
+
+  public void setOpponentWeapon(int nr, String weapon) {
+    if (nr == 0) {
+      if (!weapon.equals(firstHandOpponentWeapon)) {
+        firstHandOpponentWeapon = weapon;
+        for (CharacterObserver observer : observers) {
+          observer.opponentWeaponChanged(nr);
+        }
+        changed = true;
+      }
+    }
+    else if (nr == 1) {
+      if (!weapon.equals(secondHandOpponentWeapon)) {
+        secondHandOpponentWeapon = weapon;
+        for (CharacterObserver observer : observers) {
+          observer.opponentWeaponChanged(nr);
+        }
+        changed = true;
+      }
+    }
+  }  
 }

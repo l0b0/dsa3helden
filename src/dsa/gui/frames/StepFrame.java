@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -625,30 +625,43 @@ public final class StepFrame extends SubFrame
   public void globalLockChanged() {
     updateData();
   }
+  
+  private Color getFieldColor(int value) {
+    if (currentHero == null || !currentHero.isDifference()) return Color.BLACK;
+    return value > 0 ? Color.GREEN : (value < 0 ? Color.RED : Color.BLACK);
+  }
 
   private void updateData() {
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) {
       apField.setText("" + currentHero.getAP());
+      apField.setForeground(getFieldColor(currentHero.getAP()));
       stepField.setText("" + currentHero.getStep());
-      nextStepField.setText("" + currentHero.getStep()
-          * (currentHero.getStep() + 1) * 50);
+      stepField.setForeground(getFieldColor(currentHero.getStep()));
+      if (!currentHero.isDifference()) {
+        nextStepField.setText("" + currentHero.getStep()
+            * (currentHero.getStep() + 1) * 50);
+        missingLabel
+        .setText("("
+            + (currentHero.getStep() * (currentHero.getStep() + 1) * 50 - currentHero
+                .getAP()) + " AP fehlen)");
+      }
+      else {
+        nextStepField.setText("-");
+        missingLabel.setText("-");
+      }
       rufField.setText(currentHero.getRuf());
       talentTriesLabel
           .setText("" + currentHero.getOverallTalentIncreaseTries());
-      apPlusBtn.setEnabled(true);
-      apLockBtn.setEnabled(true);
+      apPlusBtn.setEnabled(!currentHero.isDifference());
+      apLockBtn.setEnabled(!currentHero.isDifference());
       spellTriesLabel.setText("" + currentHero.getOverallSpellIncreaseTries());
       freeTriesLabel.setText("" + currentHero.getSpellOrTalentIncreaseTries());
-      apField.setEditable(apLockBtn.isSelected()
-          || Group.getInstance().getGlobalUnlock());
-      clearButton.setEnabled(currentHero.getOverallSpellIncreaseTries()
+      apField.setEditable(!currentHero.isDifference() && (apLockBtn.isSelected()
+          || Group.getInstance().getGlobalUnlock()));
+      clearButton.setEnabled(!currentHero.isDifference() && (currentHero.getOverallSpellIncreaseTries()
           + currentHero.getSpellOrTalentIncreaseTries()
-          + currentHero.getOverallTalentIncreaseTries() > 0);
-      missingLabel
-          .setText("("
-              + (currentHero.getStep() * (currentHero.getStep() + 1) * 50 - currentHero
-                  .getAP()) + " AP fehlen)");
+          + currentHero.getOverallTalentIncreaseTries() > 0));
       if (currentHero.getRemainingStepIncreases() > 0) {
         remainingStepsLabel.setText("(" + currentHero.getRemainingStepIncreases() + " zu steigern)");
       }
@@ -660,8 +673,10 @@ public final class StepFrame extends SubFrame
       for (Adventure adventure : adventures) {
         adventureTable.addAdventure(adventure);
       }
-      removeAdventureButton.setEnabled(currentHero.getAdventures().length > 0);
-      addAdventureButton.setEnabled(true);
+      removeAdventureButton.setEnabled(!currentHero.isDifference() && currentHero.getAdventures().length > 0);
+      addAdventureButton.setEnabled(!currentHero.isDifference());
+      adventureUpButton.setEnabled(!currentHero.isDifference());
+      adventureDownButton.setEnabled(!currentHero.isDifference());
     }
     else {
       apField.setText("");

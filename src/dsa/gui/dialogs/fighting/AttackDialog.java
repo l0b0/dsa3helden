@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -36,6 +36,8 @@ import javax.swing.JLabel;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.JFrame;
 import javax.swing.JSpinner;
@@ -45,6 +47,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.JComboBox;
 
 public class AttackDialog extends BGDialog {
 
@@ -75,10 +78,11 @@ public class AttackDialog extends BGDialog {
   private int at;
 
   public static class AttackResult {
-    public AttackResult(boolean fumble, int param, int tp) {
+    public AttackResult(boolean fumble, int param, int tp, int pa) {
       this.fumble = fumble;
       if (!fumble) quality = param; else fumbleType = param;
       this.tp = tp;
+      paradeIndex = pa;
     }
     public AttackResult(int fumbleType) {
       fumble = true;
@@ -89,18 +93,20 @@ public class AttackDialog extends BGDialog {
     public int getQuality() { return quality; }
     public int getTP() { return tp; }
     public int getFumbleType() { return fumbleType; }
+    public int getParadeIndex() { return paradeIndex; }
     
     private boolean fumble;
     private int quality;
     private int tp;
     private int fumbleType;
+    private int paradeIndex;
   }
 
   /**
    * This method initializes 
    * 
    */
-  public AttackDialog(JFrame owner, Fighter attacker, int weaponNr) {
+  public AttackDialog(JFrame owner, Fighter attacker, int weaponNr, String[] possiblePAs) {
   	super(owner, true);
     this.attacker = attacker;
     this.weaponNr = weaponNr;
@@ -116,6 +122,19 @@ public class AttackDialog extends BGDialog {
       at = ProjectileAttackDialog.calcAtValue(params, at);
       distance = params.getDistance();
       farRangedMod = ProjectileAttackDialog.calcModifier(params, weapon);
+    }
+    paradeBox.addItem("Nichts");
+    if (!farRanged && dsa.model.characters.Group.getInstance().getOptions().useWV()) {
+      for (String pa : possiblePAs) {
+        paradeBox.addItem(pa);
+      }
+      paradeBox.setEditable(true);
+      paradeBox.setSelectedItem(attacker.getOpponentWeapon(weaponNr));
+      paradeBox.setEditable(false);
+    }
+    else {
+      paradeLabel.setEnabled(false);
+      paradeBox.setEnabled(false);
     }
     initializeLogic();
     rollAT();
@@ -136,13 +155,15 @@ public class AttackDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new Dimension(242, 259));
+    this.setSize(new Dimension(242, 288));
     this.setTitle("Attacke von " + Strings.cutTo(attacker.getName(), ' '));
     this.setContentPane(getJContentPane());
     atThrowField.requestFocus();
   }
   
   private boolean listenForATChange = true;
+  private JLabel paradeLabel = null;
+  private JComboBox paradeBox = null;
   
   private void rollAT() {
     int newThrow = Dice.roll(20);
@@ -265,11 +286,12 @@ public class AttackDialog extends BGDialog {
     });
     okButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        int paWeapon = paradeBox.getSelectedIndex() - 1;
         if (fumbleBox.isSelected()) {
           int fumbleType = ((Number)fumbleField.getValue()).intValue();
           if (fumbleType >= 11) {
             int tp = ((Number)fumbleField2.getValue()).intValue();
-            result = new AttackResult(true, fumbleType, tp);
+            result = new AttackResult(true, fumbleType, tp, paWeapon);
           }
           else {
             result = new AttackResult(fumbleType);
@@ -277,12 +299,12 @@ public class AttackDialog extends BGDialog {
         }
         else {
           if (qualityField.getText().equals("--")) {
-            result = new AttackResult(false, 0, 0);
+            result = new AttackResult(false, 0, 0, paWeapon);
           }
           else {
             int quality = Integer.parseInt(qualityField.getText());
             int tp = ((Number)tpField.getValue()).intValue();
-            result = new AttackResult(false, quality, tp);
+            result = new AttackResult(false, quality, tp, paWeapon);
           }
         }
         dispose();
@@ -310,6 +332,12 @@ public class AttackDialog extends BGDialog {
         }
       }
     });
+    paradeBox.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        attacker.setOpponentWeapon(weaponNr, paradeBox.getSelectedItem().toString());
+        calcQualityAndTP();
+      }
+    });
     calcQualityAndTP();
   }
 
@@ -324,20 +352,23 @@ public class AttackDialog extends BGDialog {
    */
   private JPanel getJContentPane() {
     if (jContentPane == null) {
+      paradeLabel = new JLabel();
+      paradeLabel.setBounds(new Rectangle(10, 40, 91, 21));
+      paradeLabel.setText("Parade mit:");
       fumbleLabel1 = new JLabel();
-      fumbleLabel1.setBounds(new Rectangle(30, 160, 191, 21));
+      fumbleLabel1.setBounds(new Rectangle(30, 190, 191, 21));
       fumbleLabel1.setText("");
       fumbleLabel = new JLabel();
-      fumbleLabel.setBounds(new Rectangle(30, 130, 191, 21));
+      fumbleLabel.setBounds(new Rectangle(30, 160, 191, 21));
       fumbleLabel.setText("");
       jLabel2 = new JLabel();
-      jLabel2.setBounds(new Rectangle(10, 70, 101, 21));
+      jLabel2.setBounds(new Rectangle(10, 100, 91, 21));
       jLabel2.setText("TrefferPunkte:");
       jLabel1 = new JLabel();
-      jLabel1.setBounds(new Rectangle(10, 40, 101, 21));
+      jLabel1.setBounds(new Rectangle(10, 70, 91, 21));
       jLabel1.setText("Qualität:");
       jLabel = new JLabel();
-      jLabel.setBounds(new Rectangle(10, 10, 101, 21));
+      jLabel.setBounds(new Rectangle(10, 10, 91, 21));
       jLabel.setText("Attacke-Wurf:");
       jContentPane = new JPanel();
       jContentPane.setLayout(null);
@@ -359,6 +390,8 @@ public class AttackDialog extends BGDialog {
       jContentPane.add(getFumbleButton2(), null);
       jContentPane.add(getCancelButton(), null);
       jContentPane.add(getOkButton(), null);
+      jContentPane.add(paradeLabel, null);
+      jContentPane.add(getParadeBox(), null);
     }
     return jContentPane;
   }
@@ -371,7 +404,7 @@ public class AttackDialog extends BGDialog {
   private JSpinner getAtThrowField() {
     if (atThrowField == null) {
       atThrowField = new JSpinner(new SpinnerNumberModel(10, 1, 20, 1));
-      atThrowField.setBounds(new Rectangle(120, 10, 51, 21));
+      atThrowField.setBounds(new Rectangle(110, 10, 51, 21));
     }
     return atThrowField;
   }
@@ -384,7 +417,7 @@ public class AttackDialog extends BGDialog {
   private JTextField getQualityField() {
     if (qualityField == null) {
       qualityField = new JTextField();
-      qualityField.setBounds(new Rectangle(120, 40, 36, 21));
+      qualityField.setBounds(new Rectangle(110, 70, 36, 21));
       qualityField.setEditable(false);
       qualityField.setHorizontalAlignment(JTextField.RIGHT);
     }
@@ -399,7 +432,7 @@ public class AttackDialog extends BGDialog {
   private JSpinner getTpField() {
     if (tpField == null) {
       tpField = new JSpinner(new SpinnerNumberModel(1, -10, 80, 1));
-      tpField.setBounds(new Rectangle(120, 70, 51, 21));
+      tpField.setBounds(new Rectangle(110, 100, 51, 21));
     }
     return tpField;
   }
@@ -412,7 +445,7 @@ public class AttackDialog extends BGDialog {
   private JCheckBox getFumbleBox() {
     if (fumbleBox == null) {
       fumbleBox = new JCheckBox();
-      fumbleBox.setBounds(new Rectangle(10, 100, 101, 21));
+      fumbleBox.setBounds(new Rectangle(10, 130, 101, 21));
       fumbleBox.setText("Patzer:");
     }
     return fumbleBox;
@@ -427,7 +460,7 @@ public class AttackDialog extends BGDialog {
     if (fumbleField == null) {
       int min = (attacker instanceof dsa.model.characters.Hero) ? 2 : 6;
       fumbleField = new JSpinner(new SpinnerNumberModel(7, min, 12, 1));
-      fumbleField.setBounds(new Rectangle(120, 100, 51, 21));
+      fumbleField.setBounds(new Rectangle(110, 130, 51, 21));
       fumbleField.setEnabled(false);
     }
     return fumbleField;
@@ -441,7 +474,7 @@ public class AttackDialog extends BGDialog {
   private JSpinner getFumbleField2() {
     if (fumbleField2 == null) {
       fumbleField2 = new JSpinner(new SpinnerNumberModel(3, 1, 12, 1));
-      fumbleField2.setBounds(new Rectangle(120, 160, 51, 21));
+      fumbleField2.setBounds(new Rectangle(120, 190, 51, 21));
       fumbleField2.setVisible(false);
     }
     return fumbleField2;
@@ -464,7 +497,7 @@ public class AttackDialog extends BGDialog {
   private JButton getModButton() {
     if (modButton == null) {
       modButton = new JButton();
-      modButton.setBounds(new Rectangle(180, 40, 41, 21));
+      modButton.setBounds(new Rectangle(180, 70, 41, 21));
       modButton.setText("...");
       modButton.setToolTipText("Modifikatoren");
     }
@@ -479,7 +512,7 @@ public class AttackDialog extends BGDialog {
   private JButton getTpRollButton() {
     if (tpRollButton == null) {
       tpRollButton = new JButton();
-      tpRollButton.setBounds(new Rectangle(180, 70, 41, 21));
+      tpRollButton.setBounds(new Rectangle(180, 100, 41, 21));
       tpRollButton.setIcon(ImageManager.getIcon("probe"));
     }
     return tpRollButton;
@@ -493,7 +526,7 @@ public class AttackDialog extends BGDialog {
   private JButton getFumbleButton() {
     if (fumbleButton == null) {
       fumbleButton = new JButton();
-      fumbleButton.setBounds(new Rectangle(180, 100, 41, 21));
+      fumbleButton.setBounds(new Rectangle(180, 130, 41, 21));
       fumbleButton.setEnabled(false);
       fumbleButton.setIcon(ImageManager.getIcon("probe"));
     }
@@ -508,7 +541,7 @@ public class AttackDialog extends BGDialog {
   private JButton getFumbleButton2() {
     if (fumbleButton2 == null) {
       fumbleButton2 = new JButton();
-      fumbleButton2.setBounds(new Rectangle(180, 160, 41, 21));
+      fumbleButton2.setBounds(new Rectangle(180, 190, 41, 21));
       fumbleButton2.setEnabled(false);
       fumbleButton2.setIcon(ImageManager.getIcon("probe"));
     }
@@ -523,7 +556,7 @@ public class AttackDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new Rectangle(120, 200, 101, 21));
+      cancelButton.setBounds(new Rectangle(120, 230, 101, 21));
       cancelButton.setText("Abbrechen");
     }
     return cancelButton;
@@ -537,7 +570,7 @@ public class AttackDialog extends BGDialog {
   private JButton getOkButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new Rectangle(10, 200, 101, 21));
+      okButton.setBounds(new Rectangle(10, 230, 101, 21));
       okButton.setText("OK");
       okButton.setDefaultCapable(true);
     }
@@ -608,6 +641,8 @@ public class AttackDialog extends BGDialog {
       tpField.setEnabled(true);
       modButton.setEnabled(true);
       int toHit = at;
+      toHit = Fighting.getWVModifiedAT(toHit, attacker.getFightingWeapons().get(weaponNr), 
+          paradeBox.getSelectedItem().toString());
       toHit -= Fighting.getModifier(attacker, true, weaponNr);
       toHit -= extraMod;
       toHit -= farRangedMod;
@@ -619,6 +654,19 @@ public class AttackDialog extends BGDialog {
       else qualityField.setText("" + quality);
       calcTP();
     }
+  }
+
+  /**
+   * This method initializes paradeBox	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getParadeBox() {
+    if (paradeBox == null) {
+      paradeBox = new JComboBox();
+      paradeBox.setBounds(new Rectangle(110, 40, 111, 21));
+    }
+    return paradeBox;
   }
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"

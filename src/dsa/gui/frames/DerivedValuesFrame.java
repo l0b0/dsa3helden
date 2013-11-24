@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -184,6 +184,16 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.MR));
       mrCField.setText(""
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.MR));
+      
+      boolean active = !currentHero.isDifference();
+      atCField.setEditable(active);
+      paCField.setEditable(active);
+      fkCField.setEditable(active);
+      awCField.setEditable(active);
+      abCField.setEditable(active);
+      tkCField.setEditable(active);
+      mrCField.setEditable(active);
+      
       int value = 0;
       value = currentHero.getCurrentDerivedValueChange(Hero.DerivedValue.AT);
       atModLabel.setText(getModSign(value) + value);

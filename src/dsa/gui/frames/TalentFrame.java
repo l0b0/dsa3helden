@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -136,6 +136,15 @@ class TalentFrame extends SubFrame implements CharactersObserver,
       return false;
   }
   
+  public Color getForeground(int row, int column) {
+    if (currentHero == null || !currentHero.isDifference()) return Color.BLACK;
+    if (column != getCurrentValueColumn()) return Color.BLACK;
+    String talentName = (String) mSorter.getValueAt(row, getNameDummyColumn());
+    if (!currentHero.hasTalent(talentName)) return Color.BLACK;
+    int value = currentHero.getCurrentTalentValue(talentName);
+    return (value == 0) ? Color.BLACK : (value > 0 ? Color.GREEN : Color.RED);
+  }
+  
   public boolean shallBeOpaque(int column) {
     return isLockedColumn(column) || (column == getCurrentValueColumn());
   }
@@ -168,6 +177,7 @@ class TalentFrame extends SubFrame implements CharactersObserver,
 
     public boolean isCellEditable(int row, int column) {
       if (!isColumnEditable(column)) return false;
+      if (currentHero != null && currentHero.isDifference()) return false;
       if (isLockedColumn(column)) {
         return Group.getInstance().getGlobalUnlock()
             || ((Boolean) this.getValueAt(row, getLockColumn())).booleanValue();
@@ -261,11 +271,11 @@ class TalentFrame extends SubFrame implements CharactersObserver,
         boolean locked = ((Boolean) mModel.getValueAt(displayIndex,
             getLockColumn())).booleanValue();
         if (enableTests) {
-          mModel.setValueAt(talents.get(i).canBeTested() ? Boolean.TRUE
+          mModel.setValueAt(talents.get(i).canBeTested() && !currentHero.isDifference() ? Boolean.TRUE
               : Boolean.FALSE, displayIndex, getTestColumn());
         }
-        boolean canIncrease = locked || Group.getInstance().getGlobalUnlock()
-            || (currentHero.getTalentIncreaseTries(talentName) > 0);
+        boolean canIncrease = !currentHero.isDifference() && (locked || Group.getInstance().getGlobalUnlock()
+            || (currentHero.getTalentIncreaseTries(talentName) > 0));
         mModel.setValueAt(canIncrease, displayIndex,
             getIncrColumn());
       }
@@ -274,6 +284,7 @@ class TalentFrame extends SubFrame implements CharactersObserver,
         mModel.setValueAt(NULL_INT, displayIndex, getCurrentValueColumn());
         mModel.setValueAt(Boolean.FALSE, displayIndex, getLockColumn());
         boolean canIncrease = (currentHero != null)
+            && !currentHero.isDifference()
             && canIncreaseUnknownTalents()
             && (currentHero.getTalentIncreaseTries(talentName) > 0);
         mModel.setValueAt(canIncrease, displayIndex, getIncrColumn());

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -110,8 +110,10 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
     if (currentHero != null) {
       backgroundFileField.setText(currentHero.getBGFile());
       notesPane.setText(currentHero.getNotes());
-      editButton.setEnabled(backgroundFileField.getText().length() > 0);
-      fileSelectorButton.setEnabled(true);
+      editButton.setEnabled(backgroundFileField.getText().length() > 0 && !currentHero.isDifference());
+      fileSelectorButton.setEnabled(!currentHero.isDifference());
+      backgroundFileField.setEditable(!currentHero.isDifference());
+      notesPane.setEditable(!currentHero.isDifference());
     }
     else {
       backgroundFileField.setText("");

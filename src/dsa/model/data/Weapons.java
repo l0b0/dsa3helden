@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import dsa.util.Optional;
+import dsa.util.Strings;
 
 public class Weapons {
 
@@ -45,15 +46,16 @@ public class Weapons {
   }
 
   public Weapon getWeapon(String name) {
+    String name2 = Strings.getStringWithoutChangeTag(name);
     for (Iterator<LinkedList<Weapon>> it = weapons.iterator(); it.hasNext();) {
       LinkedList<Weapon> typeList = it.next();
       for (Iterator<Weapon> it2 = typeList.iterator(); it2.hasNext();) {
         Weapon weapon = it2.next();
-        if (weapon.getName().equals(name)) {
+        if (weapon.getName().equals(name2)) {
           return weapon;
         }
-        else if (name.startsWith(weapon.getName())) {
-          String test = name.substring(weapon.getName().length() + 1);
+        else if (name2.startsWith(weapon.getName())) {
+          String test = name2.substring(weapon.getName().length() + 1);
           try {
             Integer.parseInt(test);
             return weapon;
@@ -222,7 +224,7 @@ public class Weapons {
         String name = line;
         line = in.readLine();
         lineNr++;
-        if (line == null) throw new IOException("EOF");
+        if (line == null) throw new IOException("Unerwartetes Dateieende in " + filename);
         int w6d = 1, constd = 0;
         if (line.trim().equals("speziell")) {
           w6d = 0;
@@ -247,7 +249,19 @@ public class Weapons {
           kkzuschlag = new Optional<Integer>(parseInt(line, lineNr));
         }
         line = in.readLine();
-        lineNr++; // WV oder Reichweite
+        lineNr++;
+        if (line == null) throw new IOException("Unerwartetes Dateieende in " + filename);
+        int pos = line.indexOf('/');
+        Weapon.WV wv = null;
+        if (pos > 0) {
+          int at = parseInt(line.substring(0, pos), lineNr);
+          int pa = parseInt(line.substring(pos + 1), lineNr);
+          wv = new Weapon.WV(at, pa);
+        }
+        else {
+          // Reichweite
+        }
+        
         line = in.readLine();
         lineNr++;
         int bf = 0;
@@ -326,8 +340,11 @@ public class Weapons {
           int w = parseInt(line, lineNr);
           worth = new Optional<Integer>(w);
         }
+        if (!projectile && wv == null) {
+          wv = new Weapon.WV(4, 4);
+        }
         Weapon weapon = new Weapon(w6d, constd, category, name, bf, kkzuschlag,
-            weight, false, twoHanded, projectile, worth, ptt, projectileWeight, 
+            weight, false, twoHanded, projectile, worth, wv, ptt, projectileWeight, 
             projectileWorth);
         if (projectile) {
           weapon.setDistanceMods(distMods);

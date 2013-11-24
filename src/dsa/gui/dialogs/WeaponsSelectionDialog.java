@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -36,7 +36,11 @@ import dsa.model.data.Weapons;
 public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
 
   public WeaponsSelectionDialog(javax.swing.JFrame owner) {
-    super(owner, "Waffe hinzufügen", new WeaponsTable(false), "Waffen");
+    this(owner, false);
+  }
+  
+  public WeaponsSelectionDialog(javax.swing.JFrame owner, boolean singleSelection) {
+    super(owner, "Waffe hinzufügen", new WeaponsTable(false), "Waffen", singleSelection);
     initialize();
     fillTable();
   }

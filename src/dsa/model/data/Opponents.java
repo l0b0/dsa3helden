@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -156,7 +156,7 @@ public class Opponents {
   }
   
   public void writeToFile(PrintWriter out, boolean onlyUserDefined) throws IOException {
-    final int VERSION = 5;
+    final int VERSION = 6;
     out.println(VERSION);
     for (Opponent o : opponents.values()) {
       if (!onlyUserDefined || o.isUserDefined()) {

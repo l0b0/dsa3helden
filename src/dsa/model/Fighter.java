@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -65,4 +65,6 @@ public interface Fighter {
 
   void setDazed(boolean dazed);
 
+  String getOpponentWeapon(int nr);
+  void setOpponentWeapon(int nr, String weapon);
 }

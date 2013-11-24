@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -33,6 +33,7 @@ import javax.swing.table.TableColumn;
 import dsa.gui.lf.BGTableCellRenderer;
 import dsa.gui.util.table.SpinnerCellEditor;
 import dsa.gui.util.table.TableSorter;
+import dsa.model.characters.Group;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.util.Optional;
@@ -59,17 +60,21 @@ public class WeaponsTable extends AbstractTable implements
   int getKKColumn() {
     return 4;
   }
+  
+  int getWVColumn() {
+    return Group.getInstance().getOptions().useWV() ? 5 : -1;
+  }
 
   int getWeightColumn() {
-    return 5;
+    return Group.getInstance().getOptions().useWV() ? 6 : 5;
   }
 
   int getWorthColumn() {
-    return 6;
+    return Group.getInstance().getOptions().useWV() ? 7 : 6;
   }
 
   int getProjectilesColumn() {
-    return 7;
+    return Group.getInstance().getOptions().useWV() ? 8 : 7;
   }
 
   static final Optional<Integer> NULL_INT = Optional.NULL_INT;
@@ -111,6 +116,7 @@ public class WeaponsTable extends AbstractTable implements
 
   public WeaponsTable(boolean withProjectiles, ValueChanger bfChanger) {
     super();
+    boolean withWV = Group.getInstance().getOptions().useWV();
     hasProjectiles = withProjectiles;
     mValueChanger = bfChanger;
     mModel = new MyTableModel();
@@ -119,6 +125,9 @@ public class WeaponsTable extends AbstractTable implements
     mModel.addColumn("Schaden");
     mModel.addColumn("BF");
     mModel.addColumn("KK");
+    if (withWV) {
+      mModel.addColumn("WV");
+    }
     mModel.addColumn("Gewicht");
     mModel.addColumn("Wert (S)");
     if (hasProjectiles) {
@@ -169,10 +178,13 @@ public class WeaponsTable extends AbstractTable implements
       tcm.addColumn(new TableColumn(3, 35));
     }
     tcm.addColumn(new TableColumn(4, 35));
-    tcm.addColumn(new TableColumn(5, 80));
-    tcm.addColumn(new TableColumn(6, 60));
+    if (withWV) {
+      tcm.addColumn(new TableColumn(5, 50));
+    }
+    tcm.addColumn(new TableColumn(withWV ? 6 : 5, 80));
+    tcm.addColumn(new TableColumn(withWV ? 7 : 6, 80));
     if (hasProjectiles) {
-      tcm.addColumn(new TableColumn(7,80, new BGTableCellRenderer(), projectilesEditor));
+      tcm.addColumn(new TableColumn(withWV ? 8 : 7,80, new BGTableCellRenderer(), projectilesEditor));
     }
 
     mSorter = new TableSorter(mModel);
@@ -218,10 +230,16 @@ public class WeaponsTable extends AbstractTable implements
   }
 
   public void addWeapon(Weapon weapon, String name, int bf, int count, Optional<Integer> projectiles) {
-    Object[] rowData = new Object[hasProjectiles ? 8 : 7];
+    int nrOfColumns = 7;
+    if (hasProjectiles) ++nrOfColumns;
+    if (Group.getInstance().getOptions().useWV()) ++nrOfColumns;
+    Object[] rowData = new Object[nrOfColumns];
     rowData[getNameColumn()] = name;
     rowData[getBFColumn()] = bf;
     rowData[getKKColumn()] = weapon.getKKBonus();
+    if (Group.getInstance().getOptions().useWV()) {
+      rowData[getWVColumn()] = weapon.getWV() != null ? weapon.getWV() : "-";
+    }
     rowData[getWeightColumn()] = new Optional<Integer>(count
         * weapon.getWeight());
     rowData[getTypeColumn()] = Weapons.getCategoryName(weapon.getType());
@@ -241,10 +259,13 @@ public class WeaponsTable extends AbstractTable implements
   }
 
   public void addUnknownWeapon(String name) {
-    Object[] rowData = new Object[6];
+    Object[] rowData = new Object[Group.getInstance().getOptions().useWV() ? 7 : 6];
     rowData[getNameColumn()] = name;
     rowData[getBFColumn()] = NULL_INT;
     rowData[getKKColumn()] = NULL_INT;
+    if (Group.getInstance().getOptions().useWV()) {
+      rowData[getWVColumn()] = "-";
+    }
     rowData[getWeightColumn()] = NULL_INT;
     rowData[getTypeColumn()] = "-";
     rowData[getDamageColumn()] = "-";

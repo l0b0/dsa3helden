@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -97,7 +97,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
           ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this);
           dialog.setVisible(true);
           if (dialog.getThing() != null)
-            ((ThingsTable) mTable).addThing(dialog.getThing(), true);
+            ((ThingsTable) mTable).addThing(dialog.getThing(), dialog.getThing().getName(), true);
         }
       });
     }
@@ -117,7 +117,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
           dialog.setVisible(true);
           if (dialog.getThing() != null) {
             ((ThingsTable) mTable).removeThing(thing.getName());
-            ((ThingsTable) mTable).addThing(thing, true);
+            ((ThingsTable) mTable).addThing(thing, thing.getName(), true);
             if (getCallback() != null) {
               getCallback().itemChanged(thing.getName());
             }

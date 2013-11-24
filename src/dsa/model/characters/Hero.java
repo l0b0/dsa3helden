@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -455,4 +455,7 @@ public interface Hero extends Printable, Fighter {
   int getSO();
   
   void setSO(int so);
+  
+  boolean isDifference();
+  void setStepDifference(int difference);
 }

@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -92,6 +92,64 @@ public final class Fighting {
     mod -= fighter.getATBonus(weaponNr);
     mod += Markers.getMarkers(fighter);
     return mod;
+  }
+  
+  private static Weapon.WV getWeaponWV(String weapon) {
+    if ("Raufen".equals(weapon)) {
+      return new Weapon.WV(2, 0);      
+    }
+    else if ("Ringen".equals(weapon)) {
+      return new Weapon.WV(2, 0);      
+    }
+    else if ("Boxen".equals(weapon)) {
+      return new Weapon.WV(2, 0);
+    }
+    else if ("Hruruzat".equals(weapon)) {
+      return new Weapon.WV(3, 1);
+    }
+    else {
+      Weapon w = Weapons.getInstance().getWeapon(weapon);
+      if (w != null) return w.getWV();
+      else return null;
+    }
+  }
+  
+  public static int getWVModifiedAT(int defaultAT, String atWeapon, String paWeapon) {
+    if (atWeapon == null || paWeapon == null) {
+      return defaultAT;
+    }
+    if (Group.getInstance().getOptions().useWV()) {
+      Weapon.WV atWV = getWeaponWV(atWeapon);
+      Weapon.WV paWV = getWeaponWV(paWeapon);
+      if (atWV == null || paWV == null) return defaultAT;
+      if (atWV.getAT() > paWV.getPA()) {
+        return defaultAT; // wv changes the PA
+      }
+      else {
+        int modifiedAT = defaultAT - (paWV.getPA() - atWV.getAT());
+        return modifiedAT > 0 ? modifiedAT : 0;
+      }
+    }
+    else return defaultAT;
+  }
+  
+  public static int getWVModifiedPA(int defaultPA, String atWeapon, String paWeapon) {
+    if (atWeapon == null || paWeapon == null) {
+      return defaultPA;
+    }
+    if (Group.getInstance().getOptions().useWV()) {
+      Weapon.WV atWV = getWeaponWV(atWeapon);
+      Weapon.WV paWV = getWeaponWV(paWeapon);
+      if (atWV == null || paWV == null) return defaultPA;
+      if (atWV.getAT() < paWV.getPA()) {
+        return defaultPA; // wv changes the AT
+      }
+      else {
+        int modifiedPA = defaultPA - (atWV.getAT() - paWV.getPA());
+        return modifiedPA > 0 ? modifiedPA : 0;
+      }
+    }    
+    else return defaultPA;
   }
   
   public static Optional<Integer> getFirstATValue(Hero hero) {

@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -22,6 +22,8 @@ package dsa.gui.frames;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -43,6 +45,8 @@ import javax.swing.event.DocumentListener;
 import dsa.control.Dice;
 import dsa.control.Fighting;
 import dsa.control.Markers;
+import dsa.gui.dialogs.WeaponsSelectionDialog;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.dialogs.fighting.ProjectileAttackDialog;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
@@ -63,6 +67,7 @@ import dsa.model.talents.Talent;
 import dsa.util.Optional;
 
 import javax.swing.JCheckBox;
+import java.awt.Rectangle;
 
 public final class FightFrame extends SubFrame implements CharactersObserver,
     OptionsChange.OptionsListener {
@@ -190,6 +195,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private void initialize() {
     this.setContentPane(getJContentPane());
     this.setTitle("Kampf (Spieler)");
+    enableWVControls();
     updateData();
   }
 
@@ -245,7 +251,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     listen = false;
     withDazed = Group.getInstance().getOptions().hasQvatStunned();
     withMarkers = Markers.isUsingMarkers();
-    if (currentHero != null) {
+    if (currentHero != null && !currentHero.isDifference()) {
       useAU = currentHero.fightUsesAU();
       fromAUBox.setEnabled(true);
       fromAUBox.setSelected(useAU);
@@ -285,6 +291,26 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       else {
         modeBox.setSelectedIndex(0);
       }
+      groundBox.setSelected(currentHero.isGrounded());
+      groundBox.setEnabled(true);
+      if (withDazed) {
+        if (!Fighting.canDefend(currentHero)) currentHero.setDazed(true);
+        dazedBox.setSelected(currentHero.isDazed());
+        dazedBox.setEnabled(Fighting.canDefend(currentHero));
+      }
+      else {
+        dazedBox.setSelected(false);
+        currentHero.setDazed(false);
+        dazedBox.setEnabled(false);
+      }
+      opponent1Box.setEditable(true);
+      opponent1Box.setSelectedItem(currentHero.getOpponentWeapon(0));
+      opponent1Box.setEditable(false);
+      opponent2Box.setEditable(true);
+      opponent2Box.setSelectedItem(currentHero.getOpponentWeapon(1));
+      opponent2Box.setEditable(false);
+      modeChanged(true);
+      listen = true;
       if (boxContains(hand1Box, currentHero.getFirstHandWeapon())) {
         hand1Box.setSelectedItem(currentHero.getFirstHandWeapon());
       }
@@ -299,20 +325,6 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           hand2Box.setSelectedIndex(0);
         }
       }
-      groundBox.setSelected(currentHero.isGrounded());
-      groundBox.setEnabled(true);
-      if (withDazed) {
-        if (!Fighting.canDefend(currentHero)) currentHero.setDazed(true);
-        dazedBox.setSelected(currentHero.isDazed());
-        dazedBox.setEnabled(Fighting.canDefend(currentHero));
-      }
-      else {
-        dazedBox.setSelected(false);
-        currentHero.setDazed(false);
-        dazedBox.setEnabled(false);
-      }
-      listen = true;
-      modeChanged();
       if (withMarkers) {
         markerSpinner.setEnabled(true);
         updateMarkerValues();
@@ -361,8 +373,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       fromAUBox.setSelected(false);
     }
     setLEColor();
-    evadeButton.setEnabled(currentHero != null && Fighting.canDefend(currentHero));
-    hitButton.setEnabled(currentHero != null);
+    evadeButton.setEnabled(currentHero != null && !currentHero.isDifference() && Fighting.canDefend(currentHero));
+    hitButton.setEnabled(currentHero != null && !currentHero.isDifference());
     listen = true;
   }
 
@@ -381,59 +393,65 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
    */
   private JPanel getJContentPane() {
     if (jContentPane == null) {
+      opponent1Label = new JLabel();
+      opponent1Label.setBounds(new Rectangle(11, 98, 100, 23));
+      opponent1Label.setText("Gegner:");
+      opponent2Label = new JLabel();
+      opponent2Label.setBounds(new Rectangle(10, 190, 101, 21));
+      opponent2Label.setText("Gegner:");
       jLabel13 = new JLabel();
-      jLabel13.setBounds(new java.awt.Rectangle(10, 220, 101, 21));
+      jLabel13.setBounds(new Rectangle(10, 280, 101, 21));
       jLabel13.setText("Marker:");
       bf2Label = new JLabel();
-      bf2Label.setBounds(new java.awt.Rectangle(260, 160, 31, 21));
+      bf2Label.setBounds(new Rectangle(260, 220, 31, 21));
       bf2Label.setText("4");
       jLabel12 = new JLabel();
-      jLabel12.setBounds(new java.awt.Rectangle(230, 160, 21, 21));
+      jLabel12.setBounds(new Rectangle(230, 220, 21, 21));
       jLabel12.setText("BF:");
       tp2Label = new JLabel();
-      tp2Label.setBounds(new java.awt.Rectangle(170, 160, 51, 21));
+      tp2Label.setBounds(new Rectangle(170, 220, 51, 21));
       tp2Label.setText("2W+6");
       jLabel11 = new JLabel();
-      jLabel11.setBounds(new java.awt.Rectangle(140, 160, 21, 21));
+      jLabel11.setBounds(new Rectangle(140, 220, 21, 21));
       jLabel11.setText("TP:");
       pa2Label = new JLabel();
-      pa2Label.setBounds(new java.awt.Rectangle(110, 160, 21, 21));
+      pa2Label.setBounds(new Rectangle(110, 220, 21, 21));
       pa2Label.setText("13");
       jLabel10 = new JLabel();
-      jLabel10.setBounds(new java.awt.Rectangle(80, 160, 21, 21));
+      jLabel10.setBounds(new Rectangle(80, 220, 21, 21));
       jLabel10.setText("PA:");
       at2Label = new JLabel();
-      at2Label.setBounds(new java.awt.Rectangle(50, 160, 21, 21));
+      at2Label.setBounds(new Rectangle(50, 220, 21, 21));
       at2Label.setText("12");
       jLabel5 = new JLabel();
-      jLabel5.setBounds(new java.awt.Rectangle(20, 160, 21, 21));
+      jLabel5.setBounds(new Rectangle(20, 220, 21, 21));
       jLabel5.setText("AT:");
       secondHandLabel = new JLabel();
-      secondHandLabel.setBounds(new java.awt.Rectangle(10, 130, 101, 21));
+      secondHandLabel.setBounds(new Rectangle(10, 160, 101, 21));
       secondHandLabel.setText("Zweite Hand:");
       bf1Label = new JLabel();
-      bf1Label.setBounds(new java.awt.Rectangle(260, 100, 30, 21));
+      bf1Label.setBounds(new Rectangle(260, 130, 30, 21));
       bf1Label.setText("3");
       jLabel9 = new JLabel();
-      jLabel9.setBounds(new java.awt.Rectangle(229, 100, 22, 21));
+      jLabel9.setBounds(new Rectangle(229, 130, 22, 21));
       jLabel9.setText("BF:");
       tp1Label = new JLabel();
-      tp1Label.setBounds(new java.awt.Rectangle(170, 100, 48, 21));
+      tp1Label.setBounds(new Rectangle(170, 130, 48, 21));
       tp1Label.setText("3W+10");
       jLabel8 = new JLabel();
-      jLabel8.setBounds(new java.awt.Rectangle(140, 100, 21, 21));
+      jLabel8.setBounds(new Rectangle(140, 130, 21, 21));
       jLabel8.setText("TP:");
       pa1Label = new JLabel();
-      pa1Label.setBounds(new java.awt.Rectangle(110, 100, 21, 21));
+      pa1Label.setBounds(new Rectangle(110, 130, 21, 21));
       pa1Label.setText("15");
       jLabel7 = new JLabel();
-      jLabel7.setBounds(new java.awt.Rectangle(80, 100, 25, 21));
+      jLabel7.setBounds(new Rectangle(80, 130, 25, 21));
       jLabel7.setText("PA:");
       at1Label = new JLabel();
-      at1Label.setBounds(new java.awt.Rectangle(50, 100, 21, 21));
+      at1Label.setBounds(new Rectangle(50, 130, 21, 21));
       at1Label.setText("11");
       jLabel6 = new JLabel();
-      jLabel6.setBounds(new java.awt.Rectangle(20, 100, 23, 21));
+      jLabel6.setBounds(new Rectangle(20, 130, 23, 21));
       jLabel6.setText("AT:");
       firstHandLabel = new JLabel();
       firstHandLabel.setBounds(new java.awt.Rectangle(10, 70, 105, 21));
@@ -442,7 +460,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       jLabel4.setBounds(new java.awt.Rectangle(10, 40, 103, 21));
       jLabel4.setText("Kampfmodus:");
       beLabel = new JLabel();
-      beLabel.setBounds(new java.awt.Rectangle(268, 10, 27, 19));
+      beLabel.setBounds(new Rectangle(268, 10, 23, 19));
       beLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
       beLabel.setText("2");
       jLabel2 = new JLabel();
@@ -525,6 +543,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       jContentPane.add(jLabel13, null);
       jContentPane.add(getMarkerSpinner(), null);
       jContentPane.add(getAUBox(), null);
+      jContentPane.add(opponent2Label, null);
+      jContentPane.add(getOpponent2Box(), null);
+      jContentPane.add(opponent1Label, null);
+      jContentPane.add(getOpponent1Box(), null);
     }
     return jContentPane;
   }
@@ -561,7 +583,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     catch (NumberFormatException e) {
       listen = true;
     }
-    modeChanged();
+    modeChanged(true);
   }
 
   private void setLEColor() {
@@ -589,10 +611,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JComboBox getModeBox() {
     if (modeBox == null) {
       modeBox = new JComboBox();
-      modeBox.setBounds(new java.awt.Rectangle(120, 40, 161, 20));
+      modeBox.setBounds(new Rectangle(120, 40, 171, 21));
       modeBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          modeChanged();
+          modeChanged(false);
         }
       });
     }
@@ -604,7 +626,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       fromAUBox = new JCheckBox();
       fromAUBox.setText("SP auf AU");
       fromAUBox.setToolTipText("SchadensPunkte von der AUsdauer abziehen");
-      fromAUBox.setBounds(new java.awt.Rectangle(160, 220, 130, 21));
+      fromAUBox.setBounds(new Rectangle(160, 280, 130, 21));
       fromAUBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           currentHero.setFightUsesAU(fromAUBox.isSelected());
@@ -628,8 +650,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   
   private boolean fireActiveWeaponChange = true;
 
-  protected void modeChanged() {
-    if (!listen) return;
+  protected void modeChanged(boolean initializing) {
+    if (!listen && !initializing) return;
     Object mode = modeBox.getSelectedItem();
     if (mode == null) return;
     fireActiveWeaponChange = false;
@@ -656,6 +678,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         hand1Box.addItem(s);
       }
       hand1Box.setSelectedIndex(0);
+      hand1Box.setEnabled(true);
       disableSecondHand();
     }
     else if (mode.toString().startsWith("Waffe + Parade")) {
@@ -664,6 +687,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         hand1Box.addItem(s);
       }
       hand1Box.setSelectedIndex(0);
+      hand1Box.setEnabled(true);
       for (String s : currentHero.getShields()) {
         hand2Box.addItem(s);
       }
@@ -680,6 +704,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         hand1Box.addItem(s);
       }
       hand1Box.setSelectedIndex(0);
+      hand1Box.setEnabled(true);
       for (String s : getCloseRangeWeapons()) {
         hand2Box.addItem(s);
       }
@@ -708,10 +733,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         hand1Box.addItem(s);
       }
       hand1Box.setSelectedIndex(0);
+      hand1Box.setEnabled(true);
       disableSecondHand();
       parade1Button.setEnabled(false);
     }
     fireActiveWeaponChange = true;
+    enableWVControls();
     currentHero.fireActiveWeaponsChanged();
   }
 
@@ -723,7 +750,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JComboBox getHand1Box() {
     if (hand1Box == null) {
       hand1Box = new JComboBox();
-      hand1Box.setBounds(new java.awt.Rectangle(120, 70, 161, 20));
+      hand1Box.setBounds(new Rectangle(120, 70, 171, 21));
       hand1Box.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           hand1Changed();
@@ -735,7 +762,15 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
 
   private void setFirstAT() {
     if (Fighting.canAttack(currentHero)) {
-      at1Label.setText("" + Fighting.getFirstATValue(currentHero));
+      Optional<Integer> at = currentHero.getAT(0);
+      if (at.hasValue()) {
+        int modAT = Fighting.getWVModifiedAT(at.getValue(), hand1Box.getSelectedItem().toString(), 
+          opponent1Box.getSelectedItem().toString());
+        at1Label.setText("" + modAT);
+      }
+      else {
+        at1Label.setText("" + at);
+      }
     }
     else {
       at1Label.setText("-");
@@ -743,12 +778,28 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void setFirstPA() {
-    pa1Label.setText("" + Fighting.getFirstPAValue(currentHero));
+    Optional<Integer> pa = currentHero.getPA(0);
+    if (pa.hasValue()) {
+      int modPA = Fighting.getWVModifiedPA(pa.getValue(), opponent1Box.getSelectedItem().toString(), 
+          hand1Box.getSelectedItem().toString());
+      pa1Label.setText("" + modPA);
+    }
+    else {
+      pa1Label.setText("" + currentHero.getPA(0));
+    }
   }
 
   private void setSecondAT() {
     if (Fighting.canAttack(currentHero)) {
-      at2Label.setText("" + Fighting.getSecondATValue(currentHero));
+      Optional<Integer> at = currentHero.getAT(1);
+      if (at.hasValue()) {
+        int modAT = Fighting.getWVModifiedAT(at.getValue(), hand2Box.getSelectedItem().toString(), 
+          opponent2Box.getSelectedItem().toString());
+        at2Label.setText("" + modAT);
+      }
+      else {
+        at2Label.setText("" + at);
+      }
     }
     else {
       at2Label.setText("-");
@@ -756,7 +807,15 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void setSecondPA() {
-    pa2Label.setText("" + Fighting.getSecondPAValue(currentHero));
+    Optional<Integer> pa = currentHero.getPA(1);
+    if (pa.hasValue()) {
+      int modPA = Fighting.getWVModifiedPA(pa.getValue(), opponent2Box.getSelectedItem().toString(), 
+          hand2Box.getSelectedItem().toString());
+      pa2Label.setText("" + modPA);
+    }
+    else {
+      pa2Label.setText("" + currentHero.getPA(1));
+    }
   }
 
   private void setFirstWeaponData(String s) {
@@ -781,7 +840,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       bf1Label.setText("-");
     }
     else if (mode.equals("Fernkampf")) {
-      Optional<Integer> skill = Fighting.getFirstATValue(currentHero);
+      Optional<Integer> skill = currentHero.getAT(0);
       if (skill.hasValue() && Fighting.canAttack(currentHero)) {
         at1Label.setText("" + skill.getValue());
       }
@@ -806,7 +865,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JComboBox getHand2Box() {
     if (hand2Box == null) {
       hand2Box = new JComboBox();
-      hand2Box.setBounds(new java.awt.Rectangle(120, 130, 161, 21));
+      hand2Box.setBounds(new Rectangle(120, 160, 171, 21));
       hand2Box.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           hand2Changed();
@@ -833,7 +892,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     else if (mode.equals("Waffe + Parade, separat")) {
       at2Label.setText("-");
-      pa2Label.setText("" + Fighting.getSecondPAValue(currentHero));
+      pa2Label.setText("" + currentHero.getPA(1));
       int be = 0;
       tp2Label.setText("-");
       Shield shield = Shields.getInstance().getShield(s);
@@ -859,7 +918,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JButton getAttack1Button() {
     if (attack1Button == null) {
       attack1Button = new JButton();
-      attack1Button.setBounds(new java.awt.Rectangle(30, 250, 41, 21));
+      attack1Button.setBounds(new Rectangle(30, 310, 41, 21));
       attack1Button.setIcon(ImageManager.getIcon("attack1"));
       attack1Button.setToolTipText("Attacke mit erster Hand");
       attack1Button.addActionListener(new ActionListener() {
@@ -1114,7 +1173,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JButton getParade1Button() {
     if (parade1Button == null) {
       parade1Button = new JButton();
-      parade1Button.setBounds(new java.awt.Rectangle(90, 250, 41, 21));
+      parade1Button.setBounds(new Rectangle(90, 310, 41, 21));
       parade1Button.setIcon(ImageManager.getIcon("defense1"));
       parade1Button.setToolTipText("Parade mit erster Hand");
       parade1Button.addActionListener(new ActionListener() {
@@ -1430,7 +1489,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JButton getAttack2Button() {
     if (attack2Button == null) {
       attack2Button = new JButton();
-      attack2Button.setBounds(new java.awt.Rectangle(160, 250, 41, 21));
+      attack2Button.setBounds(new Rectangle(160, 310, 41, 21));
       attack2Button.setIcon(ImageManager.getIcon("attack2"));
       attack2Button.setToolTipText("Attacke mit zweiter Hand");
       attack2Button.addActionListener(new ActionListener() {
@@ -1451,7 +1510,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JButton getParade2Button() {
     if (parade2Button == null) {
       parade2Button = new JButton();
-      parade2Button.setBounds(new java.awt.Rectangle(220, 250, 41, 21));
+      parade2Button.setBounds(new Rectangle(220, 310, 41, 21));
       parade2Button.setIcon(ImageManager.getIcon("defense2"));
       parade2Button.setToolTipText("Parade mit zweiter Hand");
       parade2Button.addActionListener(new ActionListener() {
@@ -1535,6 +1594,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     public void fightingStateChanged() {
       updateData();
     }
+    
+    public void opponentWeaponChanged(int weaponNr) {
+      if (weaponNr == 0) {
+        opponent1Box.setEditable(true);
+        opponent1Box.setSelectedItem(currentHero.getOpponentWeapon(weaponNr));
+        opponent1Box.setEditable(false);
+      }
+      else if (weaponNr == 1) {
+        opponent2Box.setEditable(true);
+        opponent2Box.setSelectedItem(currentHero.getOpponentWeapon(weaponNr));
+        opponent2Box.setEditable(false);        
+      }
+    }
   }
 
   /**
@@ -1545,7 +1617,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JCheckBox getGroundBox() {
     if (groundBox == null) {
       groundBox = new JCheckBox();
-      groundBox.setBounds(new java.awt.Rectangle(10, 190, 121, 21));
+      groundBox.setBounds(new Rectangle(10, 250, 121, 21));
       groundBox.setText("am Boden");
       groundBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1598,7 +1670,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JButton getEvadeButton() {
     if (evadeButton == null) {
       evadeButton = new JButton();
-      evadeButton.setBounds(new java.awt.Rectangle(60, 280, 41, 21));
+      evadeButton.setBounds(new Rectangle(60, 340, 41, 21));
       evadeButton.setToolTipText("Ausweichen");
       evadeButton.setIcon(ImageManager.getIcon("evade"));
       evadeButton.addActionListener(new ActionListener() {
@@ -1673,7 +1745,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JButton getHitButton() {
     if (hitButton == null) {
       hitButton = new JButton();
-      hitButton.setBounds(new java.awt.Rectangle(190, 280, 41, 21));
+      hitButton.setBounds(new Rectangle(190, 340, 41, 21));
       hitButton.setIcon(ImageManager.getIcon("hit"));
       hitButton.setToolTipText("Treffer hinnehmen (ohne Verteidigung)");
       hitButton.addActionListener(new ActionListener() {
@@ -1704,6 +1776,29 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     doHit(tp);
   }
+  
+  private void enableWVControls() {
+    boolean withWV = currentHero != null && Group.getInstance().getOptions().useWV();
+    String mode = modeBox.getSelectedItem() != null ? modeBox.getSelectedItem().toString() : "Eine Waffe";
+    if ("Eine Waffe".equals(mode) || mode.startsWith("Waffe +") || 
+        "Zwei Waffen".equals(mode) || "Waffenlos".equals(mode) ||
+        "Zweihandwaffe".equals(mode)) {
+      opponent1Label.setEnabled(withWV);
+      opponent1Box.setEnabled(withWV);
+    }
+    else {
+      opponent1Label.setEnabled(false);
+      opponent1Box.setEnabled(false);
+    }
+    if ("Zwei Waffen".equals(modeBox.getSelectedItem())) {
+      opponent2Label.setEnabled(withWV);
+      opponent2Box.setEnabled(withWV);
+    }
+    else {
+      opponent2Label.setEnabled(false);
+      opponent2Box.setEnabled(false);
+    }
+  }
 
   public void optionsChanged() {
     updateData();
@@ -1717,7 +1812,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JCheckBox getDazedBox() {
     if (dazedBox == null) {
       dazedBox = new JCheckBox();
-      dazedBox.setBounds(new java.awt.Rectangle(160, 190, 121, 21));
+      dazedBox.setBounds(new Rectangle(160, 250, 121, 21));
       dazedBox.setText("benommen");
       dazedBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1765,7 +1860,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private JSpinner getMarkerSpinner() {
     if (markerSpinner == null) {
       markerSpinner = new JSpinner();
-      markerSpinner.setBounds(new java.awt.Rectangle(90, 220, 51, 21));
+      markerSpinner.setBounds(new Rectangle(90, 280, 51, 21));
       markerSpinner.setModel(getMarkerSpinnerModel());
       markerSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
@@ -1784,11 +1879,123 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
 
   private SpinnerNumberModel markerSpinnerModel;
 
+  private JLabel opponent2Label = null;
+
+  private JComboBox opponent2Box = null;
+
+  private JLabel opponent1Label = null;
+
+  private JComboBox opponent1Box = null;
+
   private SpinnerNumberModel getMarkerSpinnerModel() {
     if (markerSpinnerModel == null) {
       markerSpinnerModel = new SpinnerNumberModel(0, 0, 0, 1);
     }
     return markerSpinnerModel;
+  }
+
+  /**
+   * This method initializes opponent2Box	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getOpponent2Box() {
+    if (opponent2Box == null) {
+      opponent2Box = new JComboBox();
+      opponent2Box.setBounds(new Rectangle(120, 190, 171, 21));
+      opponent2Box.addItem("<Waffe ...>");
+      opponent2Box.addItem("Nichts");
+      opponent2Box.addItem("Raufen");
+      opponent2Box.addItem("Boxen");
+      opponent2Box.addItem("Ringen");
+      opponent2Box.addItem("Hruruzat");
+      opponent2Box.addItemListener(new ItemListener() {
+        private boolean listenToCombo = true;
+        public void itemStateChanged(ItemEvent e) {
+          if (!listenToCombo || !listen) return;
+          listenToCombo = false;
+          if ("<Waffe ...>".equals(opponent2Box.getSelectedItem())) {
+            selectOpponentWeapon(opponent2Box);
+          }
+          else {
+            setSecondAT();
+            setSecondPA();
+            currentHero.setOpponentWeapon(1, opponent2Box.getSelectedItem().toString());
+          }
+          if ("<Waffe ...>".equals(opponent2Box.getSelectedItem())) {
+            opponent2Box.setEditable(true);
+            opponent2Box.setSelectedItem(currentHero.getOpponentWeapon(1));
+            opponent2Box.setEditable(false);
+          }
+          listenToCombo = true;
+        }
+      });
+    }
+    return opponent2Box;
+  }
+  
+  /**
+   * This method initializes opponent1Box	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getOpponent1Box() {
+    if (opponent1Box == null) {
+      opponent1Box = new JComboBox();
+      opponent1Box.setBounds(new Rectangle(120, 100, 171, 21));
+      opponent1Box.addItem("<Waffe ...>");
+      opponent1Box.addItem("Nichts");
+      opponent1Box.addItem("Raufen");
+      opponent1Box.addItem("Boxen");
+      opponent1Box.addItem("Ringen");
+      opponent1Box.addItem("Hruruzat");
+      opponent1Box.addItemListener(new ItemListener() {
+        private boolean listenToCombo = true;
+        public void itemStateChanged(ItemEvent e) {
+          if (!listenToCombo || !listen) return;
+          listenToCombo = false;
+          if ("<Waffe ...>".equals(opponent1Box.getSelectedItem())) {
+            selectOpponentWeapon(opponent1Box);
+          }
+          else {
+            setFirstAT();
+            setFirstPA();
+            currentHero.setOpponentWeapon(0, opponent1Box.getSelectedItem().toString());
+          }
+          if ("<Waffe ...>".equals(opponent1Box.getSelectedItem())) {
+            opponent1Box.setEditable(true);
+            opponent1Box.setSelectedItem(currentHero.getOpponentWeapon(0));
+            opponent1Box.setEditable(false);
+          }
+          listenToCombo = true;
+        }
+      });
+    }
+    return opponent1Box;
+  }
+  
+  
+  private static class MySelectionDialogCallback implements SelectionDialogCallback
+  {
+    public void itemChanged(String item) {
+    }
+    public void itemSelected(String item) {
+      mBox.setEditable(true);
+      mBox.setSelectedItem(item);
+      mBox.setEditable(false);
+    }
+    public MySelectionDialogCallback(final JComboBox box) {
+      mBox = box;
+    }
+    
+    private final JComboBox mBox;
+  };
+
+  private void selectOpponentWeapon(final JComboBox box) {
+    
+    WeaponsSelectionDialog dialog = new WeaponsSelectionDialog(this, true);
+    dialog.setCallback(new MySelectionDialogCallback(box));
+    dialog.setVisible(true);
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

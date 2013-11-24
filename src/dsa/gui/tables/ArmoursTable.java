@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -135,8 +135,12 @@ public class ArmoursTable extends AbstractTable {
   }
 
   public void addArmour(Armour armour) {
+    addArmour(armour, armour.getName());
+  }
+  
+  public void addArmour(Armour armour, String name) {
     Object[] rowData = new Object[5];
-    rowData[getNameColumn()] = armour.getName();
+    rowData[getNameColumn()] = name;
     rowData[getRSColumn()] = armour.getRS();
     rowData[getBEColumn()] = armour.getBE();
     rowData[getWeightColumn()] = armour.getWeight();

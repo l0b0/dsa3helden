@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -20,6 +20,7 @@
 package dsa.gui.frames;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -120,18 +121,27 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
       if (currentHero != null) {
         defaultValues.get(displayIndex).setValue(
             Integer.valueOf(currentHero.getDefaultProperty(properties.get(i))));
-        currentValues.get(displayIndex).setValue(
-            Integer.valueOf(currentHero.getCurrentProperty(properties.get(i))));
-        locks.get(displayIndex).setEnabled(true);
+        int value = Integer.valueOf(currentHero.getCurrentProperty(properties.get(i)));
+        currentValues.get(displayIndex).setValue(value);
+        if (value == 0 || !currentHero.isDifference()) {
+          currentValues.get(displayIndex).setForeground(Color.BLACK);
+        }
+        else if (value > 0) {
+          currentValues.get(displayIndex).setForeground(Color.GREEN);
+        }
+        else {
+          currentValues.get(displayIndex).setForeground(Color.RED);
+        }
+        locks.get(displayIndex).setEnabled(!currentHero.isDifference());
         // locks.get(i).setSelected(false);
         boolean locked = locks.get(displayIndex).isSelected();
-        defaultValues.get(displayIndex).setEditable(
-            locked || Group.getInstance().getGlobalUnlock());
-        currentValues.get(displayIndex).setEditable(true);
-        tests.get(displayIndex).setEnabled(true);
-        increases.get(displayIndex).setEnabled(
-            currentHero.hasPropertyChangeTry(properties.get(i)) || locked
-                || Group.getInstance().getGlobalUnlock());
+        defaultValues.get(displayIndex).setEditable(!currentHero.isDifference() &&
+            (locked || Group.getInstance().getGlobalUnlock()));
+        currentValues.get(displayIndex).setEditable(!currentHero.isDifference());
+        tests.get(displayIndex).setEnabled(!currentHero.isDifference());
+        increases.get(displayIndex).setEnabled(!currentHero.isDifference() && 
+            (currentHero.hasPropertyChangeTry(properties.get(i)) || locked
+                || Group.getInstance().getGlobalUnlock()));
       }
       else {
         defaultValues.get(displayIndex).setEditable(false);

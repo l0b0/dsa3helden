@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -115,7 +115,7 @@ public class GroupFightFrame extends SubFrame
     heroesTable.clear();
     enemiesTable.clear();
     for (Hero hero : Group.getInstance().getAllCharacters()) {
-      heroesTable.addFighter(hero);
+      if (!hero.isDifference()) heroesTable.addFighter(hero);
     }
     for (String enemyName : Group.getInstance().getOpponentNames()) {
       Opponent o = Group.getInstance().getOpponent(enemyName);
@@ -129,7 +129,7 @@ public class GroupFightFrame extends SubFrame
     ArrayList<Fighter> opponents1 = new ArrayList<Fighter>();
     ArrayList<Fighter> opponents2 = new ArrayList<Fighter>();
     for (Hero hero : Group.getInstance().getAllCharacters()) {
-      opponents2.add(hero);
+      if (!hero.isDifference()) opponents2.add(hero);
     }
     for (String enemyName : Group.getInstance().getOpponentNames()) {
       Opponent opponent = Group.getInstance().getOpponent(enemyName);
@@ -137,7 +137,7 @@ public class GroupFightFrame extends SubFrame
       opponents2.add(opponent);
     }
     for (Hero hero : Group.getInstance().getAllCharacters()) {
-      opponents1.add(hero);
+      if (!hero.isDifference()) opponents1.add(hero);
     }
     heroesTable.setOpponents(opponents1);
     enemiesTable.setOpponents(opponents2);
@@ -169,7 +169,7 @@ public class GroupFightFrame extends SubFrame
   }
 
   public void characterAdded(Hero character) {
-    heroesTable.addFighter(character);
+    if (!character.isDifference()) heroesTable.addFighter(character);
   }
 
   public void characterRemoved(Hero character) {
@@ -220,7 +220,9 @@ public class GroupFightFrame extends SubFrame
     String weaponName = fighter.getFightingWeapons().get(weaponIndex);
     Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
     boolean farRanged = (weapon != null) && weapon.isFarRangedWeapon();
-    AttackDialog dialog = new AttackDialog(this, fighter, weaponIndex);
+    String[] opponentWeapons = new String[opponent.getFightingWeapons().size()];
+    opponentWeapons = opponent.getFightingWeapons().toArray(opponentWeapons);
+    AttackDialog dialog = new AttackDialog(this, fighter, weaponIndex, opponentWeapons);
     dialog.setVisible(true);
     AttackDialog.AttackResult result = dialog.getResult();
     if (result == null) return; // user cancelled
@@ -238,7 +240,15 @@ public class GroupFightFrame extends SubFrame
     if (farRanged && result.getTP() <= 0) return;
     
     if (!farRanged && Fighting.canDefend(opponent)) {
-      ParadeDialog dialog2 = new ParadeDialog(this, opponent, result.getQuality());
+      String paradeWeapon = null;
+      if (Group.getInstance().getOptions().useWV()) {
+        if (result.getParadeIndex() == -1) paradeWeapon = "Nichts";
+        else if (result.getParadeIndex() == -2) paradeWeapon = fighter.getOpponentWeapon(weaponIndex);
+        else paradeWeapon = opponent.getFightingWeapons().get(result.getParadeIndex());
+      }          
+      String attackWeapon = weapon != null ? weapon.getName() : "Nichts";
+      ParadeDialog dialog2 = new ParadeDialog(this, opponent, result.getQuality(), 
+          attackWeapon, paradeWeapon);
       dialog2.setVisible(true);
       ParadeDialog.ParadeResult paradeResult = dialog2.getResult();
       ParadeDialog.ParadeOutcome outcome = paradeResult.getOutcome();
@@ -449,6 +459,10 @@ public class GroupFightFrame extends SubFrame
     
     public void fightingStateChanged() {
       updateData(Group.getInstance().getActiveHero());
+    }
+    
+    public void opponentWeaponChanged(int weaponNr) {
+      // only used in the attack dialog
     }
     
   }

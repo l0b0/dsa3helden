@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -107,6 +107,18 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
   }
 
   private boolean disableChange = false;
+  
+  private static void setColor(JFormattedTextField field, int value, boolean difference) {
+    if (!difference || value == 0) {
+      field.setForeground(java.awt.Color.BLACK);
+    }
+    else if (value > 0) {
+      field.setForeground(java.awt.Color.GREEN);
+    }
+    else if (value < 0) {
+      field.setForeground(java.awt.Color.RED);
+    }
+  }
 
   /**
    * 
@@ -115,19 +127,24 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
   private void updateData() {
     disableChange = true;
     for (int i = 0; i < energies.size() - 2; ++i) {
+      currentValues.get(i).setForeground(java.awt.Color.BLACK);
       if ((currentHero != null) && currentHero.hasEnergy(energies.get(i))) {
+        boolean isDiff = currentHero.isDifference();
         defaultValues.get(i).setValue(
             Integer.valueOf(currentHero.getDefaultEnergy(energies.get(i))));
         currentValues.get(i).setValue(
             Integer.valueOf(currentHero.getCurrentEnergy(energies.get(i))));
-        locks.get(i).setEnabled(true);
+        if (isDiff) {
+          setColor(currentValues.get(i), currentHero.getCurrentEnergy(energies.get(i)), isDiff);
+        }
+        locks.get(i).setEnabled(!isDiff);
         // locks.get(i).setSelected(false);
         boolean locked = locks.get(i).isSelected();
         defaultValues.get(i).setEnabled(true);
-        defaultValues.get(i).setEditable(
-            locked || Group.getInstance().getGlobalUnlock());
+        defaultValues.get(i).setEditable(!isDiff && 
+            (locked || Group.getInstance().getGlobalUnlock()));
         currentValues.get(i).setEnabled(true);
-        currentValues.get(i).setEditable(true);
+        currentValues.get(i).setEditable(!isDiff);
       }
       else {
         defaultValues.get(i).setText("-");
@@ -147,18 +164,22 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
           Integer.valueOf(currentHero.getDefaultEnergy(Energy.AU)));
       currentValues.get(Energy.AU.ordinal()).setValue(
           Integer.valueOf(currentHero.getCurrentEnergy(Energy.AU)));
-      currentValues.get(Energy.AU.ordinal()).setEditable(true);
+      setColor(currentValues.get(Energy.AU.ordinal()), currentHero.getCurrentEnergy(Energy.AU), currentHero.isDifference());
+      currentValues.get(Energy.AU.ordinal()).setEditable(!currentHero.isDifference());
       defaultValues.get(Energy.KO.ordinal()).setValue(
           Integer.valueOf(currentHero.getDefaultEnergy(Energy.KO)));
       currentValues.get(Energy.KO.ordinal()).setValue(
           Integer.valueOf(currentHero.getCurrentEnergy(Energy.KO)));
+      setColor(currentValues.get(Energy.KO.ordinal()), currentHero.getCurrentEnergy(Energy.KO), currentHero.isDifference());
     }
     else {
       defaultValues.get(Energy.AU.ordinal()).setText("-");
       currentValues.get(Energy.AU.ordinal()).setText("-");
       currentValues.get(Energy.AU.ordinal()).setEditable(false);
+      currentValues.get(Energy.AU.ordinal()).setForeground(java.awt.Color.BLACK);
       defaultValues.get(Energy.KO.ordinal()).setText("-");
       currentValues.get(Energy.KO.ordinal()).setText("-");
+      currentValues.get(Energy.KO.ordinal()).setForeground(java.awt.Color.BLACK);
     }
 
     if ((currentHero != null) && (currentHero.hasEnergy(Energy.LE))) {
@@ -173,12 +194,12 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     if ((currentHero != null) && (currentHero.hasEnergy(Energy.KE))) {
       boolean locked = locks.get(index).isSelected()
           || Group.getInstance().getGlobalUnlock();
-      increases.get(index).setEnabled(locked);
+      increases.get(index).setEnabled(locked && !currentHero.isDifference());
     }
     else {
       increases.get(index).setEnabled(false);
     }
-    if (currentHero != null) {
+    if (currentHero != null && !currentHero.isDifference()) {
       meditationButton.setEnabled(currentHero.hasGreatMeditation());
       smallMedButton.setEnabled(currentHero.hasEnergy(Energy.AE)
           && currentHero.getCurrentEnergy(Energy.AE) < currentHero
@@ -197,7 +218,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       regenButton.setEnabled(false);
       smallMedButton.setEnabled(false);
     }
-    koProbeButton.setEnabled(currentHero != null);
+    koProbeButton.setEnabled(currentHero != null && !currentHero.isDifference());
 
     disableChange = false;
   }

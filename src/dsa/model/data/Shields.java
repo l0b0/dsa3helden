@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import dsa.util.Strings;
+
 public class Shields {
 
   private final HashMap<String, Shield> shields = new HashMap<String, Shield>();
@@ -49,7 +51,8 @@ public class Shields {
   }
 
   public Shield getShield(String name) {
-    return shields.get(name);
+    String name2 = Strings.getStringWithoutChangeTag(name);
+    return shields.get(name2);
   }
 
   public List<Shield> getAllShields() {
@@ -68,8 +71,9 @@ public class Shields {
   }
 
   public void removeShield(String shield) {
-    names.remove(shield);
-    shields.remove(shield);
+    String name2 = Strings.getStringWithoutChangeTag(shield);
+    names.remove(name2);
+    shields.remove(name2);
   }
 
   private int parseInt(String s, int lineNr) throws IOException {

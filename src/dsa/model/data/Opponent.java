@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -74,6 +74,8 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
   private ArrayList<Integer> atBoni;
   
   private FarRangedFightParams farRangedFightParams;
+  
+  private ArrayList<String> opponentWeapons; 
 
   public Object clone() {
     try {
@@ -85,6 +87,7 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
       newObject.targets = new ArrayList<String>(targets);
       newObject.atBoni = new ArrayList<Integer>(atBoni);
       newObject.farRangedFightParams = (FarRangedFightParams) farRangedFightParams.clone();
+      newObject.opponentWeapons = new ArrayList<String>(opponentWeapons);
       newObject.changed = false;
       newObject.userDefined = true;
       return newObject;
@@ -114,6 +117,7 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
   }
   
   private Opponent(String inputLine, int version) throws ParseException {
+    opponentWeapons = new ArrayList<String>();
     parseLine(inputLine, version);
     changed = false;
   }
@@ -140,6 +144,7 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
       targets.add("");
       atBoni.add(0);
     }
+    opponentWeapons = new ArrayList<String>();
     userDefined = true;
     hasStumbled = false;
     isGrounded = false;
@@ -276,6 +281,16 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
       }
     }
     else isDazed = false;
+    opponentWeapons.clear();
+    if (version > 5) {
+      if (outerTokens.length > i) {
+        innerTokens = new StringTokenizer(outerTokens[i++], "/");
+        int tokenCount = innerTokens.countTokens();
+        for (int j = 0; j < tokenCount; ++j) {
+          opponentWeapons.add(innerTokens.nextToken());
+        }
+      }
+    }
   }
   
   public String writeToLine(int version) {
@@ -344,6 +359,13 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     if (version > 4) {
       buffer.append(';');
       buffer.append(isDazed ? '1' : '0');
+    }
+    if (version > 5) {
+      buffer.append(';');
+      for (int i = 0; i < opponentWeapons.size(); ++i) {
+        if (i > 0) buffer.append('/');
+        buffer.append(opponentWeapons.get(i));
+      }
     }
     return buffer.toString();
   }
@@ -613,4 +635,23 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     isDazed = dazed;
     changed = true;
   }
+
+  public String getOpponentWeapon(int nr) {
+    if (nr < 0 || nr >= opponentWeapons.size()) {
+      return "Nichts";
+    }
+    else return opponentWeapons.get(nr);
+  }
+
+  public void setOpponentWeapon(int nr, String weapon) {
+    if (nr < 0) return;
+    while (nr >= opponentWeapons.size()) {
+      opponentWeapons.add("Nichts");
+    }
+    if (!opponentWeapons.get(nr).equals(weapon)) {
+      opponentWeapons.set(nr, weapon);
+      changed = true;
+    }
+  }
+
 }

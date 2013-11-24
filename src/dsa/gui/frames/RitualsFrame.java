@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -89,8 +89,8 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
     ritualsList.setModel(model);
     if (model.size() > 0) {
       ritualsList.setSelectedIndex(0);
-      getRemoveButton().setEnabled(true);
-      getTestButton().setEnabled(
+      getRemoveButton().setEnabled(!currentHero.isDifference());
+      getTestButton().setEnabled(!currentHero.isDifference() &&
           dsa.model.data.Rituals.getInstance().getRitualTestData(
               ritualsList.getSelectedValue().toString()) != null);
       checkRemoveButton();
@@ -99,11 +99,12 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
       getTestButton().setEnabled(false);
       getRemoveButton().setEnabled(false);
     }
+    getAddButton().setEnabled(currentHero != null && !currentHero.isDifference());
     inUpdate = false;
   }
 
   private void checkRemoveButton() {
-    if (currentHero.isMagicDilletant()) {
+    if (currentHero.isMagicDilletant() && !currentHero.isDifference()) {
       getRemoveButton().setEnabled(true);
       return;
     }
@@ -117,7 +118,7 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
         return;
       }
     }
-    getRemoveButton().setEnabled(true);
+    getRemoveButton().setEnabled(!currentHero.isDifference());
   }
 
   private Hero currentHero;

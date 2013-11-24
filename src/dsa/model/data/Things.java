@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 
 import dsa.util.AbstractObservable;
 import dsa.util.Observer;
+import dsa.util.Strings;
 
 interface ThingsListenerBase extends Observer {
   void thingChanged(String thing);
@@ -50,8 +51,9 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
   }
 
   public Thing getThing(String name) {
-    if (theThings.containsKey(name))
-      return theThings.get(name);
+    String name2 = Strings.getStringWithoutChangeTag(name);
+    if (theThings.containsKey(name2))
+      return theThings.get(name2);
     else
       return null;
   }
@@ -61,7 +63,8 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
   }
 
   public void removeThing(String thing) {
-    theThings.remove(thing);
+    String name2 = Strings.getStringWithoutChangeTag(thing);
+    theThings.remove(name2);
   }
 
   public Thing[] getAllThings() {

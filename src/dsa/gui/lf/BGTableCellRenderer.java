@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -31,6 +31,19 @@ public class BGTableCellRenderer extends DefaultTableCellRenderer {
 
     Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     setOpaque(isSelected);
+    Object name = table.getValueAt(row, 0);
+    if (!isSelected && name instanceof String) {
+      dsa.util.Strings.ChangeTag tag = dsa.util.Strings.getChangeTag((String) name);
+      if (tag == dsa.util.Strings.ChangeTag.Added) {
+        c.setForeground(java.awt.Color.GREEN);
+      }
+      else if (tag == dsa.util.Strings.ChangeTag.Removed) {
+        c.setForeground(java.awt.Color.RED);
+      }
+      else {
+        c.setForeground(java.awt.Color.BLACK);
+      }
+    }
     return c;
   }
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -49,6 +49,8 @@ public class GroupOptions {
   private boolean heavyClothes;
 
   private boolean hardTwoHandedWeapons;
+  
+  private boolean qvatUseWV;
 
   private boolean changed = false;
 
@@ -71,9 +73,10 @@ public class GroupOptions {
     prefs = Preferences.userRoot().node("dsa/data/impl");
     setFullFirstStep(prefs.getBoolean("FullFirstStep", true));
     setQvatPABasis(prefs.getBoolean("QvatPaBasis", true));
+    setQvatUseWV(prefs.getBoolean("QvatUseWV", false));
   }
 
-  private static int fileVersion = 3;
+  private static int fileVersion = 4;
 
   public void writeToFile(PrintWriter out) throws IOException {
     out.println(fileVersion);
@@ -85,6 +88,7 @@ public class GroupOptions {
     out.println(qvatMarkers ? 1 : 0);
     out.println(heavyClothes ? 1 : 0);
     out.println(hardTwoHandedWeapons ? 1 : 0);
+    out.println(qvatUseWV ? 1 : 0);
     out.println("-- End Options --");
     changed = false;
   }
@@ -154,6 +158,16 @@ public class GroupOptions {
     else {
       Preferences prefs = Preferences.userNodeForPackage(OptionsDialog.class);
       hardTwoHandedWeapons = prefs.getBoolean("Hard2HWeapons", true);
+    }
+    if (version > 3) {
+      qvatUseWV = "1".equals(line);
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+    }
+    else {
+      Preferences prefs = Preferences.userNodeForPackage(OptionsDialog.class);
+      qvatUseWV = prefs.getBoolean("QvatUseWV", false);
     }
     while (line != null && !line.equals("-- End Options --")) {
       line = in.readLine();
@@ -242,6 +256,19 @@ public class GroupOptions {
 
   public void setQvatStunned(boolean qvatStunned) {
     this.qvatStunned = qvatStunned;
+    changed = true;
+  }
+  
+  public boolean useWV() {
+    return qvatUseWV;
+  }
+  
+  public boolean qvatUseWV() {
+    return qvatUseWV;
+  }
+  
+  public void setQvatUseWV(boolean useWV) {
+    this.qvatUseWV = useWV;
     changed = true;
   }
 

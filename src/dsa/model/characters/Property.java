@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -20,5 +20,9 @@
 package dsa.model.characters;
 
 public enum Property {
-  MU, KL, IN, CH, FF, GE, KK, HA, TA, RA, AG, NG, GG, JZ
+  MU, KL, IN, CH, FF, GE, KK, HA, TA, RA, AG, NG, GG, JZ;
+  
+  public boolean isGoodProperty() {
+    return this.ordinal() < Property.HA.ordinal();
+  }
 }

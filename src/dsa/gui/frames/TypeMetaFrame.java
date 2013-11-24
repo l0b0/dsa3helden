@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -124,17 +124,18 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   protected void updateData() {
     currentHero = Group.getInstance().getActiveHero();
     listenForChanges = false;
-    mrBonusSpinner.setEnabled(currentHero != null);
-    beBonusSpinner.setEnabled(currentHero != null);
-    aeBox.setEnabled(currentHero != null);
-    keBox.setEnabled(currentHero != null);
-    magicTypeCombo.setEnabled(currentHero != null);
-    talentIncreaseSpinner.setEnabled(currentHero != null);
-    spellIncreaseSpinner.setEnabled(currentHero != null);
-    increaseMovesSpinner.setEnabled(currentHero != null);
-    leIncreaseSpinner.setEnabled(currentHero != null);
-    aeIncreaseSpinner.setEnabled(currentHero != null);
-    typeField.setEnabled(currentHero != null);
+    boolean enabled = currentHero != null && !currentHero.isDifference();
+    mrBonusSpinner.setEnabled(enabled);
+    beBonusSpinner.setEnabled(enabled);
+    aeBox.setEnabled(enabled);
+    keBox.setEnabled(enabled);
+    magicTypeCombo.setEnabled(enabled);
+    talentIncreaseSpinner.setEnabled(enabled);
+    spellIncreaseSpinner.setEnabled(enabled);
+    increaseMovesSpinner.setEnabled(enabled);
+    leIncreaseSpinner.setEnabled(enabled);
+    aeIncreaseSpinner.setEnabled(enabled);
+    typeField.setEnabled(enabled);
     if (currentHero != null) {
       mrBonusSpinner.setValue(currentHero.getMRBonus());
       beBonusSpinner.setValue(currentHero.getBEModification());
@@ -258,7 +259,8 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     boolean hasFixedAEIncr = aeBox.isSelected()
         && magicTypeCombo.getSelectedIndex() == 2;
     fixedAELabel.setEnabled(hasFixedAEIncr);
-    aeIncreaseSpinner.setEnabled(hasFixedAEIncr);
+    boolean editable = currentHero != null && !currentHero.isDifference();
+    aeIncreaseSpinner.setEnabled(editable);
   }
 
   /**
@@ -504,7 +506,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   }
 
   private void checkAEAvailability() {
-    boolean hasAE = aeBox.isSelected();
+    boolean hasAE = aeBox.isSelected() && currentHero != null && !currentHero.isDifference();
     magicTypeLabel.setEnabled(hasAE);
     magicTypeCombo.setEnabled(hasAE);
     spellIncreaseLabel.setEnabled(hasAE);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -120,10 +120,12 @@ public class MagicAttributeFrame extends SubFrame implements CharactersObserver 
       elementCombo.setSelectedIndex(0);
       academyField.setText("");
     }
-    soulAnimalField.setEnabled(currentHero != null);
-    specialCombo.setEnabled(currentHero != null);
-    elementCombo.setEnabled(currentHero != null);
-    academyField.setEnabled(currentHero != null);
+    boolean editable = currentHero != null && !currentHero.isDifference();
+    soulAnimalField.setEditable(editable);
+    specialCombo.setEditable(editable);
+    specialCombo.setEnabled(editable);
+    elementCombo.setEnabled(editable);
+    academyField.setEditable(editable);
     disableChange = false;
   }
 

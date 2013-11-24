@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -58,13 +58,32 @@ public class Weapon implements Cloneable {
   private Optional<Integer> projectileWorth;
   
   private String projectileType; 
+  
+  public static class WV {
+    private int at;
+    private int pa;
+    
+    public int getAT() { return at; }
+    public int getPA() { return pa; }
+    
+    public WV(int at, int pa) {
+      this.at = at;
+      this.pa = pa;
+    }
+    
+    public String toString() {
+      return at + "/" + pa;
+    }
+  }
+  
+  private WV wv;
 
   /**
    * 
    */
   public Weapon() {
     this(1, 0, 0, "unbenannt", 0, new Optional<Integer>(20), 0, false, false,
-        false, Optional.NULL_INT);
+        false, Optional.NULL_INT, new WV(4, 4));
   }
   
   public boolean isFarRangedWeapon() {
@@ -118,8 +137,16 @@ public class Weapon implements Cloneable {
   public Optional<Integer> getWorth() {
     return worth;
   }
+  
+  public WV getWV() {
+    return wv;
+  }
+  
+  public void setWV(int at, int pa) {
+    if (!farRanged) wv = new WV(at, pa);
+  }
 
-  private static final int FILE_VERSION = 7;
+  private static final int FILE_VERSION = 8;
 
   public void writeToStream(PrintWriter out) throws IOException {
     out.println(FILE_VERSION);
@@ -149,6 +176,14 @@ public class Weapon implements Cloneable {
     // version 7
     out.println(projectileWeight.hasValue() ? projectileWeight.getValue() : "-");
     out.println(projectileWorth.hasValue() ? projectileWorth.getValue() : "-");
+    // version 8
+    if (wv != null) {
+      out.println(wv.getAT());
+      out.println(wv.getPA());
+    }
+    else {
+      out.println("-");
+    }
     out.println("-- End of Weapon --");
   }
 
@@ -299,6 +334,23 @@ public class Weapon implements Cloneable {
       projectileWorth = Optional.NULL_INT;
     }
     
+    if (version >= 8) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      if (!"-".equals(line)) {
+        int at = parseInt(line, lineNr);
+        line = in.readLine();
+        lineNr++;
+        int pa = parseInt(line, lineNr);
+        wv = new WV(at, pa);
+      }
+      else wv = null;
+    }
+    else if (!farRanged) {
+      wv = new WV(4, 4);
+    }
+    
     if (version < 3) {
       Weapon w = Weapons.getInstance().getWeapon(name);
       if (w != null) {
@@ -328,15 +380,15 @@ public class Weapon implements Cloneable {
   
   public Weapon(int w6d, int constD, int t, String n, int aBF,
       Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
-      boolean farRanged, Optional<Integer> worth)
+      boolean farRanged, Optional<Integer> worth, WV wv)
   {
-    this(w6d, constD, t, n, aBF, kk, weight, userDefined, twoHanded, farRanged, worth, 
+    this(w6d, constD, t, n, aBF, kk, weight, userDefined, twoHanded, farRanged, worth, wv, 
         "Keine", Optional.NULL_INT, Optional.NULL_INT);
   }
 
   public Weapon(int w6d, int constD, int t, String n, int aBF,
       Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
-      boolean farRanged, Optional<Integer> worth, String ptt, 
+      boolean farRanged, Optional<Integer> worth, WV wv, String ptt, 
       Optional<Integer> ptw, Optional<Integer> ptm) {
     w6damage = w6d;
     constDamage = constD;
@@ -352,10 +404,13 @@ public class Weapon implements Cloneable {
     this.projectileType = ptt;
     this.projectileWeight = ptw;
     this.projectileWorth = ptm;
+    this.wv = wv;    
   }
 
   public Object clone() throws CloneNotSupportedException {
-    return super.clone();
+    Weapon clone = (Weapon) super.clone();
+    clone.wv = wv != null ? new WV(wv.at, wv.pa) : null;
+    return clone;
   }
 
   /**
@@ -401,7 +456,8 @@ public class Weapon implements Cloneable {
   }
 
   static final Weapon FIST = new Weapon(1, 0, 0, "Faust", 0,
-      new Optional<Integer>(17), 0, false, false, false, Optional.NULL_INT);
+      new Optional<Integer>(17), 0, false, false, false, Optional.NULL_INT,
+      new WV(2, 0));
 
   /**
    * @return
@@ -447,6 +503,8 @@ public class Weapon implements Cloneable {
 
   public void setFarRanged(boolean farRanged) {
     this.farRanged = farRanged;
+    if (farRanged) wv = null;
+    else if (wv == null) wv = new WV(4, 4);
   }
 
   public int getWeight() {

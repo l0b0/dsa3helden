@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -101,6 +101,8 @@ public final class OptionsDialog extends BGDialog {
   private JCheckBox koBox = null;
 
   private JCheckBox markersBox = null;
+  
+  private JCheckBox wvBox = null;
 
   private JCheckBox heavyClothesBox = null;
 
@@ -259,6 +261,7 @@ public final class OptionsDialog extends BGDialog {
     changed = changed
         || fullStepBox.isSelected() != options.hasFullFirstStep();
     changed = changed || markersBox.isSelected() != options.hasQvatMarkers();
+    changed = changed || wvBox.isSelected() != options.qvatUseWV();
     changed = changed || paBasisBox.isSelected() != options.hasQvatPABasis();
     changed = changed || koBox.isSelected() != options.hasQvatStunned();
     changed = changed
@@ -275,6 +278,7 @@ public final class OptionsDialog extends BGDialog {
       options.setFastAERegeneration(aeBox.isSelected());
       options.setFullFirstStep(fullStepBox.isSelected());
       options.setQvatMarkers(markersBox.isSelected());
+      options.setQvatUseWV(wvBox.isSelected());
       options.setQvatPABasis(paBasisBox.isSelected());
       options.setQvatStunned(koBox.isSelected());
       options.setHeavyClothes(!heavyClothesBox.isSelected());
@@ -285,6 +289,7 @@ public final class OptionsDialog extends BGDialog {
       prefs.putBoolean("EarlyLeftHanded", leftHandBox.isSelected());
       prefs.putBoolean("HighAERegeneration", aeBox.isSelected());
       prefs.putBoolean("QvatUseKO", koBox.isSelected());
+      prefs.putBoolean("QvatUseWV", wvBox.isSelected());
       prefs.putBoolean("HeavyClothes", !heavyClothesBox.isSelected());
       prefs.putBoolean("Hard2HWeapons", twohwBox.isSelected());
       Preferences.userNodeForPackage(Markers.class).putBoolean(
@@ -304,6 +309,7 @@ public final class OptionsDialog extends BGDialog {
     aeBox.setSelected(options.hasFastAERegeneration());
     koBox.setSelected(options.hasQvatStunned());
     markersBox.setSelected(options.hasQvatMarkers());
+    wvBox.setSelected(options.qvatUseWV());
     fullStepBox.setSelected(options.hasFullFirstStep());
     paBasisBox.setSelected(options.hasQvatPABasis());
     heavyClothesBox.setSelected(!options.hasHeavyClothes());
@@ -564,6 +570,7 @@ public final class OptionsDialog extends BGDialog {
       qvatPanel.add(getPABasisBox(), null);
       qvatPanel.add(getKOBox(), null);
       qvatPanel.add(getMarkersBox(), null);
+      qvatPanel.add(getWVBox(), null);
     }
     return qvatPanel;
   }
@@ -608,6 +615,15 @@ public final class OptionsDialog extends BGDialog {
       markersBox.setText("Mit Markern");
     }
     return markersBox;
+  }
+  
+  private JCheckBox getWVBox() {
+    if (wvBox == null) {
+      wvBox = new JCheckBox();
+      wvBox.setBounds(new java.awt.Rectangle(10, 100, 261, 21));
+      wvBox.setText("Benutze WaffenVergleich");
+    }
+    return wvBox;
   }
 
   /**

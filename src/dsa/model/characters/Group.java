@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -87,6 +87,10 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       observer.activeCharacterChanged(hero, oldHero);
     }
   }
+  
+  public void setChanged(boolean changed) {
+    this.changed = changed;
+  }
 
   public Hero getCharacter(int index) {
     return characters.get(index);
@@ -153,8 +157,12 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   }
 
   public void addHero(Hero hero) {
+    addHero(hero, "");
+  }
+  
+  public void addHero(Hero hero, String path) {
     characters.add(hero);
-    filePaths.add("");
+    filePaths.add(path);
     changed = true;
     LinkedList<CharactersObserver> temp = new LinkedList<CharactersObserver>();
     temp.addAll(observers);

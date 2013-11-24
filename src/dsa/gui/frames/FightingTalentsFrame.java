@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -165,8 +165,8 @@ public class FightingTalentsFrame extends TalentFrame {
           + currentHero.getPAPart(talent.getName());
       model.setValueAt(new Optional<Integer>(at), displayIndex, getATColumn());
       model.setValueAt(new Optional<Integer>(pa), displayIndex, getPAColumn());
-      model.setValueAt(Boolean.TRUE, displayIndex, getATIncrColumn());
-      model.setValueAt(Boolean.TRUE, displayIndex, getPAIncrColumn());
+      model.setValueAt(Boolean.valueOf(!currentHero.isDifference()), displayIndex, getATIncrColumn());
+      model.setValueAt(Boolean.valueOf(!currentHero.isDifference()), displayIndex, getPAIncrColumn());
     }
   }
 

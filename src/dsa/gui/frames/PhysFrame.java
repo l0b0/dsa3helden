@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -809,30 +809,31 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getSkinField().setText("");
       getSoSpinner().getModel().setValue(8);
     }
-    getStandCombo().setEnabled(hasHero);
-    getNameField().setEnabled(hasHero);
-    getSexCombo().setEnabled(hasHero);
-    getGodBox().setEnabled(hasHero);
-    getBirthplaceField().setEnabled(hasHero);
-    getAgeSpinner().setEnabled(hasHero);
-    getHeightSpinner().setEnabled(hasHero);
-    getWeightSpinner().setEnabled(hasHero);
-    getTitleField().setEnabled(hasHero);
-    getSkinField().setEnabled(hasHero);
-    getBirthPlaceButton().setEnabled(hasHero);
-    getHairButton().setEnabled(hasHero);
-    getEyeCombo().setEnabled(hasHero);
-    getEyeCombo().setEditable(hasHero);
-    getHairField().setEnabled(hasHero);
-    getHairField().setEditable(hasHero);
-    getNameButton().setEnabled(hasHero);
-    getTypeField().setEnabled(hasHero);
-    getSoSpinner().setEnabled(hasHero);
+    boolean changeable = hasHero && !currentHero.isDifference();
+    getStandCombo().setEnabled(changeable);
+    getNameField().setEnabled(changeable);
+    getSexCombo().setEnabled(changeable);
+    getGodBox().setEnabled(changeable);
+    getBirthplaceField().setEnabled(changeable);
+    getAgeSpinner().setEnabled(changeable);
+    getHeightSpinner().setEnabled(changeable);
+    getWeightSpinner().setEnabled(changeable);
+    getTitleField().setEnabled(changeable);
+    getSkinField().setEnabled(changeable);
+    getBirthPlaceButton().setEnabled(changeable);
+    getHairButton().setEnabled(changeable);
+    getEyeCombo().setEnabled(changeable);
+    getEyeCombo().setEditable(changeable);
+    getHairField().setEnabled(changeable);
+    getHairField().setEditable(changeable);
+    getNameButton().setEnabled(changeable);
+    getTypeField().setEnabled(changeable);
+    getSoSpinner().setEnabled(changeable);
 
-    getBirthdayField().setEnabled(hasHero);
+    getBirthdayField().setEnabled(changeable);
     getBirthdayField().setEditable(false);
-    getBirthdayButton().setEnabled(hasHero);
-    getStandCombo().setEditable(hasHero);
+    getBirthdayButton().setEnabled(changeable);
+    getStandCombo().setEditable(changeable);
     disableChanges = false;
   }
 

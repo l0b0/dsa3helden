@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -366,6 +366,12 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     weaponTable.addWeapon(name, tp, at, new Optional<Integer>(pa));
     removeWeaponButton.setEnabled(true);
     opponent.addWeapon(name, tp, at, pa);
+    if (((Number)atSpinner.getValue()).intValue() == 0) {
+      atSpinner.setValue(1);
+    }
+    if (((Number)paSpinner.getValue()).intValue() == 0) {
+      paSpinner.setValue(1);
+    }
   }
 
   /**

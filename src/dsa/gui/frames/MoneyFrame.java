@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -162,6 +162,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
     field.setPreferredSize(new java.awt.Dimension(35, 25));
     field.setValue(Integer.valueOf(value));
     field.addPropertyChangeListener(new MoneyChangeListener(i));
+    field.setEditable(currentHero != null && !currentHero.isDifference());
     panel.add(field, c);
     valueFields.add(field);
     JComboBox comboBox = new JComboBox(Currencies.getInstance()
@@ -173,6 +174,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
     c.fill = GridBagConstraints.HORIZONTAL;
     panel.add(comboBox, c);
     currencyBoxes.add(comboBox);
+    comboBox.setEnabled(currentHero != null && !currentHero.isDifference());
     updateData();
     this.validate();
     this.repaint();
@@ -204,7 +206,8 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       addCurrency(panel, i, currentHero.getCurrency(i, bank), currentHero
           .getMoney(i, bank));
     }
-    removeButton.setEnabled(nrOfCurrencies > 0);
+    removeButton.setEnabled(nrOfCurrencies > 0 && currentHero != null && !currentHero.isDifference());
+    addButton.setEnabled(currentHero != null && !currentHero.isDifference());
     updateWeightLabel();
     reactToChanges = true;
   }

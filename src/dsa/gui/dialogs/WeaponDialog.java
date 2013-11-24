@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -113,6 +113,10 @@ public final class WeaponDialog extends BGDialog {
 
   private JLabel jLabel14 = null;
 
+  private JLabel jLabel15 = null;
+
+  private JTextField wvField = null;
+
   public Weapon getCreatedWeapon() {
     return weapon;
   }
@@ -125,6 +129,7 @@ public final class WeaponDialog extends BGDialog {
     super(owner, true);
     initialize();
     setLocationRelativeTo(owner);
+    wvField.setText("4/4");
   }
   
   public WeaponDialog(JDialog owner, Weapon weapon) {
@@ -158,12 +163,14 @@ public final class WeaponDialog extends BGDialog {
       distModsField.setText(distMods);
       twoHandedBox.setEnabled(false);
       twoHandedBox.setSelected(true);
+      wvField.setEnabled(false);
     }
     else {
       distancesField.setEnabled(false);
       distModsField.setEnabled(false);
       twoHandedBox.setEnabled(true);
       twoHandedBox.setSelected(weapon.isTwoHanded());
+      wvField.setEnabled(true);
     }
     if (weapon.isProjectileWeapon()) {
       projectileBox.setEnabled(true);
@@ -203,6 +210,7 @@ public final class WeaponDialog extends BGDialog {
       worth /= 10;
     }
     worthSpinner.setValue(worth);
+    wvField.setText(weapon.getWV().toString());
   }
 
   /**
@@ -244,6 +252,9 @@ public final class WeaponDialog extends BGDialog {
    */
   private JPanel getJPanel() {
     if (jPanel == null) {
+      jLabel15 = new JLabel();
+      jLabel15.setBounds(new Rectangle(170, 190, 31, 21));
+      jLabel15.setText("WV:");
       jLabel14 = new JLabel();
       jLabel14.setBounds(new Rectangle(280, 310, 11, 21));
       jLabel14.setText("K");
@@ -269,7 +280,7 @@ public final class WeaponDialog extends BGDialog {
       jLabel7.setBounds(new Rectangle(10, 220, 91, 21));
       jLabel7.setText("Reichweiten:");
       jLabel6 = new JLabel();
-      jLabel6.setBounds(new java.awt.Rectangle(210,100,31,21));
+      jLabel6.setBounds(new Rectangle(170, 100, 31, 21));
       jLabel6.setText("BF:");
       jLabel5 = new JLabel();
       jLabel5.setBounds(new java.awt.Rectangle(170,70,31,21));
@@ -325,6 +336,8 @@ public final class WeaponDialog extends BGDialog {
       jPanel.add(jLabel13, null);
       jPanel.add(getPtWorthSpinner(), null);
       jPanel.add(jLabel14, null);
+      jPanel.add(jLabel15, null);
+      jPanel.add(getWvField(), null);
     }
     return jPanel;
   }
@@ -379,7 +392,7 @@ public final class WeaponDialog extends BGDialog {
   private JSpinner getBfSpinner() {
     if (bfSpinner == null) {
       bfSpinner = new JSpinner();
-      bfSpinner.setBounds(new java.awt.Rectangle(250, 100, 41, 21));
+      bfSpinner.setBounds(new Rectangle(210, 100, 41, 21));
       bfSpinner.setModel(new SpinnerNumberModel(2, -10, 12, 1));
     }
     return bfSpinner;
@@ -437,6 +450,8 @@ public final class WeaponDialog extends BGDialog {
           twoHandedBox.setSelected(p);
           distancesField.setEnabled(p);
           distModsField.setEnabled(p);
+          wvField.setEnabled(!p);
+          if (p) wvField.setText("-");
           if (Weapons.isProjectileCategory(categoryCombo.getSelectedItem().toString())) {
             projectileBox.setEnabled(true);
             ptWeightSpinner.setEnabled(true);
@@ -487,8 +502,22 @@ public final class WeaponDialog extends BGDialog {
     }
     return okButton;
   }
+  
+  private Weapon.WV getWV() {
+    String wvText = wvField.getText();
+    int pos = wvText.indexOf('/');
+    if (pos == -1) return null;
+    try {
+      int at = Integer.parseInt(wvText.substring(0, pos));
+      int pa = Integer.parseInt(wvText.substring(pos + 1));
+      return new Weapon.WV(at, pa);
+    }
+    catch (NumberFormatException e) {
+      return null;
+    }
+  }
 
-  protected boolean createWeapon() {
+  private boolean createWeapon() {
     String name = nameField.getText();
     boolean createWeapon = nameField.isEnabled();
     if (createWeapon) {
@@ -573,6 +602,13 @@ public final class WeaponDialog extends BGDialog {
         }
       }
     }
+    Weapon.WV wv = !projectile ? getWV() : null;
+    if (wv == null && !projectile) {
+      JOptionPane.showMessageDialog(this, "WV eingeben als \"at/pa\", z.B. \"6/5\"", 
+          "Fehler", JOptionPane.ERROR_MESSAGE);
+      wvField.requestFocus();
+      return false;
+    }
     if (Weapons.isProjectileCategory(category)) {
       ptt = projectileBox.getSelectedItem().toString();
       ptw = new Optional<Integer>(((Number)ptWorthSpinner.getValue()).intValue());
@@ -580,7 +616,8 @@ public final class WeaponDialog extends BGDialog {
     }
     if (createWeapon) {
       weapon = new Weapon(w6damage, constDamage, category, name, bf, kk, weight,
-          true, twoHanded, projectile, new Optional<Integer>(worth), ptt, ptw, ptm);
+          true, twoHanded, projectile, new Optional<Integer>(worth),
+          wv, ptt, ptw, ptm);
     }
     else {
       weapon.setW6damage(w6damage);
@@ -595,6 +632,7 @@ public final class WeaponDialog extends BGDialog {
       weapon.setProjectileType(ptt);
       weapon.setProjectileWeight(ptm);
       weapon.setProjectileWorth(ptw);
+      if (!projectile) weapon.setWV(wv.getAT(), wv.getPA());
     }
     if (projectile) {
       weapon.setDistanceMods(distMods);
@@ -631,7 +669,7 @@ public final class WeaponDialog extends BGDialog {
   private JCheckBox getTwoHandedBox() {
     if (twoHandedBox == null) {
       twoHandedBox = new JCheckBox();
-      twoHandedBox.setBounds(new java.awt.Rectangle(10,190,181,21));
+      twoHandedBox.setBounds(new Rectangle(10, 190, 150, 21));
       twoHandedBox.setText("Zweihändig geführt");
     }
     return twoHandedBox;
@@ -740,6 +778,19 @@ public final class WeaponDialog extends BGDialog {
       ptWorthSpinner.setEnabled(false);
     }
     return ptWorthSpinner;
+  }
+
+  /**
+   * This method initializes wvField	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JTextField getWvField() {
+    if (wvField == null) {
+      wvField = new JTextField();
+      wvField.setBounds(new Rectangle(210, 190, 81, 21));
+    }
+    return wvField;
   }
 
 } //  @jve:decl-index=0:visual-constraint="10,10"

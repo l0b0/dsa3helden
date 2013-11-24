@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -56,6 +56,12 @@ abstract class AbstractDnDFrame extends SubFrame {
     super(title);
     mFlavor = flavor;
   }
+  
+  protected static boolean isChangeAllowed()
+  {
+    dsa.model.characters.Hero hero = dsa.model.characters.Group.getInstance().getActiveHero();
+    return hero != null && !hero.isDifference();
+  }
 
   protected abstract boolean addItem(String item, ExtraThingData extraData);
 
@@ -77,7 +83,7 @@ abstract class AbstractDnDFrame extends SubFrame {
   private Action getAddAction() {
     return new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        selectItem();
+        if (isChangeAllowed()) selectItem();
       }
     };
   }
@@ -88,6 +94,7 @@ abstract class AbstractDnDFrame extends SubFrame {
         mTable = table;
       }
       public void actionPerformed(ActionEvent e) {
+        if (!isChangeAllowed()) return;
         String item = mTable.getSelectedItem();
         if (item != null) removeItem(item);
       }
@@ -118,6 +125,7 @@ abstract class AbstractDnDFrame extends SubFrame {
   
   private static final class PasteAction extends AbstractAction implements ClipboardOwner {
     public void actionPerformed(ActionEvent e) {
+      if (!isChangeAllowed()) return;
       Object src = e.getSource();
       if (src instanceof JComponent) {
         JComponent c = (JComponent) src;
@@ -167,11 +175,11 @@ abstract class AbstractDnDFrame extends SubFrame {
     private static Action pasteAction = new PasteAction();
     
     public void mousePressed(MouseEvent e) {
-      if (e.isPopupTrigger()) showPopupMenu(e);
+      if (e.isPopupTrigger() && isChangeAllowed()) showPopupMenu(e);
     }
     
     public void mouseReleased(MouseEvent e) {
-      if (e.isPopupTrigger()) showPopupMenu(e);
+      if (e.isPopupTrigger() && isChangeAllowed()) showPopupMenu(e);
     }
     
     private void showPopupMenu(MouseEvent e) {
@@ -226,6 +234,7 @@ abstract class AbstractDnDFrame extends SubFrame {
 
   private static final class DragStarter extends MouseMotionAdapter {
     public void mouseDragged(MouseEvent e) {
+      if (!isChangeAllowed()) return;
       JComponent c = (JComponent) e.getComponent();
       TransferHandler handler = c.getTransferHandler();
       handler.exportAsDrag(c, e, TransferHandler.MOVE);
@@ -262,6 +271,7 @@ abstract class AbstractDnDFrame extends SubFrame {
     }
     
     private boolean canInsertFlavor(ThingTransfer.Flavors flavor) {
+      if (!isChangeAllowed()) return false;
       if (flavor == ThingTransfer.Flavors.Thing) {
         return true;
       }
@@ -272,6 +282,7 @@ abstract class AbstractDnDFrame extends SubFrame {
     }
 
     public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+      if (!isChangeAllowed()) return false;
       for (DataFlavor d : transferFlavors) {
         if (d instanceof ThingTransfer.ThingFlavor) {
           if (canInsertFlavor(((ThingTransfer.ThingFlavor)d).getFlavor())) {
@@ -283,7 +294,7 @@ abstract class AbstractDnDFrame extends SubFrame {
     }
 
     public boolean importData(JComponent comp, Transferable t) {
-      if (dragStartedHere) {
+      if (dragStartedHere || !isChangeAllowed()) {
         return false;
       }
       try {

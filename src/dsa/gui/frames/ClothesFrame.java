@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -177,15 +177,19 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
     if (currentHero != null) {
       Things things = Things.getInstance();
       for (String name : currentHero.getClothes()) {
-        Thing thing = things.getThing(name);
+        String realName = name;
+        if (currentHero.isDifference()) {
+          realName = dsa.util.Strings.getStringWithoutChangeTag(name);
+        }
+        Thing thing = things.getThing(realName);
         if (thing != null) {
-          mTable.addThing(thing);
+          mTable.addThing(thing, name);
         }
         else
           mTable.addUnknownThing(name);
       }
-      removeButton.setEnabled(currentHero.getClothes().length > 0);
-      addButton.setEnabled(true);
+      removeButton.setEnabled(isChangeAllowed() && currentHero.getClothes().length > 0);
+      addButton.setEnabled(isChangeAllowed());
     }
     else {
       addButton.setEnabled(false);

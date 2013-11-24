@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -68,6 +68,8 @@ public abstract class DataFactory {
 
   public abstract Hero createHeroFromWiege(java.io.File file)
       throws java.io.IOException;
+  
+  public abstract Hero createHeroDifference(Hero first, Hero second);
 
   public static void setFactory(DataFactory factory) {
     sFactory = factory;

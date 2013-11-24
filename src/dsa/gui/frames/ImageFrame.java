@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -84,7 +84,7 @@ public class ImageFrame extends SubFrame implements CharactersObserver {
     String location = "";
     if (hero != null) {
       location = hero.getPictureLocation();
-      getNameSelectButton().setEnabled(true);
+      getNameSelectButton().setEnabled(!hero.isDifference());
     }
     else {
       getNameSelectButton().setEnabled(false);

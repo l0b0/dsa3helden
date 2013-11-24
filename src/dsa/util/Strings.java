@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -46,6 +46,25 @@ public class Strings {
     else {
       return s;
     }
+  }
+  
+  public enum ChangeTag { None, Added, Removed }
+  
+  public static ChangeTag getChangeTag(String x) {
+    if (x.startsWith("+")) return ChangeTag.Added;
+    if (x.startsWith("-")) return ChangeTag.Removed;
+    else return ChangeTag.None;
+  }
+  
+  public static String getStringWithoutChangeTag(String x) {
+    if (x.startsWith("+") || x.startsWith("-")) return x.substring(1);
+    else return x;
+  }
+  
+  public static String addChangeTag(String x, ChangeTag tag) {
+    if (tag == ChangeTag.None) return x;
+    else if (tag == ChangeTag.Added) return "+" + x;
+    else return "-" + x;
   }
   
   private Strings() {}

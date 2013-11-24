@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -198,8 +198,12 @@ public class ShieldsTable extends AbstractTable implements FormattedTextFieldCel
   }
 
   public void addShield(Shield shield, int bf) {
+    addShield(shield, shield.getName(), bf);
+  }
+  
+  public void addShield(Shield shield, String name, int bf) {
     Object[] rowData = new Object[8];
-    rowData[getNameColumn()] = shield.getName();
+    rowData[getNameColumn()] = name;
     dsa.model.characters.Hero currentHero = dsa.model.characters.Group
         .getInstance().getActiveHero();
     boolean goodLH = (currentHero != null)

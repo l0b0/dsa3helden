@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -68,4 +68,6 @@ public interface CharacterObserver extends dsa.util.Observer {
   void activeWeaponsChanged();
 
   void fightingStateChanged();
+  
+  void opponentWeaponChanged(int weaponNr);
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -28,7 +28,7 @@ public class Version implements Comparable<Version> {
 
   private static Version createCurrentVersion() {
     try {
-      return Version.parse("1.5.5");
+      return Version.parse("1.6.0");
     }
     catch (ParseException e) {
       return createVersion(1, 0, 0);

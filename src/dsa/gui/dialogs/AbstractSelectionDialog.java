@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006-2007 [Joerg Ruedenauer]
+    Copyright (c) 2006-2008 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -43,10 +43,16 @@ public abstract class AbstractSelectionDialog extends BGDialog {
 
   public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
       String tableSortingID) {
+    this(owner, title, table, tableSortingID, false);
+  }
+  
+  public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
+      String tableSortingID, boolean singleSelection) {
     super(owner, true);
     mTable = table;
     setTitle(title);
     mSortingID = tableSortingID;
+    mSingleSelection = singleSelection;
   }
   
   public String getHelpPage() {
@@ -54,6 +60,7 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   }
   
   private final String mSortingID;
+  private final boolean mSingleSelection;
   
   protected final void initialize() {
     JPanel panel = mTable.getPanelWithTable();
@@ -107,12 +114,16 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   ActionListener myListener = new ActionListener() {
     public void actionPerformed(ActionEvent e) {
       if (callback != null) callback.itemSelected(mTable.getSelectedItem());
+      if (mSingleSelection) {
+        mTable.saveSortingState(mSortingID);
+        AbstractSelectionDialog.this.dispose();
+      }
     }
   };
 
   protected final JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton("Hinzufügen");
+      addButton = new JButton(mSingleSelection ? "OK" : "Hinzufügen");
       addButton.setBounds(5, 5, 140, 25);
       addButton.addActionListener(myListener);
     }
@@ -134,7 +145,7 @@ public abstract class AbstractSelectionDialog extends BGDialog {
 
   protected final JButton getCloseButton(String sortingID) {
     if (closeButton == null) {
-      closeButton = new JButton("Schließen");
+      closeButton = new JButton(mSingleSelection ? "Abbrechen" : "Schließen");
       closeButton.setBounds(160, 5, 140, 25);
       closeButton.addActionListener(new Closer(sortingID));
     }

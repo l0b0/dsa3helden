@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006-2007 [Joerg Ruedenauer]
+ Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -95,6 +95,10 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
         }
       }
     });
+    createUI();
+  }
+  
+  private void createUI() {
     mTable = new WeaponsTable(true, this);
     JPanel panel = mTable.getPanelWithTable();
 
@@ -117,7 +121,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
 
     updateData();
     mTable.restoreSortingState("Waffen");
-    mTable.setFirstSelectedRow();
+    mTable.setFirstSelectedRow();    
   }
 
   public String getHelpPage() {
@@ -245,8 +249,8 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
         else
           mTable.addUnknownWeapon(name);
       }
-      removeButton.setEnabled(currentHero.getWeapons().length > 0);
-      addButton.setEnabled(true);
+      removeButton.setEnabled(!currentHero.isDifference() && currentHero.getWeapons().length > 0);
+      addButton.setEnabled(!currentHero.isDifference());
     }
     else {
       addButton.setEnabled(false);
@@ -278,7 +282,8 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   }
 
   public void optionsChanged() {
-    updateData();
+    createUI();
+    validate();
   }
 
   private void weaponSelected(String item) {

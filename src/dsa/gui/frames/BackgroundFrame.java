@@ -31,10 +31,10 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -197,7 +197,8 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
       jPanel1.setLayout(new BorderLayout());
       jPanel1.add(jLabel3, BorderLayout.WEST);
       jPanel1.add(jLabel, java.awt.BorderLayout.NORTH);
-      jPanel1.add(getNotesPane(), java.awt.BorderLayout.CENTER);
+      JScrollPane scrollPane = new JScrollPane(getNotesPane());
+      jPanel1.add(scrollPane, java.awt.BorderLayout.CENTER);
       jPanel1.add(jLabel2, BorderLayout.EAST);
       jPanel1.add(jLabel1, BorderLayout.SOUTH);
     }
@@ -234,7 +235,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
         }
 
       });
-      notesPane.setBorder(new LineBorder(java.awt.Color.GRAY));
+      // notesPane.setBorder(new LineBorder(java.awt.Color.GRAY));
     }
     return notesPane;
   }

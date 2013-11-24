@@ -35,11 +35,11 @@ import javax.swing.event.DocumentListener;
 
 import org.jdesktop.jdic.desktop.Desktop;
 
+import dsa.control.filetransforms.FileType;
 import dsa.gui.lf.BGDialog;
 import dsa.gui.util.ExampleFileFilter;
 import dsa.model.characters.Printable;
 import dsa.util.Directories;
-import dsa.util.FileType;
 
 import java.awt.Rectangle;
 
@@ -371,7 +371,7 @@ public final class PrintingDialog extends BGDialog {
     public void run() {
       if (task == 0) {
         try {
-          dsa.control.Printer printer = toPrint.getPrinter();
+          dsa.control.printing.Printer printer = toPrint.getPrinter();
           printer.print(toPrint, input, output, fileType, PrintingDialog.this,
               "Datei wird erstellt");
           toPrint.setPrintingTemplateFile(input.getCanonicalPath());

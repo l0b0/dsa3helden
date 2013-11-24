@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 import dsa.gui.dialogs.HeroWizard;
+import dsa.gui.dialogs.ThingsImportDialog;
 import dsa.gui.util.OptionsChange;
 import dsa.model.characters.Group;
 import dsa.model.characters.Hero;
@@ -574,6 +575,70 @@ public final class GroupOperations {
       dtde.rejectDrop();
     }
     return retCode;
+  }
+  
+  public static void exportThings(JFrame parent) {
+    Hero hero = Group.getInstance().getActiveHero();
+    if (hero == null) return;
+    JFileChooser chooser = new JFileChooser();
+    File f = Directories.getLastUsedDirectory(parent, "Things-Export");
+    if (f != null) {
+      chooser.setCurrentDirectory(f);
+    }
+    chooser.setAcceptAllFileFilterUsed(true);
+    chooser.setMultiSelectionEnabled(false);
+    int result = JFileChooser.CANCEL_OPTION;
+    do {
+      result = chooser.showSaveDialog(parent);
+      if (result == JFileChooser.CANCEL_OPTION) return;
+      if (result == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile().exists()) {
+        int ret = JOptionPane.showConfirmDialog(parent, "Datei existiert bereits. Soll sie überschrieben werden?", "Heldenverwaltung", JOptionPane.YES_NO_CANCEL_OPTION);
+        if (ret == JOptionPane.CANCEL_OPTION) return;
+        if (ret == JOptionPane.NO_OPTION) result = JFileChooser.CANCEL_OPTION;
+      }
+    }
+    while (result == JFileChooser.CANCEL_OPTION);
+    if (result == JFileChooser.APPROVE_OPTION) {
+      try {
+        hero.storeThingsToFile(chooser.getSelectedFile());
+        Directories.setLastUsedDirectory(parent, "Things-Export", chooser.getSelectedFile());
+      }
+      catch (IOException e) {
+        JOptionPane.showMessageDialog(parent, 
+            "Fehler beim Speichern der Daten:\n" + e.getMessage(), 
+            "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
+      }
+    } 
+  }
+  
+  public static void importThings(JFrame parent) {
+    Hero hero = Group.getInstance().getActiveHero();
+    if (hero == null) return;
+    JFileChooser chooser = new JFileChooser();
+    File f = Directories.getLastUsedDirectory(parent, "Things-Export");
+    if (f != null) {
+      chooser.setCurrentDirectory(f);
+    }
+    chooser.setAcceptAllFileFilterUsed(true);
+    chooser.setMultiSelectionEnabled(false);
+    int result = chooser.showOpenDialog(parent);
+    if (result != JFileChooser.APPROVE_OPTION) return;
+    ThingsImportDialog dialog = new ThingsImportDialog(parent);
+    dialog.setTitle("Gegenstände importieren");
+    dialog.setModal(true);
+    dialog.setVisible(true);
+    if (!dialog.closedByOK()) return;
+    long thingTypes = dialog.getSelectedThingTypes();
+    try {
+      hero.readThingsFromFile(thingTypes, chooser.getSelectedFile());
+      Directories.setLastUsedDirectory(parent, "Things-Export", chooser.getSelectedFile());
+    }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(parent, 
+          "Fehler beim Laden der Daten:\n" + e.getMessage(), 
+          "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
+    }
+    
   }
 
 }

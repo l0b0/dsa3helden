@@ -86,6 +86,9 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
     public void beModificationChanged() {
       updateData();
     }
+    public void thingsChanged() {
+      updateData();
+    }
   }
 
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();

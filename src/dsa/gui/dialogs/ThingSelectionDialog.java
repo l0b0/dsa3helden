@@ -43,7 +43,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
 
   public ThingSelectionDialog(javax.swing.JFrame owner, boolean allThings) {
     super(owner, "Gegenstand hinzufügen", new ThingsTable(false, allThings),
-        "AusrüstungSelector");
+        allThings ? "AusrüstungSelector" : "KleidungSelector");
     this.allThings = allThings;
     initialize();
     fillTable();

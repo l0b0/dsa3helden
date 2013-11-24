@@ -58,6 +58,10 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     public void bfChanged(String item) {
       updateData();
     }
+    
+    public void thingsChanged() {
+      updateData();
+    }
   }
 
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();

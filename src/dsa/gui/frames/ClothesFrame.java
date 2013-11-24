@@ -34,6 +34,7 @@ import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
+import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
@@ -43,9 +44,19 @@ import dsa.model.data.Things;
 
 public final class ClothesFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
 
+  private CharacterAdapter myHeroObserver;
+  
   public ClothesFrame() {
     super(ThingTransfer.Flavors.Thing, "Kleidung");
     currentHero = Group.getInstance().getActiveHero();
+    myHeroObserver = new CharacterAdapter() {
+      public void thingsChanged() {
+        updateData();
+      }
+    };
+    if (currentHero != null) {
+      currentHero.addHeroObserver(myHeroObserver);
+    }
     Group.getInstance().addObserver(this);
     Things.getInstance().addObserver(this);
     addWindowListener(new WindowAdapter() {
@@ -55,6 +66,9 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
         mTable.saveSortingState("Kleidung");
         Group.getInstance().removeObserver(ClothesFrame.this);
         Things.getInstance().removeObserver(ClothesFrame.this);
+        if (currentHero != null) {
+          currentHero.removeHeroObserver(myHeroObserver);
+        }
         done = true;
       }
 
@@ -63,6 +77,9 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
           mTable.saveSortingState("Kleidung");
           Group.getInstance().removeObserver(ClothesFrame.this);
           Things.getInstance().removeObserver(ClothesFrame.this);
+          if (currentHero != null) {
+            currentHero.removeHeroObserver(myHeroObserver);
+          }
           done = true;
         }
       }
@@ -178,7 +195,13 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
+    if (oldCharacter != null) {
+      oldCharacter.removeHeroObserver(myHeroObserver);
+    }
     currentHero = newCharacter;
+    if (currentHero != null) {
+      currentHero.addHeroObserver(myHeroObserver);
+    }
     updateData();
   }
 

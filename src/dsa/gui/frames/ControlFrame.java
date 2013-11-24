@@ -1466,6 +1466,10 @@ public final class ControlFrame extends SubFrame
         public void derivedValueChanged(Hero.DerivedValue dv) {
           if (dv == Hero.DerivedValue.TK) calcSums();
         }
+        
+        public void thingsChanged() {
+          calcSums();
+        }
 
         public void optionsChanged() {
           calcSums();
@@ -1718,6 +1722,9 @@ public final class ControlFrame extends SubFrame
       extrasMenu = new JMenu();
       extrasMenu.setText("Extras");
       extrasMenu.setMnemonic(java.awt.event.KeyEvent.VK_X);
+      extrasMenu.add(getThingsExportItem());
+      extrasMenu.add(getThingsImportItem());
+      extrasMenu.addSeparator();
       extrasMenu.add(getUpdateCheckItem());
       extrasMenu.add(getOptionsItem());
     }
@@ -1767,6 +1774,40 @@ public final class ControlFrame extends SubFrame
   private JMenuItem mailItem;
 
   private JMenuItem updateCheckItem;
+  
+  private JMenuItem thingsExportItem;
+  
+  private JMenuItem thingsImportItem;
+  
+  private JMenuItem getThingsExportItem() {
+    if (thingsExportItem == null) {
+      thingsExportItem = new JMenuItem();
+      thingsExportItem.setText("Gegenstandsexport ...");
+      thingsExportItem.setMnemonic(java.awt.event.KeyEvent.VK_X);
+      thingsExportItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          GroupOperations.exportThings(ControlFrame.this);
+        }
+      });
+      thingsExportItem.setEnabled(false);
+    }
+    return thingsExportItem;
+  }
+  
+  private JMenuItem getThingsImportItem() {
+    if (thingsImportItem == null) {
+      thingsImportItem = new JMenuItem();
+      thingsImportItem.setText("Gegenstandsimport ...");
+      thingsImportItem.setMnemonic(java.awt.event.KeyEvent.VK_I);
+      thingsImportItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          GroupOperations.importThings(ControlFrame.this);
+        }
+      });
+      thingsImportItem.setEnabled(false);
+    }    
+    return thingsImportItem;
+  }
 
   private JMenuItem getUpdateCheckItem() {
     if (updateCheckItem == null) {
@@ -2438,6 +2479,8 @@ public final class ControlFrame extends SubFrame
     cloneItem.setEnabled(newCharacter != null);
     getPrintMenuItem().setEnabled(newCharacter != null);
     printHeroButton.setEnabled(newCharacter != null);
+    getThingsExportItem().setEnabled(newCharacter != null);
+    getThingsImportItem().setEnabled(newCharacter != null);
     listenForCharacterBox = true;
   }
   

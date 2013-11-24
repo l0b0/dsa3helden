@@ -32,13 +32,13 @@ import java.util.Set;
 
 import javax.swing.JOptionPane;
 
-import dsa.control.Printer;
+import dsa.control.filetransforms.FileType;
+import dsa.control.printing.Printer;
 import dsa.model.DataFactory;
 import dsa.model.data.Opponent;
 import dsa.model.data.Opponents;
 import dsa.util.AbstractObservable;
 import dsa.util.Directories;
-import dsa.util.FileType;
 
 /**
  * @author joerg
@@ -319,7 +319,12 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       printingTemplate = Directories.getAbsolutePath(line, f);
       line = file.readLine();
       testEmpty(line);
-      printingFileType = FileType.valueOf(line);
+      try {
+        printingFileType = FileType.valueOf(line);
+      }
+      catch (IllegalArgumentException e) {
+        printingFileType = FileType.WordML;
+      }
     }
     else {
       name = f.getName();
@@ -423,7 +428,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   }
   
   public Printer getPrinter() {
-    return dsa.control.GroupPrinter.getInstance();
+    return dsa.control.printing.GroupPrinter.getInstance();
   }
   
   private FileType printingFileType = FileType.ODT;

@@ -17,39 +17,26 @@
  along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package dsa.model.characters;
+package dsa.control.filetransforms;
 
-import java.util.List;
 
-import dsa.control.filetransforms.FileType;
-import dsa.control.printing.Printer;
+public class TransformerFactory {
 
-public interface Printable {
-
-  String getName();
-
-  String getPrintingTemplateFile();
-
-  void setPrintingTemplateFile(String filePath);
-  
-  FileType getPrintingFileType();
-  
-  void setPrintingFileType(FileType fileType);
-
-  String getPrintFile();
-
-  void setPrintFile(String file);
-  
-  Printer getPrinter();
-  
-  boolean hasPrintingCustomizations();
-
-  List<String> getFightingTalentsInDocument();
-
-  void setFightingTalentsInDocument(List<String> talents);
-  
-  int getPrintingZFW();
-  
-  void setPrintingZFW(int zfw);
-
+  public static FileTransformer createTransformer(FileType fileType) {
+    switch (fileType) {
+      case PDF:
+        return new PDFTransformer();
+      case WordML:
+      case XML:
+      case HTML:
+      case ExcelML:
+      case RTF:
+      case Unknown:
+        return new SimpleFileTransformer(Bufferers.createBufferer(fileType));
+      case ODT:
+        return new OpenDocumentTransformer();
+      default:
+        throw new IllegalArgumentException("Wrong filetype");
+    }      
+  }
 }

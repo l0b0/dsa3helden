@@ -17,39 +17,33 @@
  along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package dsa.model.characters;
+package dsa.control.filetransforms;
 
-import java.util.List;
+import java.awt.Component;
+import java.io.File;
+import java.io.IOException;
 
-import dsa.control.filetransforms.FileType;
-import dsa.control.printing.Printer;
+import dsa.util.LookupTable;
 
-public interface Printable {
-
-  String getName();
-
-  String getPrintingTemplateFile();
-
-  void setPrintingTemplateFile(String filePath);
+/**
+ * Prints a character by replacing tokens in an input file with the values
+ * in a lookup table. 
+ */
+public interface FileTransformer {
   
-  FileType getPrintingFileType();
+  void setInputFile(File inputFile);
   
-  void setPrintingFileType(FileType fileType);
-
-  String getPrintFile();
-
-  void setPrintFile(String file);
+  void setOutputFile(File outputFile);
   
-  Printer getPrinter();
-  
-  boolean hasPrintingCustomizations();
+  void setLookupTable(LookupTable table);
 
-  List<String> getFightingTalentsInDocument();
-
-  void setFightingTalentsInDocument(List<String> talents);
-  
-  int getPrintingZFW();
-  
-  void setPrintingZFW(int zfw);
-
+  /**
+   * Performs the transformation. Shows a progress dialog if necessary (if
+   * the transformation takes long).
+   * 
+   * @param component Parent component for the progress dialog
+   * @param message Message displayed in the progress dialog
+   * @see java.io.ProgressMonitorInputStream
+   */
+  void transform(Component component, String message) throws IOException;
 }

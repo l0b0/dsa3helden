@@ -19,6 +19,7 @@ class FastTableStyleFactory extends StyleFactory {
   
   public synchronized SynthStyle getStyle(JComponent c, Region region) {
     if (region.equals(Region.TABLE)) {
+      if (!(c instanceof JTable)) return super.getStyle(c, region);
       JTable table = (JTable) c;
       if (table.getDefaultRenderer(javax.swing.Icon.class) == null) {
         table.setDefaultRenderer(javax.swing.Icon.class, table.getDefaultRenderer(javax.swing.ImageIcon.class));

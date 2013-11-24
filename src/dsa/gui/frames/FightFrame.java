@@ -1748,6 +1748,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     public void beModificationChanged() {
       updateData();
     }
+    
+    public void thingsChanged() {
+      updateData();
+    }
   }
 
   /**

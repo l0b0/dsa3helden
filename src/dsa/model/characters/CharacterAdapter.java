@@ -123,4 +123,7 @@ public abstract class CharacterAdapter implements CharacterObserver {
 
   public void beModificationChanged() {
   }
+  
+  public void thingsChanged() {
+  }
 }

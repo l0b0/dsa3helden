@@ -130,7 +130,7 @@ public class FrameLayouts {
       for (SubFrame frame : FrameManagement.getInstance().getOpenFrames()) {
         String title = frame.getTitle();
         if (java.util.Collections.binarySearch(copy, title) < 0) {
-          frame.dispose();
+          FrameManagement.getInstance().closeFrame(frame);
         }
       }
       for (int i = 0; i < frames.size(); ++i) {

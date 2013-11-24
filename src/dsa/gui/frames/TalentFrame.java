@@ -155,6 +155,13 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
       return mPretendFocus ? true : super.isFocusOwner();
     }
     
+    public void doClick() {
+      boolean wasEnabled = isEnabled();
+      setEnabled(true);
+      super.doClick();
+      setEnabled(wasEnabled);
+    }
+
     private boolean mPretendFocus;
   }
 
@@ -177,6 +184,13 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
     public boolean isFocusOwner() {
       return mPretend ? true : super.isFocusOwner();
     }
+    public void doClick() {
+      boolean wasEnabled = isEnabled();
+      setEnabled(true);
+      super.doClick();
+      setEnabled(wasEnabled);
+    }
+    
     private boolean mPretend;
   }
 

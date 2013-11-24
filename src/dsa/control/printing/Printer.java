@@ -17,39 +17,17 @@
  along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package dsa.model.characters;
+package dsa.control.printing;
 
-import java.util.List;
+import java.io.File;
 
 import dsa.control.filetransforms.FileType;
-import dsa.control.printing.Printer;
+import dsa.model.characters.Printable;
 
-public interface Printable {
+public interface Printer {
 
-  String getName();
-
-  String getPrintingTemplateFile();
-
-  void setPrintingTemplateFile(String filePath);
+  public void print(Printable printable, File template, File output,
+      FileType fileType, java.awt.Component parent, String message)
+      throws java.io.IOException;
   
-  FileType getPrintingFileType();
-  
-  void setPrintingFileType(FileType fileType);
-
-  String getPrintFile();
-
-  void setPrintFile(String file);
-  
-  Printer getPrinter();
-  
-  boolean hasPrintingCustomizations();
-
-  List<String> getFightingTalentsInDocument();
-
-  void setFightingTalentsInDocument(List<String> talents);
-  
-  int getPrintingZFW();
-  
-  void setPrintingZFW(int zfw);
-
 }

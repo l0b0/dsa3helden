@@ -20,6 +20,7 @@
 package dsa.model.characters;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import dsa.model.data.Animal;
@@ -29,6 +30,13 @@ import dsa.model.data.ExtraThingData;
  * 
  */
 public interface Hero extends Printable {
+  
+  long CLOTHES = 1;
+  long THINGS = 2;
+  long ARMOURS = 4;
+  long WEAPONS = 8;
+  long SHIELDS = 16;
+  long WAREHOUSE = 32;
 
   int getDefaultProperty(Property property);
 
@@ -430,4 +438,8 @@ public interface Hero extends Printable {
   boolean hasLoadedNewerVersion();
   
   void setHasLoadedNewerVersion(boolean newer);
+  
+  void storeThingsToFile(File f) throws IOException;
+  
+  void readThingsFromFile(long thingTypes, File f) throws IOException;
 }

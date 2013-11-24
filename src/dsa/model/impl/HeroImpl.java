@@ -34,7 +34,8 @@ import java.util.TreeSet;
 
 import static dsa.model.characters.Energy.*;
 import static dsa.model.characters.Property.*;
-import dsa.control.Printer;
+import dsa.control.filetransforms.FileType;
+import dsa.control.printing.Printer;
 import dsa.model.characters.CharacterObserver;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
@@ -54,7 +55,6 @@ import dsa.model.data.Weapons;
 import dsa.model.talents.Talent;
 import dsa.util.AbstractObservable;
 import dsa.util.Directories;
-import dsa.util.FileType;
 
 /**
  * 
@@ -1131,40 +1131,11 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println(overallSpellOrTalentIncreaseTries);
       file.println(canMeditate ? 1 : 0);
       file.println(beModification);
-      file.println(armours.size());
-      for (String armourName : armours) {
-        Armour armour = Armours.getInstance().getArmour(armourName);
-        file.println(armourName + ";" + armour.getRS() + ";" + armour.getBE()
-            + ";" + armour.getWeight() + ";" + armour.getWorth());
-      }
+      printArmours(file);
       // version 11
-      int nrOfWeapons = 0;
-      for (Integer t : weapons.values())
-        nrOfWeapons += t;
-      file.println(nrOfWeapons);
-      for (String weaponName : weapons.keySet()) {
-        Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
-        if (weapon == null) {
-          weapon = new Weapon(1, 0, 5, weaponName, 1,
-              new dsa.util.Optional<Integer>(14), 50, true, false, false,
-              dsa.util.Optional.NULL_INT);
-        }
-        for (int i = 0; i < weapons.get(weaponName); ++i) {
-          weapon.writeToStream(file);
-        }
-      }
+      printWeapons(file);
       // version 12
-      int nrOfThings = 0;
-      for (Integer t : things.values()) {
-        nrOfThings += t;
-      }
-      file.println(nrOfThings);
-      for (String thingName : things.keySet()) {
-        Thing thing = Things.getInstance().getThing(thingName);
-        for (int i = 0; i < things.get(thingName); ++i) {
-          thing.writeToStream(file);
-        }
-      }
+      printThings(file);
       // version 13
       file.println(Directories.getRelativePath(bgFile, realFile));
       file.println(Directories.getAbsolutePath(bgEditor, realFile));
@@ -1209,33 +1180,16 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         file.println(bankMoney.get(i));
       }
       // version 23
-      file.println(shields.size());
-      for (int i = 0; i < shields.size(); ++i) {
-        file.println(shields.get(i));
-      }
+      printShields(file);
       // version 24
       file.println(soulAnimal);
       file.println(element);
       file.println(academy);
       file.println(magicSpecialization);
       // version 25
-      int nrOfThings2 = 0;
-      for (Integer t : thingsInWarehouse.values()) {
-        nrOfThings2 += t;
-      }
-      file.println(nrOfThings2);
-      for (String thingName : thingsInWarehouse.keySet()) {
-        Thing thing = Things.getInstance().getThing(thingName);
-        for (int i = 0; i < thingsInWarehouse.get(thingName); ++i) {
-          thing.writeToStream(file);
-        }
-      }
+      printWarehouse(file);
       // version 26
-      file.println(clothes.size());
-      for (String clothesName : clothes) {
-        Thing thing = Things.getInstance().getThing(clothesName);
-        thing.writeToStream(file);
-      }
+      printClothes(file);
       // version 27
       file.println(fightMode);
       file.println(firstHandWeapon);
@@ -1245,17 +1199,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println(at2Bonus);
       file.println(mIsGrounded ? 1 : 0);
       // version 29
-      file.println(bfs.size());
-      for (String n : bfs.keySet()) {
-        file.println(n);
-        file.println(bfs.get(n));
-      }
+      printWeaponBFs(file);
       // version 30
-      file.println(shieldBFs.size());
-      for (String n : shieldBFs.keySet()) {
-        file.println(n);
-        file.println(shieldBFs.get(n));
-      }
+      printShieldBFs(file);
       // version 31
       file.println(dazed ? "1" : "0");
       // version 32
@@ -1266,32 +1212,257 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       // version 34
       file.println(remainingStepIncreases);
       // version 35
-      file.println(extraThingData.size());
-      for (Map.Entry<String, ExtraThingData> entry : extraThingData.entrySet()) {
-        file.println(entry.getKey());
-        entry.getValue().store(file);
-      }
-      file.println(extraWarehouseData.size());
-      for (Map.Entry<String, ExtraThingData> entry : extraWarehouseData
-          .entrySet()) {
-        file.println(entry.getKey());
-        entry.getValue().store(file);
-      }
+      printExtraThingData(file);
+      printExtraWarehouseData(file);
       // version 36
       file.println(printingFileType.toString());
       // version 37
       file.println(printingZFW);
       // version 38
-      file.println(nrOfProjectiles.size());
-      for (String n : nrOfProjectiles.keySet()) {
-        file.println(n);
-        file.println(nrOfProjectiles.get(n));
-      }
+      printProjectiles(file);
       // version 39
       file.println(internalType);
       file.println("-End Hero-");
       changed = false;
       file.flush();
+    }
+    finally {
+      if (file != null) {
+        file.close();
+      }
+    }
+  }
+
+  private void printProjectiles(PrintWriter file) throws IOException {
+    file.println(nrOfProjectiles.size());
+    for (String n : nrOfProjectiles.keySet()) {
+      file.println(n);
+      file.println(nrOfProjectiles.get(n));
+    }
+  }
+
+  private void printShieldBFs(PrintWriter file) throws IOException {
+    file.println(shieldBFs.size());
+    for (String n : shieldBFs.keySet()) {
+      file.println(n);
+      file.println(shieldBFs.get(n));
+    }
+  }
+
+  private void printWeaponBFs(PrintWriter file) throws IOException {
+    file.println(bfs.size());
+    for (String n : bfs.keySet()) {
+      file.println(n);
+      file.println(bfs.get(n));
+    }
+  }
+
+  private void printExtraWarehouseData(PrintWriter file) throws IOException {
+    file.println(extraWarehouseData.size());
+    for (Map.Entry<String, ExtraThingData> entry : extraWarehouseData
+        .entrySet()) {
+      file.println(entry.getKey());
+      entry.getValue().store(file);
+    }
+  }
+
+  private void printExtraThingData(PrintWriter file) throws IOException {
+    file.println(extraThingData.size());
+    for (Map.Entry<String, ExtraThingData> entry : extraThingData.entrySet()) {
+      file.println(entry.getKey());
+      entry.getValue().store(file);
+    }
+  }
+
+  private void printClothes(PrintWriter file) throws IOException {
+    file.println(clothes.size());
+    for (String clothesName : clothes) {
+      Thing thing = Things.getInstance().getThing(clothesName);
+      thing.writeToStream(file);
+    }
+  }
+
+  private void printWarehouse(PrintWriter file) throws IOException {
+    int nrOfThings2 = 0;
+    for (Integer t : thingsInWarehouse.values()) {
+      nrOfThings2 += t;
+    }
+    file.println(nrOfThings2);
+    for (String thingName : thingsInWarehouse.keySet()) {
+      Thing thing = Things.getInstance().getThing(thingName);
+      for (int i = 0; i < thingsInWarehouse.get(thingName); ++i) {
+        thing.writeToStream(file);
+      }
+    }
+  }
+
+  private void printShields(PrintWriter file) throws IOException {
+    file.println(shields.size());
+    for (int i = 0; i < shields.size(); ++i) {
+      file.println(shields.get(i));
+    }
+  }
+
+  private void printThings(PrintWriter file) throws IOException {
+    int nrOfThings = 0;
+    for (Integer t : things.values()) {
+      nrOfThings += t;
+    }
+    file.println(nrOfThings);
+    for (String thingName : things.keySet()) {
+      Thing thing = Things.getInstance().getThing(thingName);
+      for (int i = 0; i < things.get(thingName); ++i) {
+        thing.writeToStream(file);
+      }
+    }
+  }
+
+  private void printWeapons(PrintWriter file) throws IOException {
+    int nrOfWeapons = 0;
+    for (Integer t : weapons.values())
+      nrOfWeapons += t;
+    file.println(nrOfWeapons);
+    for (String weaponName : weapons.keySet()) {
+      Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
+      if (weapon == null) {
+        weapon = new Weapon(1, 0, 5, weaponName, 1,
+            new dsa.util.Optional<Integer>(14), 50, true, false, false,
+            dsa.util.Optional.NULL_INT);
+      }
+      for (int i = 0; i < weapons.get(weaponName); ++i) {
+        weapon.writeToStream(file);
+      }
+    }
+  }
+
+  private void printArmours(PrintWriter file) throws IOException {
+    file.println(armours.size());
+    for (String armourName : armours) {
+      Armour armour = Armours.getInstance().getArmour(armourName);
+      file.println(armourName + ";" + armour.getRS() + ";" + armour.getBE()
+          + ";" + armour.getWeight() + ";" + armour.getWorth());
+    }
+  }
+  
+  public void storeThingsToFile(File f) throws IOException  {
+    PrintWriter file = new PrintWriter(new java.io.FileWriter(f));
+    try {
+      file.println(FILE_VERSION);
+      file.println("___Ausruestung___");
+      printThings(file);
+      printExtraThingData(file);
+      file.println("___Kleidung___");
+      printClothes(file);
+      file.println("___Waffen___");
+      printWeapons(file);
+      printWeaponBFs(file);
+      printProjectiles(file);
+      file.println("___Ruestungen___");
+      printArmours(file);
+      file.println("___Parade___");
+      printShields(file);
+      printShieldBFs(file);
+      file.println("___Lager___");
+      printWarehouse(file);
+      printExtraWarehouseData(file);
+      file.flush();
+    }
+    finally {
+      if (file != null) {
+        file.close();
+      }
+    }
+  }
+  
+  public void readThingsFromFile(long thingTypes, File f) throws IOException {
+    BufferedReader file = new BufferedReader(new java.io.FileReader(f));
+    try {
+      int lineNr = 0;
+      String line = file.readLine();
+      testEmpty(line);
+      int version = parseInt(line, lineNr);
+      line = file.readLine(); // "___Ausruestung___"
+      if ((thingTypes & THINGS) != 0) {
+        things.clear();
+        lineNr = readThings(file, lineNr);
+        extraThingData.clear();
+        lineNr = readExtraThingData(file, lineNr, THINGS);
+        line = file.readLine();
+        lineNr++;
+      }
+      else {
+        do {
+          line = file.readLine();
+          ++lineNr;
+        }
+        while (line != null && !line.equals("___Kleidung___"));
+      }
+      if ((thingTypes & CLOTHES) != 0) {
+        clothes.clear();
+        lineNr = readClothes(file, lineNr);
+        line = file.readLine();
+        lineNr++;
+      }
+      else {
+        do { 
+          line = file.readLine();
+          ++lineNr;
+        }
+        while (line != null && !line.equals("___Waffen___"));
+      }
+      if ((thingTypes & WEAPONS) != 0) {
+        lineNr = readWeapons(file, lineNr);
+        bfs.clear();
+        lineNr = readBFs(file, lineNr, version);
+        nrOfProjectiles.clear();
+        lineNr = readNrOfProjectiles(file, lineNr, version);
+        line = file.readLine();
+        lineNr++;      
+      }
+      else {
+        do {
+          line = file.readLine();
+          ++lineNr;
+        }
+        while (line != null && !line.equals("___Ruestungen___"));
+      }
+      if ((thingTypes & ARMOURS) != 0) {
+        lineNr = readArmours(file, lineNr);
+        line = file.readLine();
+        lineNr++;
+      }
+      else {
+        do {
+          line = file.readLine();
+          ++lineNr;
+        }
+        while (line != null && !line.equals("___Parade___"));
+      }
+      if ((thingTypes & SHIELDS) != 0) {
+        shields.clear();
+        lineNr = readShields(file, lineNr);
+        shieldBFs.clear();
+        lineNr = readShieldBFs(file, lineNr, version);
+        file.readLine();
+        lineNr++;
+      }
+      else {
+        do {
+          line = file.readLine();
+          ++lineNr;
+        }
+        while (line != null && !line.equals("___Lager___"));
+      }
+      if ((thingTypes & WAREHOUSE) != 0) {
+        thingsInWarehouse.clear();
+        lineNr = readWarehouse(file, lineNr);
+        extraWarehouseData.clear();
+        readExtraThingData(file, lineNr, WAREHOUSE);
+      }
+      changed = true;
+      for (CharacterObserver o : observers) {
+        o.thingsChanged();
+      }
     }
     finally {
       if (file != null) {
@@ -1485,13 +1656,18 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
           : 0;
     }
     if (version > 34) {
-      lineNr = readExtraThingData(file, lineNr);
+      lineNr = readExtraThingData(file, lineNr, (THINGS | WAREHOUSE));
     }
     if (version > 35) {
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      printingFileType = FileType.valueOf(line);
+      try {
+        printingFileType = FileType.valueOf(line);
+      }
+      catch (IllegalArgumentException e) {
+        printingFileType = FileType.WordML;
+      }
     }
     else {
       String printingFileName = getPrintingTemplateFile().toLowerCase(
@@ -1524,7 +1700,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     else {
       printingZFW = -6;
     }
-    readNrOfProjectiles(file, lineNr, version);
+    lineNr = readNrOfProjectiles(file, lineNr, version);
     if (version > 38) {
       lineNr++;
       line = file.readLine();
@@ -1548,31 +1724,35 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = false;
   }
 
-  private int readExtraThingData(BufferedReader file, int lineNr)
+  private int readExtraThingData(BufferedReader file, int lineNr, long types)
       throws IOException {
-    String line = file.readLine();
-    lineNr++;
-    testEmpty(line);
-    int count = parseInt(line, lineNr);
-    for (int i = 0; i < count; ++i) {
-      String key = file.readLine();
+    if ((types & THINGS) != 0) {
+      String line = file.readLine();
       lineNr++;
       testEmpty(line);
-      ExtraThingData extraData = new ExtraThingData();
-      lineNr = extraData.read(file, lineNr);
-      extraThingData.put(key, extraData);
+      int count = parseInt(line, lineNr);
+      for (int i = 0; i < count; ++i) {
+        String key = file.readLine();
+        lineNr++;
+        testEmpty(line);
+        ExtraThingData extraData = new ExtraThingData();
+        lineNr = extraData.read(file, lineNr);
+        extraThingData.put(key, extraData);
+      }
     }
-    line = file.readLine();
-    lineNr++;
-    testEmpty(line);
-    count = parseInt(line, lineNr);
-    for (int i = 0; i < count; ++i) {
-      String key = file.readLine();
+    if ((types & WAREHOUSE) != 0) {
+      String line = file.readLine();
       lineNr++;
       testEmpty(line);
-      ExtraThingData extraData = new ExtraThingData();
-      lineNr = extraData.read(file, lineNr);
-      extraWarehouseData.put(key, extraData);
+      int count = parseInt(line, lineNr);
+      for (int i = 0; i < count; ++i) {
+        String key = file.readLine();
+        lineNr++;
+        testEmpty(line);
+        ExtraThingData extraData = new ExtraThingData();
+        lineNr = extraData.read(file, lineNr);
+        extraWarehouseData.put(key, extraData);
+      }
     }
     return lineNr;
   }
@@ -1989,6 +2169,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     testEmpty(line);
     beModification = parseInt(line, lineNr);
     lineNr++;
+    lineNr = readArmours(file, lineNr);
+    return lineNr;
+  }
+
+  private int readArmours(BufferedReader file, int lineNr) throws IOException {
+    String line;
     line = file.readLine();
     testEmpty(line);
     int nrOfArmours = parseInt(line, lineNr);
@@ -3766,7 +3952,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   }
 
   public Printer getPrinter() {
-    return dsa.control.CharacterPrinter.getInstance();
+    return dsa.control.printing.CharacterPrinter.getInstance();
   }
   
   private boolean loadedNewerVersion = false;

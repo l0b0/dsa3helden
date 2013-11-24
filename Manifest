@@ -9,4 +9,4 @@ Class-Path:
   libraries/syntheticaWalnut.jar 
   libraries/skinlf.jar 
   libraries/jdic.jar 
-
+  libraries/itext-2.0.1.jar

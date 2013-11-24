@@ -53,7 +53,7 @@ public class Help {
       return;
     }
     try {
-      URL url = file.toURL();
+      URL url = file.toURI().toURL();
       Desktop.browse(url);
     }
     catch (java.net.MalformedURLException ex) {

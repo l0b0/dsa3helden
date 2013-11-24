@@ -62,5 +62,7 @@ public interface CharacterObserver extends dsa.util.Observer {
   void bfChanged(String item);
 
   void beModificationChanged();
+  
+  void thingsChanged();
 
 }

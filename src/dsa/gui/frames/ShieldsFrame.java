@@ -83,6 +83,10 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     public void shieldRemoved(String item) {
       updateData();
     }
+    
+    public void thingsChanged() {
+      updateData();
+    }
   }
 
   private final MyObserver myObserver = new MyObserver();

@@ -58,6 +58,10 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
       }
       calcSums();
     }
+    
+    public void thingsChanged() {
+      updateData();
+    }
   }
 
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();

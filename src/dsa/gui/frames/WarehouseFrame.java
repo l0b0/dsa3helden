@@ -52,6 +52,10 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
         mTable.removeThing(thing);
       }
     }
+    
+    public void thingsChanged() {
+      updateData();
+    }
   }
   
   public String getHelpPage() {

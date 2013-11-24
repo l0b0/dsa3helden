@@ -28,7 +28,7 @@ public class Version implements Comparable<Version> {
 
   private static Version createCurrentVersion() {
     try {
-      return Version.parse("1.9.1");
+      return Version.parse("1.9.2");
     }
     catch (ParseException e) {
       return createVersion(1, 0, 0);

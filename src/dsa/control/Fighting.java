@@ -351,12 +351,63 @@ public final class Fighting {
     void updateData();
   }
   
-  public static int doHit(Fighter fighter, int tp, boolean useAU, boolean rollSpecials, 
+  public static int doHit(Fighter fighter, int tp, boolean useAU, boolean rollSpecials, boolean hasShield,
       JFrame parent, UpdateCallbacks callbacks) {
     ImageIcon icon = ImageManager.getIcon("hit");
     int sp = tp - fighter.getRS();
     if (sp <= 0) return 0;
     int le = 0;
+    String zoneText = "";
+    if (Group.getInstance().getOptions().useHitZones()) {
+    	zoneText = "Trefferzone:";
+    	switch (Dice.roll(20)) {
+    	case 1:
+    	case 3:
+    	case 5:
+    		zoneText += " linkes Bein.";
+    		break;
+    	case 2:
+    	case 4:
+    	case 6:
+    		zoneText += " rechtes Bein.";
+    		break;
+    	case 7:
+    	case 8:
+    		zoneText += " Bauch.";
+    		break;
+    	case 9:
+    	case 11:
+    		zoneText += hasShield ? " Waffenarm." : " zweiter Arm.";
+    		break;
+    	case 10:
+    		zoneText += hasShield ? " Waffenarm." : " erster Arm.";
+    		break;
+    	case 12:
+    		zoneText += hasShield ? " linkes Bein." : " zweiter Arm.";
+    		break;
+    	case 13:
+    		zoneText += hasShield ? " Brust." : " erster Arm.";
+    		break;
+    	case 14:
+    		zoneText += hasShield ? " Kopf." : " zweiter Arm.";
+    		break;
+    	case 15:
+    	case 16:
+    	case 17:
+    	case 18:
+    		zoneText += " Brust.";
+    		break;
+    	case 19:
+    	case 20:
+    		zoneText += " Kopf.";
+    		break;
+		default:
+			zoneText += " <Fehler>.";
+			break;
+    	}
+    }
+    String zoneTextOnly = zoneText;
+    zoneText = "\n\n" + zoneText;
     if (useAU && (fighter instanceof Hero)) {
       ((Hero)fighter).changeAU(-sp);
       le = ((Hero)fighter).getCurrentEnergy(Energy.AU);
@@ -368,13 +419,16 @@ public final class Fighting {
     if (useAU) {
       if (le == 0) {
         JOptionPane.showMessageDialog(parent, fighter.getName()
-            + " wird bewusstlos.", "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
+            + " wird bewusstlos." + zoneText, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
+      }
+      else if (!"".equals(zoneTextOnly)) {
+    	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
       }
       return sp;
     }
     if (le < 0) {
       JOptionPane.showMessageDialog(parent, fighter.getName()
-          + " liegt im Sterben ...", "Verwundung", JOptionPane.PLAIN_MESSAGE,
+          + " liegt im Sterben ..." + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
           icon);
     }
     else if (le <= 5) {
@@ -384,15 +438,18 @@ public final class Fighting {
               .showMessageDialog(
                   parent,
                   fighter.getName()
-                      + " ist benommen und braucht jede KR\neine KO-Probe, um nicht ohnmächtig zu werden.",
+                      + " ist benommen und braucht jede KR\neine KO-Probe, um nicht ohnmächtig zu werden." + zoneText,
                   "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
           fighter.setDazed(true);
           callbacks.updateData();
         }
+        else if (!"".equals(zoneTextOnly)) {
+      	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
+        }
       }
       else {
         JOptionPane.showMessageDialog(parent, fighter.getName()
-            + " wird bewusstlos.", "Verwundung", JOptionPane.PLAIN_MESSAGE,
+            + " wird bewusstlos." + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
             icon);
       }
     }
@@ -413,7 +470,7 @@ public final class Fighting {
         int roll = Dice.roll(20);
         if (roll <= ko - Markers.getMarkers(currentHero)) {
           JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die KO-Probe mit einer " + roll + " bestanden!",
+              + " hat die KO-Probe mit einer " + roll + " bestanden!" + zoneText,
               "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
         }
         else {
@@ -421,14 +478,14 @@ public final class Fighting {
             JOptionPane.showMessageDialog(parent, currentHero.getName()
                 + " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
                 + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                + " wird ohnmächtig.", "Verwundung", JOptionPane.PLAIN_MESSAGE,
+                + " wird ohnmächtig." + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
                 icon);
           }
           else {
             JOptionPane.showMessageDialog(parent, currentHero.getName()
                 + " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
                 + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                + " ist jetzt benommen.", "Verwundung",
+                + " ist jetzt benommen." + zoneText, "Verwundung",
                 JOptionPane.PLAIN_MESSAGE, icon);
             currentHero.setDazed(true);
             callbacks.updateData();
@@ -449,22 +506,22 @@ public final class Fighting {
         int result = probe.performDetailedTest(d1, d2, d3);
         if (result == Probe.DAEMONENPECH) {
           JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit DREI 20ern verpatzt!",
+              + " hat die Selbstbeherrschung mit DREI 20ern verpatzt!" + zoneText,
               "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
         }
         else if (result == Probe.PATZER) {
           JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit zwei 20ern verpatzt!",
+              + " hat die Selbstbeherrschung mit zwei 20ern verpatzt!" + zoneText,
               "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
         }
         else if (result == Probe.PERFEKT) {
           JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit zwei 1ern perfekt bestanden!",
+              + " hat die Selbstbeherrschung mit zwei 1ern perfekt bestanden!" + zoneText,
               "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
         }
         else if (result == Probe.GOETTERGLUECK) {
           JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit DREI 1ern bestanden!",
+              + " hat die Selbstbeherrschung mit DREI 1ern bestanden!" + zoneText,
               "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
         }
         else if (result == Probe.FEHLSCHLAG) {
@@ -472,17 +529,23 @@ public final class Fighting {
               + " ist die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
               + " nicht gelungen.\n"
               + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-              + " wird vor Schmerz ohnmächtig.", "Verwundung",
+              + " wird vor Schmerz ohnmächtig." + zoneText, "Verwundung",
               JOptionPane.PLAIN_MESSAGE, icon);
         }
         else {
           JOptionPane.showMessageDialog(parent, currentHero.getName()
               + " ist die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
-              + " gelungen (" + result + " Punkte übrig).", "Verwundung",
+              + " gelungen (" + result + " Punkte übrig)." + zoneText, "Verwundung",
               JOptionPane.PLAIN_MESSAGE, icon);
         }
       }
+      else if (!"".equals(zoneTextOnly)) {
+    	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
+      }
     }
+    else if (!"".equals(zoneTextOnly)) {
+  	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
+    }    
     return sp;
   }
 

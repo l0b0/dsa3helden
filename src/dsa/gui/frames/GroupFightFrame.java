@@ -47,6 +47,8 @@ import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 import dsa.model.characters.Hero.DerivedValue;
 import dsa.model.data.Opponent;
+import dsa.model.data.Shield;
+import dsa.model.data.Shields;
 import dsa.model.data.Talents;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
@@ -267,7 +269,17 @@ public class GroupFightFrame extends SubFrame
     }
     
     boolean useAU = weapon != null && Weapons.isAUCategory(weapon.getType());
-    Fighting.doHit(opponent, result.getTP(), useAU, false, this, new NoUpdate());
+    boolean hasShield = false;
+    if (opponent instanceof Hero) {
+    	Hero hero = (Hero) opponent;
+    	if (hero.getFightMode().startsWith("Waffe + Parade")) {
+    		Shield shield = Shields.getInstance().getShield(hero.getSecondHandItem());
+    		if (shield != null && shield.getFkMod() != 0) {
+    			hasShield = true;
+    		}
+    	}
+    }
+    Fighting.doHit(opponent, result.getTP(), useAU, false, hasShield, this, new NoUpdate());
     if (opponent instanceof Hero) {
       heroesTable.updateFighter(opponent);
     }

@@ -36,6 +36,7 @@ import javax.swing.JComboBox;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -546,7 +547,11 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     catch (NumberFormatException e) {
       listen = true;
     }
-    modeChanged(true);
+    SwingUtilities.invokeLater(new Runnable() {
+    	public void run() {
+    		modeChanged(true);
+    	}
+    });
   }
 
   private void setLEColor() {
@@ -1496,7 +1501,14 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void doHit(int tp) {
-    Fighting.doHit(currentHero, tp, useAU, true, this, new Fighting.UpdateCallbacks() {
+	boolean hasShield = false;
+	if (currentHero.getFightMode().startsWith("Waffe + Parade")) {
+		Shield shield = Shields.getInstance().getShield(currentHero.getSecondHandItem());
+		if (shield != null && shield.getFkMod() != 0) {
+			hasShield = true;
+		}
+	}
+    Fighting.doHit(currentHero, tp, useAU, true, hasShield, this, new Fighting.UpdateCallbacks() {
       public void updateData() {
         FightFrame.this.updateData();
       }

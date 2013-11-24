@@ -400,6 +400,7 @@ public final class SpellProbeDialog extends BGDialog {
     dispose();
     String result = "";
     result = doProbe(hero, talentName, difficulty);
+    result += "\nNoch " + hero.getCurrentEnergy(Energy.AE) + " ASP übrig.";
     ProbeResultDialog.showDialog(parent, result, "Probe für "
         + Strings.cutTo(hero.getName(), ' '));
   }

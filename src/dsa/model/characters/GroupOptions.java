@@ -52,6 +52,8 @@ public class GroupOptions {
   private boolean hardTwoHandedWeapons;
   
   private boolean qvatUseWV;
+  
+  private boolean useHitZones;
 
   private boolean changed = false;
 
@@ -72,13 +74,14 @@ public class GroupOptions {
     heavyClothes = prefs.getBoolean("HeavyClothes", false);
     lowerClothesBE = prefs.getBoolean("LowerClothesBE", true);
     hardTwoHandedWeapons = prefs.getBoolean("Hard2HWeapons", true);
+    setUseHitZones(prefs.getBoolean("UseHitZones", false));
     prefs = Preferences.userRoot().node("dsa/data/impl");
     setFullFirstStep(prefs.getBoolean("FullFirstStep", true));
     setQvatPABasis(prefs.getBoolean("QvatPaBasis", true));
     setQvatUseWV(prefs.getBoolean("QvatUseWV", false));
   }
 
-  private static int fileVersion = 5;
+  private static int fileVersion = 6;
 
   public void writeToFile(PrintWriter out) throws IOException {
     out.println(fileVersion);
@@ -92,6 +95,7 @@ public class GroupOptions {
     out.println(hardTwoHandedWeapons ? 1 : 0);
     out.println(qvatUseWV ? 1 : 0);
     out.println(lowerClothesBE ? 1 : 0);
+    out.println(useHitZones ? 1 : 0);
     out.println("-- End Options --");
     changed = false;
   }
@@ -180,6 +184,16 @@ public class GroupOptions {
     }
     else {
       lowerClothesBE = !heavyClothes;
+    }
+    if (version > 5) {
+    	useHitZones = "1".equals(line);
+    	line = in.readLine();
+    	lineNr++;
+    	testEmpty(line);
+    }
+    else {
+    	Preferences prefs = Preferences.userNodeForPackage(OptionsDialog.class);
+    	useHitZones = prefs.getBoolean("UseHitZones", false);
     }
     while (line != null && !line.equals("-- End Options --")) {
       line = in.readLine();
@@ -290,6 +304,15 @@ public class GroupOptions {
   public void setQvatUseWV(boolean useWV) {
     this.qvatUseWV = useWV;
     changed = true;
+  }
+  
+  public boolean useHitZones() {
+	  return useHitZones;
+  }
+  
+  public void setUseHitZones(boolean useHitZones) {
+	  this.useHitZones = useHitZones;
+	  changed = true;
   }
 
   public void loadCorrectFiles() {

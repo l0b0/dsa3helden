@@ -123,6 +123,8 @@ public final class OptionsDialog extends BGDialog {
   private JTextField dataCustomDirBox = null;
 
   private JButton selDataDirButton = null;
+  
+  private JCheckBox useHitZonesBox = null;
 
   /**
    * This method initializes
@@ -264,6 +266,7 @@ public final class OptionsDialog extends BGDialog {
     changed = changed || wvBox.isSelected() != options.qvatUseWV();
     changed = changed || paBasisBox.isSelected() != options.hasQvatPABasis();
     changed = changed || koBox.isSelected() != options.hasQvatStunned();
+    changed = changed || useHitZonesBox.isSelected() != options.useHitZones();
     changed = changed
         || clothesBEBox.getSelectedIndex() != options.getClothesBE().ordinal();
     changed = changed || twohwBox.isSelected() != options.hasHard2HWeapons();
@@ -279,6 +282,7 @@ public final class OptionsDialog extends BGDialog {
       options.setFullFirstStep(fullStepBox.isSelected());
       options.setQvatMarkers(markersBox.isSelected());
       options.setQvatUseWV(wvBox.isSelected());
+      options.setUseHitZones(useHitZonesBox.isSelected());
       options.setQvatPABasis(paBasisBox.isSelected());
       options.setQvatStunned(koBox.isSelected());
       options.setClothesBE(GroupOptions.ClothesBE.values()[clothesBEBox.getSelectedIndex()]);
@@ -290,6 +294,7 @@ public final class OptionsDialog extends BGDialog {
       prefs.putBoolean("HighAERegeneration", aeBox.isSelected());
       prefs.putBoolean("QvatUseKO", koBox.isSelected());
       prefs.putBoolean("QvatUseWV", wvBox.isSelected());
+      prefs.putBoolean("UseHitZones", useHitZonesBox.isSelected());
       prefs.putBoolean("HeavyClothes", clothesBEBox.getSelectedIndex() == GroupOptions.ClothesBE.Normal.ordinal());
       prefs.putBoolean("LowerClothesBE", clothesBEBox.getSelectedIndex() == GroupOptions.ClothesBE.Lower.ordinal());
       prefs.putBoolean("Hard2HWeapons", twohwBox.isSelected());
@@ -311,6 +316,7 @@ public final class OptionsDialog extends BGDialog {
     koBox.setSelected(options.hasQvatStunned());
     markersBox.setSelected(options.hasQvatMarkers());
     wvBox.setSelected(options.qvatUseWV());
+    useHitZonesBox.setSelected(options.useHitZones());
     fullStepBox.setSelected(options.hasFullFirstStep());
     paBasisBox.setSelected(options.hasQvatPABasis());
     clothesBEBox.setSelectedIndex(options.getClothesBE().ordinal());
@@ -575,6 +581,7 @@ public final class OptionsDialog extends BGDialog {
       qvatPanel.add(getKOBox(), null);
       qvatPanel.add(getMarkersBox(), null);
       qvatPanel.add(getWVBox(), null);
+      qvatPanel.add(getUseHitZonesBox(), null);
     }
     return qvatPanel;
   }
@@ -628,6 +635,15 @@ public final class OptionsDialog extends BGDialog {
       wvBox.setText("Benutze WaffenVergleich");
     }
     return wvBox;
+  }
+  
+  private JCheckBox getUseHitZonesBox() {
+	  if (useHitZonesBox == null) {
+		 useHitZonesBox = new JCheckBox();
+		 useHitZonesBox.setBounds(new java.awt.Rectangle(10, 130, 261, 21));
+		 useHitZonesBox.setText("Trefferzonen auswürfeln");
+	  }
+	  return useHitZonesBox;
   }
 
   /**

@@ -141,7 +141,7 @@ public class Armours {
           throw new IOException("Zeile " + lineNr + ": Gewicht keine Zahl!");
         }
         int worth = 0;
-        if (!hasVersion || version > 1) {
+        if ( (userDefined && hasVersion && version > 1) || (!userDefined)) {
           line = in.readLine();
           lineNr++;
           if (line == null) throw new IOException("EOF statt Wert!");

@@ -1,3 +1,8 @@
+Version 1.2.1
+-------------
+- Bugfix: beim ersten Start wurden benutzerdefinierte Rüstungen falsch eingelesen
+- Bugfix: Sonderzeichen beim Druck in XML wurden nicht maskiert
+
 Version 1.2.0
 -------------
 - Drucken in XML-Dateien (MS Word) und ODT-Dateien (OpenDocument) ermöglicht

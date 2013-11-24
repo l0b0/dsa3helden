@@ -161,7 +161,7 @@ public class FileTransformer {
           if (result == LookupTable.LookupPerformer.NextCharResult.Hit) {
             String text = lookuper.getItem();
             if (text != null) {
-              out.write(text.getBytes(encoding));
+              out.write(encode(text, encoding));
             }
           }
           else {
@@ -181,6 +181,17 @@ public class FileTransformer {
       }
     }
     out.flush();
+  }
+  
+  private byte[] encode(String text, String encoding) throws IOException {
+    if (xml) {
+      text = text.replace("&", "&amp;");
+      text = text.replace("'", "&pos;");
+      text = text.replace("\"", "&quot;");
+      text = text.replace("<", "&lt;");
+      text = text.replace(">", "&gt;");
+    }
+    return text.getBytes(encoding);
   }
 
   private LookupTable lookupTable;

@@ -41,9 +41,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import dsa.control.Dice;
+import dsa.control.Fighting;
 import dsa.control.Markers;
-import dsa.control.Probe;
-import dsa.gui.dialogs.ProjectileAttackDialog;
+import dsa.gui.dialogs.fighting.ProjectileAttackDialog;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
 import dsa.model.DiceSpecification;
@@ -59,8 +59,8 @@ import dsa.model.data.Shields;
 import dsa.model.data.Talents;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
-import dsa.model.talents.FightingTalent;
 import dsa.model.talents.Talent;
+import dsa.util.Optional;
 
 import javax.swing.JCheckBox;
 
@@ -302,9 +302,9 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       groundBox.setSelected(currentHero.isGrounded());
       groundBox.setEnabled(true);
       if (withDazed) {
-        if (!canDefend()) currentHero.setDazed(true);
+        if (!Fighting.canDefend(currentHero)) currentHero.setDazed(true);
         dazedBox.setSelected(currentHero.isDazed());
-        dazedBox.setEnabled(canDefend());
+        dazedBox.setEnabled(Fighting.canDefend(currentHero));
       }
       else {
         dazedBox.setSelected(false);
@@ -361,7 +361,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       fromAUBox.setSelected(false);
     }
     setLEColor();
-    evadeButton.setEnabled(currentHero != null && canDefend());
+    evadeButton.setEnabled(currentHero != null && Fighting.canDefend(currentHero));
     hitButton.setEnabled(currentHero != null);
     listen = true;
   }
@@ -625,26 +625,21 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     tp2Label.setText("-");
     bf2Label.setText("-");
   }
-
-  private boolean canAttack() {
-    return (!withDazed || !currentHero.isDazed()) && canDefend();
-  }
-
-  private boolean canDefend() {
-    boolean leOK = currentHero.getCurrentEnergy(Energy.LE) > 5;
-    return leOK && currentHero.getCurrentEnergy(Energy.AU) > 0;
-  }
+  
+  private boolean fireActiveWeaponChange = true;
 
   protected void modeChanged() {
     if (!listen) return;
     Object mode = modeBox.getSelectedItem();
     if (mode == null) return;
-    attack1Button.setEnabled(canAttack());
-    parade1Button.setEnabled(canDefend());
-    evadeButton.setEnabled(canDefend());
+    fireActiveWeaponChange = false;
+    attack1Button.setEnabled(Fighting.canAttack(currentHero));
+    parade1Button.setEnabled(Fighting.canDefend(currentHero));
+    evadeButton.setEnabled(Fighting.canDefend(currentHero));
     hand1Box.removeAllItems();
     hand2Box.removeAllItems();
     beLabel.setText("" + currentHero.getBE());
+    currentHero.setFightMode(mode.toString());
     if (mode.equals("Waffenlos")) {
       firstHandLabel.setText("Kampftechnik:");
       hand1Box.addItem("Raufen");
@@ -677,7 +672,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       hand2Box.setEnabled(true);
       attack2Button.setEnabled(false);
       parade2Button.setEnabled(mode.toString().endsWith("separat")
-          && canDefend());
+          && Fighting.canDefend(currentHero));
     }
     else if (mode.equals("Zwei Waffen")) {
       firstHandLabel.setText("Erste Hand:");
@@ -696,8 +691,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           .isEarlyTwoHanded();
       int attackBorder = earlyLeftHand ? 6 : 14;
       int paradeBorder = earlyLeftHand ? 9 : 14;
-      attack2Button.setEnabled(canAttack() && skill >= attackBorder);
-      parade2Button.setEnabled(skill >= paradeBorder && canDefend());
+      attack2Button.setEnabled(Fighting.canAttack(currentHero) && skill >= attackBorder);
+      parade2Button.setEnabled(skill >= paradeBorder && Fighting.canDefend(currentHero));
     }
     else if (mode.equals("Zweihandwaffe")) {
       firstHandLabel.setText("Waffe:");
@@ -716,7 +711,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       disableSecondHand();
       parade1Button.setEnabled(false);
     }
-    currentHero.setFightMode(mode.toString());
+    fireActiveWeaponChange = true;
+    currentHero.fireActiveWeaponsChanged();
   }
 
   /**
@@ -737,105 +733,36 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     return hand1Box;
   }
 
-  private int getNormalATSkill(int category) {
-    String talent = Weapons.getCategoryName(category);
-    int skill = currentHero.getATPart(talent);
-    if (skill < 0) skill = 0;
-    skill += currentHero.getCurrentDerivedValue(Hero.DerivedValue.AT);
-    int be = currentHero.getBE();
-    be += ((FightingTalent) Talents.getInstance().getTalent(talent))
-        .getBEMinus();
-    if (be < 0) be = 0;
-    skill -= be / 2;
-    return skill;
-  }
-
-  private int getNormalPASkill(int category) {
-    String talent = Weapons.getCategoryName(category);
-    int skill = currentHero.getPAPart(talent);
-    if (skill < 0) skill = 0;
-    skill += currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA);
-    int be = currentHero.getBE();
-    be += ((FightingTalent) Talents.getInstance().getTalent(talent))
-        .getBEMinus();
-    if (be < 0) be = 0;
-    skill -= Math.round(Math.ceil((double) be / 2.0));
-    return skill;
-  }
-
-  private void setFirstAT(int category, int mod) {
-    if (canAttack()) {
-      at1Label.setText("" + (getNormalATSkill(category) + mod));
+  private void setFirstAT() {
+    if (Fighting.canAttack(currentHero)) {
+      at1Label.setText("" + Fighting.getFirstATValue(currentHero));
     }
     else {
       at1Label.setText("-");
     }
   }
 
-  private void setFirstPA(int category, int mod) {
-    if (canAttack()) {
-      pa1Label.setText("" + (getNormalPASkill(category) + mod));
-    }
-    else {
-      pa1Label.setText(""
-          + currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA));
-    }
+  private void setFirstPA() {
+    pa1Label.setText("" + Fighting.getFirstPAValue(currentHero));
   }
 
-  private void setSecondAT(int category, int mod) {
-    if (canAttack()) {
-      int value = currentHero.getCurrentTalentValue("Linkshändig");
-      value = -7 + Math.round(value / 2.0f);
-      if (value > 0) value = 0;
-      mod += value;
-      at2Label.setText("" + (getNormalATSkill(category) + mod));
+  private void setSecondAT() {
+    if (Fighting.canAttack(currentHero)) {
+      at2Label.setText("" + Fighting.getSecondATValue(currentHero));
     }
     else {
       at2Label.setText("-");
     }
   }
 
-  private void setSecondPA(int category, int mod) {
-    int value = currentHero.getCurrentTalentValue("Linkshändig");
-    value = -7 + value - Math.round(value / 2.0f);
-    if (value > 0) value = 0;
-    if (canAttack()) {
-      mod += value;
-      pa2Label.setText("" + (getNormalPASkill(category) + mod));
-    }
-    else {
-      pa2Label.setText(""
-          + (currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA) + value));
-    }
+  private void setSecondPA() {
+    pa2Label.setText("" + Fighting.getSecondPAValue(currentHero));
   }
 
-  private int getKKBonus(int border) {
-    int kk = currentHero.getCurrentProperty(Property.KK);
-    if (kk <= border)
-      return 0;
-    else
-      return kk - border;
-  }
-
-  private int getKKBonus(Weapon w) {
-    if (Weapons.getCategoryName(w.getType()).equals("Schußwaffen")) {
-      return 0;
-    }
-    if (w.getKKBonus().hasValue()) {
-      return getKKBonus(w.getKKBonus().getValue());
-    }
-    else
-      return 0;
-  }
-
-  private void setFirstWeaponData(String s, int atMod, int paMod) {
-    Weapon w = Weapons.getInstance().getWeapon(s);
-    setFirstAT(w.getType(), atMod);
-    setFirstPA(w.getType(), paMod);
-    int wDamage = w.getW6damage();
-    int constDamage = w.getConstDamage();
-    constDamage += getKKBonus(w);
-    tp1Label.setText(wDamage + "W+" + constDamage);
+  private void setFirstWeaponData(String s) {
+    setFirstAT();
+    setFirstPA();
+    tp1Label.setText(Fighting.getFirstTP(currentHero).toString());
     bf1Label.setText("" + currentHero.getBF(s, 1));
   }
 
@@ -846,64 +773,29 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     Object o = hand1Box.getSelectedItem();
     if (o == null) return;
     String s = o.toString();
+    currentHero.setFirstHandWeapon(s);
     if (mode.equals("Waffenlos")) {
-      setFirstAT(Weapons.getCategoryIndex(s), 0);
-      setFirstPA(Weapons.getCategoryIndex(s), 0);
-      int fixedTP = 0;
-      if (s.equals("Boxen")) {
-        fixedTP += getKKBonus(14);
-      }
-      tp1Label.setText("1W+" + fixedTP);
+      setFirstAT();
+      setFirstPA();
+      tp1Label.setText(Fighting.getFirstTP(currentHero).toString());
       bf1Label.setText("-");
     }
-    else if (mode.equals("Eine Waffe")) {
-      setFirstWeaponData(s, 0, 0);
-    }
-    else if (mode.equals("Waffe + Parade")) {
-      Object o2 = hand2Box.getSelectedItem();
-      int atMod = 0;
-      int paMod = 0;
-      if (o2 != null) {
-        Shield shield = Shields.getInstance().getShield(o2.toString());
-        atMod = shield.getAtMod();
-        int leftSkill = currentHero.getCurrentTalentValue("Linkshändig");
-        paMod = leftSkill > 8 ? shield.getPaMod2() : shield.getPaMod();
-      }
-      setFirstWeaponData(s, atMod, paMod);
-    }
-    else if (mode.equals("Waffe + Parade, separat")) {
-      setFirstWeaponData(s, 0, 0);
-    }
-    else if (mode.equals("Zwei Waffen")) {
-      setFirstWeaponData(s, 0, 0);
-    }
-    else if (mode.equals("Zweihandwaffe")) {
-      setFirstWeaponData(s, 0, 0);
-    }
-    else { // "Fernkampf"
-      Weapon w = Weapons.getInstance().getWeapon(s);
-      String talent = Weapons.getCategoryName(w.getType());
-      int skill = currentHero.getCurrentTalentValue(talent);
-      skill += currentHero.getCurrentDerivedValue(Hero.DerivedValue.FK);
-      int be = currentHero.getBE();
-      be += ((FightingTalent) Talents.getInstance().getTalent(talent))
-          .getBEMinus();
-      if (be < 0) be = 0;
-      skill -= be;
-      if (canAttack()) {
-        at1Label.setText("" + skill);
+    else if (mode.equals("Fernkampf")) {
+      Optional<Integer> skill = Fighting.getFirstATValue(currentHero);
+      if (skill.hasValue() && Fighting.canAttack(currentHero)) {
+        at1Label.setText("" + skill.getValue());
       }
       else {
         at1Label.setText("-");
       }
       pa1Label.setText("-");
-      int wDamage = w.getW6damage();
-      int constDamage = w.getConstDamage();
-      constDamage += getKKBonus(w);
-      tp1Label.setText(wDamage + "W+" + constDamage);
+      tp1Label.setText(Fighting.getFirstTP(currentHero).toString());
       bf1Label.setText("" + currentHero.getBF(s, 1));
     }
-    currentHero.setFirstHandWeapon(s);
+    else {
+      setFirstWeaponData(s);
+    }
+    if (fireActiveWeaponChange) currentHero.fireActiveWeaponsChanged();
   }
 
   /**
@@ -931,6 +823,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     Object o = hand2Box.getSelectedItem();
     if (o == null) return;
     String s = o.toString();
+    currentHero.setSecondHandItem(s);
     if (mode.equals("Waffe + Parade")) {
       hand1Changed();
       Shield shield = Shields.getInstance().getShield(s);
@@ -940,20 +833,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     else if (mode.equals("Waffe + Parade, separat")) {
       at2Label.setText("-");
+      pa2Label.setText("" + Fighting.getSecondPAValue(currentHero));
       int be = 0;
-      if (canAttack()) {
-        int leftSkill = currentHero.getCurrentTalentValue("Linkshändig");
-        leftSkill += -7 + leftSkill - Math.round(leftSkill / 2.0f);
-        leftSkill += currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA);
-        be = currentHero.getBE();
-        if (be < 0) be = 0;
-        leftSkill -= Math.round(Math.ceil((double) be / 2.0));
-        pa2Label.setText("" + leftSkill);
-      }
-      else {
-        pa2Label.setText(""
-            + currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA));
-      }
       tp2Label.setText("-");
       Shield shield = Shields.getInstance().getShield(s);
       bf2Label.setText("" + currentHero.getBF(s));
@@ -962,19 +843,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       beLabel.setText("" + be);
     }
     else { // "Zwei Waffen"
-      Weapon w = Weapons.getInstance().getWeapon(s);
-      setSecondAT(w.getType(), 0);
-      setSecondPA(w.getType(), 0);
-      int wDamage = w.getW6damage();
-      int constDamage = w.getConstDamage();
-      int leftSkill = currentHero.getCurrentTalentValue("Linkshändig");
-      if (leftSkill >= 8) {
-        constDamage += getKKBonus(w);
-      }
-      tp2Label.setText(wDamage + "W+" + constDamage);
+      setSecondAT();
+      setSecondPA();
+      tp2Label.setText("" + Fighting.getSecondTP(currentHero));
       bf2Label.setText("" + currentHero.getBF(s, 1));
     }
-    currentHero.setSecondHandItem(s);
+    if (fireActiveWeaponChange) currentHero.fireActiveWeaponsChanged();
   }
 
   /**
@@ -1017,6 +891,11 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           .getText());
       int at = atValue;
       if (currentHero.isGrounded()) at -= 7;
+      boolean stumbled = currentHero.hasStumbled();
+      if (stumbled) {
+        at -= 5;
+        currentHero.setHasStumbled(false);
+      }
       String tpS = weapon1 ? tp1Label.getText() : tp2Label.getText();
       DiceSpecification ds = DiceSpecification.parse(tpS);
       int atbonus = weapon1 ? currentHero.getAT1Bonus() : currentHero
@@ -1031,6 +910,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         s += "AT-Wert: " + atValue + "\n";
         if (atbonus != 0) s += "Bonus aus letzter Runde: " + atbonus + "\n";
         if (currentHero.isGrounded()) s += "Am Boden: -7\n";
+        if (stumbled) s += "Gestolpert: -5\n";
         s += "Würfelwurf: " + atRoll + "\n";
         if (withMarkers) {
           s += "Abzug durch Marker: " + Markers.getMarkers(currentHero) + "\n";
@@ -1072,6 +952,11 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       if (currentHero.isGrounded()) at -= 7;
       int atbonus = currentHero.getAT1Bonus();
       at += atbonus;
+      boolean stumbled = currentHero.hasStumbled();
+      if (stumbled) {
+        at -=5;
+        currentHero.setHasStumbled(false);
+      }
       int atRoll = Dice.roll(20);
       if (atRoll == 20) {
         doFumble(true);
@@ -1081,6 +966,9 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         s += "AT-Wert: " + atValue + "\n";
         if (atbonus != 0) s += "Bonus aus letzter Runde: " + atbonus + "\n";
         if (currentHero.isGrounded()) s += "Am Boden: -7\n";
+        if (stumbled){
+          s += "Gestolpert: -5\n";
+        }
         if (withMarkers) {
           s += "Abzug durch Marker: " + currentHero.getMarkers() + "\n";
         }
@@ -1179,7 +1067,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     catch (NumberFormatException e) {
       at = 0;
     }
-    ProjectileAttackDialog dialog = new ProjectileAttackDialog(this, at, w);
+    ProjectileAttackDialog dialog = new ProjectileAttackDialog(
+        this, at, w, currentHero.getFarRangedFightParams());
     dialog.setVisible(true);
     if (dialog.wasCanceled()) return;
     at = dialog.getATValue();
@@ -1189,6 +1078,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     s += "Zuschlag: " + mod + "\n";
     if (withMarkers) {
       s += "Zuschlag durch Marker: " + Markers.getMarkers(currentHero) + "\n";
+    }
+    if (currentHero.hasStumbled()) {
+      s += "Zuschlag durch Solpern: 5\n";
+      currentHero.setHasStumbled(false);
     }
     s += "Wurf: " + roll + "\n";
     if (roll == 1 || roll <= at - mod - Markers.getMarkers(currentHero)) {
@@ -1266,6 +1159,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         "Parade", JOptionPane.PLAIN_MESSAGE, icon, quals, quals[9]);
     if (q == null) return 0;
     if (currentHero.isGrounded()) q += 5;
+    if (currentHero.hasStumbled()) {
+      q += 5;
+      currentHero.setHasStumbled(false);
+    }
     int d = Dice.roll(20);
     if (d == 20) {
       doFumble(weapon1);
@@ -1428,6 +1325,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       else {
         JOptionPane.showMessageDialog(this, "Patzer! " + currentHero.getName()
             + " stolpert!", "Patzer", JOptionPane.PLAIN_MESSAGE);
+        currentHero.setHasStumbled(true);
       }
     }
     else if (d <= 10) {
@@ -1517,130 +1415,11 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void doHit(int tp) {
-    ImageIcon icon = ImageManager.getIcon("hit");
-    int sp = tp - currentHero.getRS();
-    if (sp > 0) {
-      if (useAU) {
-        currentHero.changeAU(-sp);
+    Fighting.doHit(currentHero, tp, useAU, true, this, new Fighting.UpdateCallbacks() {
+      public void updateData() {
+        FightFrame.this.updateData();
       }
-      else {
-        currentHero.changeCurrentEnergy(Energy.LE, -sp);
-      }
-    }
-    int le = currentHero.getCurrentEnergy(useAU ? Energy.AU : Energy.LE);
-    if (useAU) {
-      if (le == 0) {
-        JOptionPane.showMessageDialog(this, currentHero.getName()
-            + " wird bewusstlos.", "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
-      }
-      return;
-    }
-    if (le < 0) {
-      JOptionPane.showMessageDialog(this, currentHero.getName()
-          + " liegt im Sterben ...", "Verwundung", JOptionPane.PLAIN_MESSAGE,
-          icon);
-    }
-    else if (le <= 5) {
-      if (withDazed) {
-        if (le + sp > 5) {
-          JOptionPane
-              .showMessageDialog(
-                  this,
-                  currentHero.getName()
-                      + " ist benommen. "
-                      + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                      + " braucht jede KR\neine KO-Probe, um nicht ohnmächtig zu werden.",
-                  "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
-          currentHero.setDazed(true);
-          updateData();
-        }
-      }
-      else {
-        JOptionPane.showMessageDialog(this, currentHero.getName()
-            + " wird bewusstlos.", "Verwundung", JOptionPane.PLAIN_MESSAGE,
-            icon);
-      }
-    }
-    else if (sp >= 15) {
-      if (withMarkers) {
-        currentHero.setExtraMarkers(currentHero.getExtraMarkers() + 1);
-        updateMarkerValues();
-      }
-      if (withDazed) {
-        int ko = currentHero.getCurrentEnergy(Energy.KO);
-        int roll = Dice.roll(20);
-        if (roll <= ko - Markers.getMarkers(currentHero)) {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " hat die KO-Probe mit einer " + roll + " bestanden!",
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
-        }
-        else {
-          if (currentHero.isDazed()) {
-            JOptionPane.showMessageDialog(this, currentHero.getName()
-                + " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
-                + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                + " wird ohnmächtig.", "Verwundung", JOptionPane.PLAIN_MESSAGE,
-                icon);
-          }
-          else {
-            JOptionPane.showMessageDialog(this, currentHero.getName()
-                + " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
-                + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                + " ist jetzt benommen.", "Verwundung",
-                JOptionPane.PLAIN_MESSAGE, icon);
-            currentHero.setDazed(true);
-            updateData();
-          }
-        }
-
-      }
-      else {
-        Probe probe = new Probe();
-        probe.setFirstProperty(currentHero.getCurrentProperty(Property.MU));
-        probe.setSecondProperty(currentHero.getCurrentProperty(Property.KK));
-        probe.setThirdProperty(currentHero.getCurrentProperty(Property.KK));
-        probe.setModifier(sp - 15 + Markers.getMarkers(currentHero));
-        probe.setSkill(currentHero.getCurrentTalentValue("Selbstbeherrschung"));
-        int d1 = Dice.roll(20);
-        int d2 = Dice.roll(20);
-        int d3 = Dice.roll(20);
-        int result = probe.performDetailedTest(d1, d2, d3);
-        if (result == Probe.DAEMONENPECH) {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " hat die Selbstbeherrschung mit DREI 20ern verpatzt!",
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
-        }
-        else if (result == Probe.PATZER) {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " hat die Selbstbeherrschung mit zwei 20ern verpatzt!",
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
-        }
-        else if (result == Probe.PERFEKT) {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " hat die Selbstbeherrschung mit zwei 1ern perfekt bestanden!",
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
-        }
-        else if (result == Probe.GOETTERGLUECK) {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " hat die Selbstbeherrschung mit DREI 1ern bestanden!",
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
-        }
-        else if (result == Probe.FEHLSCHLAG) {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " ist die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
-              + " nicht gelungen.\n"
-              + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-              + " wird vor Schmerz ohnmächtig.", "Verwundung",
-              JOptionPane.PLAIN_MESSAGE, icon);
-        }
-        else {
-          JOptionPane.showMessageDialog(this, currentHero.getName()
-              + " ist die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
-              + " gelungen (" + result + " Punkte übrig).", "Verwundung",
-              JOptionPane.PLAIN_MESSAGE, icon);
-        }
-      }
-    }
+    });
   }
 
   /**
@@ -1752,6 +1531,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     public void thingsChanged() {
       updateData();
     }
+    
+    public void fightingStateChanged() {
+      updateData();
+    }
   }
 
   /**
@@ -1774,6 +1557,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void groundedClicked() {
+    listen = false;
     if (groundBox.isSelected()) {
       currentHero.setGrounded(true);
     }
@@ -1803,6 +1587,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         }
       }
     }
+    listen = true;
   }
 
   /**

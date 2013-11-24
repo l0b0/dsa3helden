@@ -126,4 +126,10 @@ public abstract class CharacterAdapter implements CharacterObserver {
   
   public void thingsChanged() {
   }
+  
+  public void activeWeaponsChanged() {
+  }
+  
+  public void fightingStateChanged() {
+  }
 }

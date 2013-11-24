@@ -23,7 +23,12 @@ import javax.swing.filechooser.FileFilter;
 
 import dsa.gui.dialogs.HeroWizard;
 import dsa.gui.dialogs.ThingsImportDialog;
+import dsa.gui.dialogs.YearSelectionDialog;
+import dsa.gui.frames.FrameManagement;
+import dsa.gui.frames.PhysFrame;
+import dsa.gui.frames.SubFrame;
 import dsa.gui.util.OptionsChange;
+import dsa.model.Date;
 import dsa.model.characters.Group;
 import dsa.model.characters.Hero;
 import dsa.util.Directories;
@@ -639,6 +644,40 @@ public final class GroupOperations {
           "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
     }
     
+  }
+
+  public static void selectGroupTime(JFrame parent) {
+    Date currentDate = Group.getInstance().getDate();
+    YearSelectionDialog dialog = new YearSelectionDialog(parent, currentDate);
+    dialog.setVisible(true);
+    YearSelectionDialog.Result result = dialog.getDialogResult();
+    if (result == null) return;
+    Date newDate = result.getDate();
+    if (result.getAction() == YearSelectionDialog.Action.AdaptAges) {
+      int yearDifference = newDate.yearDifference(currentDate);
+      for (Hero hero : Group.getInstance().getAllCharacters()) {
+        hero.setAge(hero.getAge() + yearDifference);
+      }
+    }
+    else if (result.getAction() == YearSelectionDialog.Action.AdaptBirthdays) {
+      for (Hero hero : Group.getInstance().getAllCharacters()) {
+        int newBirthYear = newDate.getYear() - hero.getAge();
+        Date.Era newEra = newDate.getEra();
+        if (newBirthYear < 0 && newDate.getEra() == Date.Era.nach) {
+          newBirthYear = -newBirthYear;
+          newEra = Date.Era.vor;
+        }
+        Date oldBirthDate = hero.getBirthday();
+        Date newBirthDate = new Date(oldBirthDate.getDay(), oldBirthDate.getMonth(),
+            newBirthYear, newEra, newDate.getEvent());
+        hero.setBirthday(newBirthDate);
+      }
+    }
+    Group.getInstance().setDate(newDate);
+    SubFrame baseDataFrame = FrameManagement.getInstance().getFrame("Grunddaten");
+    if (baseDataFrame != null) {
+      ((PhysFrame)baseDataFrame).groupDateChanged();
+    }
   }
 
 }

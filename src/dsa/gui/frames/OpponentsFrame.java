@@ -81,18 +81,20 @@ public final class OpponentsFrame extends SubFrame
     Group.getInstance().addObserver(this);
     addWindowListener(new WindowAdapter() {
       boolean done = false;
-
-      public void windowClosing(WindowEvent e) {
+      
+      private void cleanup() {
         mTable.saveSortingState("Gegner");
         Group.getInstance().removeObserver(OpponentsFrame.this);
-        done = true;
+        done = true;        
+      }
+
+      public void windowClosing(WindowEvent e) {
+        cleanup();
       }
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
-          mTable.saveSortingState("Gegner");
-          Group.getInstance().removeObserver(OpponentsFrame.this);
-          done = true;
+          cleanup();
         }
       }
     });
@@ -152,7 +154,7 @@ public final class OpponentsFrame extends SubFrame
           dialog.setVisible(true);
           Opponent newOpponent = dialog.getNewOpponent();
           if (newOpponent != null) {
-            Group.getInstance().addOpponent(newOpponent);
+            newOpponent = Group.getInstance().addOpponent(newOpponent);
             mTable.addOpponent(newOpponent);
             removeButton.setEnabled(true);
             editButton.setEnabled(true);
@@ -201,7 +203,8 @@ public final class OpponentsFrame extends SubFrame
               OpponentsFrame.this, o);
           dialog.setVisible(true);
           if (dialog.getNewOpponent() != null) {
-            Group.getInstance().replaceOpponent(name, dialog.getNewOpponent());
+            Opponent newOpponent = dialog.getNewOpponent();
+            Group.getInstance().replaceOpponent(name, newOpponent);
             updateData();
           }
         }
@@ -253,10 +256,18 @@ public final class OpponentsFrame extends SubFrame
 
   public void nameChanged(String oldName, String newName) {
     Opponent o = Group.getInstance().getOpponent(oldName);
-    if (o != null) o.setName(newName);
+    if (o != null) {
+      Group.getInstance().removeOpponent(oldName);
+      o.setName(newName);
+      Group.getInstance().addOpponent(o);
+    }
   }
 
   public void orderChanged() {
   }
 
+  public void opponentsChanged() {
+    // is always initiated by this frame
+  }
+  
 }

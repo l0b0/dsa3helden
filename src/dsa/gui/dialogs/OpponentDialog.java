@@ -131,8 +131,8 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     ArrayList<String> weapons = o.getWeapons();
     for (int i = 0; i < weapons.size(); ++i) {
       DiceSpecification tp = o.getTP(i);
-      int at = o.getAT(i);
-      int pa = o.getPA(i);
+      int at = o.getAT(i).getValue();
+      int pa = o.getPA(i).getValue();
       weaponTable.addWeapon(weapons.get(i), tp, at, pa);
     }
     weaponTable.setFirstSelectedRow();

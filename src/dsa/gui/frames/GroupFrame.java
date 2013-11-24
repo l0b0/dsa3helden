@@ -481,5 +481,8 @@ public final class GroupFrame extends SubFrame
 
   public void orderChanged() {
   }
+  
+  public void opponentsChanged() {
+  }
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"

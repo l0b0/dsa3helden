@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import dsa.control.filetransforms.FileType;
 import dsa.control.printing.Printer;
 import dsa.model.DataFactory;
+import dsa.model.Date;
 import dsa.model.data.Opponent;
 import dsa.model.data.Opponents;
 import dsa.util.AbstractObservable;
@@ -59,7 +60,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   private final GroupOptions options;
   
   private Opponents opponents;
-
+  
   private static Group instance = new Group();
 
   public static Group getInstance() {
@@ -181,16 +182,25 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       ++nr;
     }
     opponents.addOpponent(clone);
+    for (CharactersObserver o : observers) {
+      if (o instanceof GroupObserver) ((GroupObserver) o).opponentsChanged();
+    }
     return clone;
   }
   
   public void removeOpponent(String name) {
     opponents.removeOpponent(name);
+    for (CharactersObserver o : observers) {
+      if (o instanceof GroupObserver) ((GroupObserver) o).opponentsChanged();
+    }
   }
   
   public void replaceOpponent(String name, Opponent newOpponent) {
     opponents.removeOpponent(name);
     opponents.addOpponent(newOpponent);
+    for (CharactersObserver o : observers) {
+      if (o instanceof GroupObserver) ((GroupObserver) o).opponentsChanged();
+    }
   }
   
   private Group() {
@@ -229,7 +239,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     return changed || options.isChanged() || opponents.wasChanged();
   }
   
-  private static final int GROUP_VERSION = 5;
+  private static final int GROUP_VERSION = 6;
 
   public void writeToFile(java.io.File f) throws java.io.IOException {
     PrintWriter file = new PrintWriter(new FileWriter(f));
@@ -250,6 +260,8 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       file.println(printingFileType.toString());
       // version 5
       opponents.writeToFile(file);
+      // version 6
+      file.println(date.toString());
       
       file.println("-End Characters-");
       file.flush();
@@ -340,6 +352,17 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     if (version >= 5) {
       opponents.readFromFile(file, f.getName(), true);
     }
+    date = new Date(1, Date.Month.Praios, 17, Date.Era.nach, Date.Event.Hal);
+    if (version >= 6) {
+      line = file.readLine();
+      testEmpty(line);
+      try {
+        date = Date.parse(line);
+      }
+      catch (java.text.ParseException e) {
+        throw new IOException(e);
+      }
+    }
     while (line != null && !line.equals("-End Characters-")) {
       line = file.readLine();
       testEmpty(line);
@@ -396,6 +419,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     printFile = "";
     loadedNewerVersion = false;
     currentFileName = "";
+    date = new Date(1, Date.Month.Praios, 17, Date.Era.nach, Date.Event.Hal);
     for (CharactersObserver o : observers) {
       if (o instanceof GroupObserver) {
         ((GroupObserver)o).groupLoaded();
@@ -496,6 +520,18 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   
   public void setCurrentFileName(String fileName) {
     currentFileName = fileName;
+  }
+  
+  private Date date = null;
+  
+  public Date getDate() {
+    return date;
+  }
+  
+  public void setDate(Date date) {
+    if (this.date.equals(date)) return;
+    this.date = date;
+    changed = true;
   }
 
 }

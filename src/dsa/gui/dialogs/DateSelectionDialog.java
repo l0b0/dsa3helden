@@ -25,8 +25,6 @@ import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
 
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
@@ -35,6 +33,8 @@ import javax.swing.JButton;
 import javax.swing.SpinnerNumberModel;
 
 import dsa.gui.lf.BGDialog;
+import dsa.model.Date;
+import java.awt.Rectangle;
 
 public class DateSelectionDialog extends BGDialog {
 
@@ -54,52 +54,34 @@ public class DateSelectionDialog extends BGDialog {
 
   private JLabel jLabel2 = null;
 
-  private JComboBox halCombo = null;
+  private JComboBox eraCombo = null;
 
   private JButton okButton = null;
 
   private JButton cancelButton = null;
 
-  private String date = null;
+  private Date date = null;
 
-  public String getDate() {
+  private JComboBox eventCombo = null;
+
+  public Date getDate() {
     return date;
   }
 
-  public void setDate(String date) {
-    StringTokenizer t = new StringTokenizer(date, " .");
-    try {
-      String dayS = t.nextToken();
-      int day = Integer.parseInt(dayS);
-      String month = t.nextToken();
-      int monthIndex = 0;
-      for (int i = 0; i < monthCombo.getItemCount(); ++i) {
-        if (month.equals(monthCombo.getItemAt(i))) {
-          monthIndex = i;
-          break;
-        }
-      }
-      String yearS = t.nextToken();
-      int year = Integer.parseInt(yearS);
-      int halIndex = t.nextToken().startsWith("v") ? 1 : 0;
-      daySpinner.setValue(day);
-      monthCombo.setSelectedIndex(monthIndex);
-      yearSpinner.setValue(year);
-      halCombo.setSelectedIndex(halIndex);
-    }
-    catch (NumberFormatException e) {
-      setDefaultValues();
-    }
-    catch (NoSuchElementException e) {
-      setDefaultValues();
-    }
+  public void setDate(Date date) {
+    daySpinner.setValue(date.getDay());
+    monthCombo.setSelectedIndex(date.getMonth().ordinal());
+    yearSpinner.setValue(date.getYear());
+    eraCombo.setSelectedIndex(date.getEra().ordinal());
+    eventCombo.setSelectedIndex(date.getEvent().ordinal());
   }
 
   public void setDefaultValues() {
     daySpinner.setValue(1);
     monthCombo.setSelectedIndex(0);
     yearSpinner.setValue(1);
-    halCombo.setSelectedIndex(0);
+    eraCombo.setSelectedIndex(0);
+    eventCombo.setSelectedIndex(0);
   }
 
   public DateSelectionDialog() {
@@ -169,7 +151,7 @@ public class DateSelectionDialog extends BGDialog {
    * @return void
    */
   private void initialize() {
-    this.setSize(303, 209);
+    this.setSize(360, 170);
     this.setTitle("Geburtstag");
     this.setContentPane(getJContentPane());
     this.getRootPane().setDefaultButton(getOKButton());
@@ -200,17 +182,17 @@ public class DateSelectionDialog extends BGDialog {
   private JPanel getJPanel() {
     if (jPanel == null) {
       jLabel2 = new JLabel();
-      jLabel2.setBounds(new java.awt.Rectangle(14, 75, 38, 15));
+      jLabel2.setBounds(new Rectangle(10, 50, 51, 21));
       jLabel2.setText("Jahr:");
       jLabel1 = new JLabel();
-      jLabel1.setBounds(new java.awt.Rectangle(14, 47, 66, 15));
+      jLabel1.setBounds(new Rectangle(140, 10, 49, 21));
       jLabel1.setText("Monat:");
       jLabel = new JLabel();
-      jLabel.setBounds(new java.awt.Rectangle(14, 18, 57, 15));
+      jLabel.setBounds(new Rectangle(10, 10, 51, 21));
       jLabel.setText("Tag:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
-      jPanel.setBounds(new java.awt.Rectangle(15, 16, 265, 107));
+      jPanel.setBounds(new Rectangle(10, 10, 331, 81));
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
       jPanel.add(jLabel, null);
@@ -219,7 +201,8 @@ public class DateSelectionDialog extends BGDialog {
       jPanel.add(getYearSpinner(), null);
       jPanel.add(getMonthCombo(), null);
       jPanel.add(jLabel2, null);
-      jPanel.add(getHalCombo(), null);
+      jPanel.add(getEraCombo(), null);
+      jPanel.add(getEventCombo(), null);
     }
     return jPanel;
   }
@@ -232,7 +215,7 @@ public class DateSelectionDialog extends BGDialog {
   private JSpinner getDaySpinner() {
     if (daySpinner == null) {
       daySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 30, 1));
-      daySpinner.setBounds(new java.awt.Rectangle(86, 16, 58, 19));
+      daySpinner.setBounds(new Rectangle(70, 10, 51, 19));
     }
     return daySpinner;
   }
@@ -245,7 +228,7 @@ public class DateSelectionDialog extends BGDialog {
   private JSpinner getYearSpinner() {
     if (yearSpinner == null) {
       yearSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10000, 1));
-      yearSpinner.setBounds(new java.awt.Rectangle(86, 73, 58, 19));
+      yearSpinner.setBounds(new Rectangle(70, 50, 51, 19));
     }
     return yearSpinner;
   }
@@ -258,11 +241,10 @@ public class DateSelectionDialog extends BGDialog {
   private JComboBox getMonthCombo() {
     if (monthCombo == null) {
       monthCombo = new JComboBox();
-      monthCombo.setBounds(new java.awt.Rectangle(86, 45, 165, 19));
-      String[] months = { "Praios", "Rondra", "Efferd", "Travia", "Boron",
-          "Hesinde", "Firun", "Tsa", "Phex", "Peraine", "Ingerimm", "Rhaja" };
-      for (String m : months)
-        monthCombo.addItem(m);
+      monthCombo.setBounds(new Rectangle(200, 10, 121, 19));
+      for (int i = 0; i < Date.Month.values().length - 1; ++i) {
+        monthCombo.addItem(Date.Month.values()[i]);
+      }
     }
     return monthCombo;
   }
@@ -272,14 +254,15 @@ public class DateSelectionDialog extends BGDialog {
    * 
    * @return javax.swing.JComboBox
    */
-  private JComboBox getHalCombo() {
-    if (halCombo == null) {
-      halCombo = new JComboBox();
-      halCombo.setBounds(new java.awt.Rectangle(160, 73, 91, 19));
-      halCombo.addItem("Hal");
-      halCombo.addItem("vor Hal");
+  private JComboBox getEraCombo() {
+    if (eraCombo == null) {
+      eraCombo = new JComboBox();
+      eraCombo.setBounds(new Rectangle(130, 50, 61, 19));
+      for (Date.Era era : Date.Era.values()) {
+        eraCombo.addItem(era);
+      }
     }
-    return halCombo;
+    return eraCombo;
   }
 
   /**
@@ -290,11 +273,11 @@ public class DateSelectionDialog extends BGDialog {
   private JButton getOKButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new java.awt.Rectangle(29, 143, 102, 23));
+      okButton.setBounds(new Rectangle(50, 100, 102, 23));
       okButton.setText("OK");
       okButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          date = getDateString();
+          date = calcDate();
           dispose();
         }
       });
@@ -302,11 +285,13 @@ public class DateSelectionDialog extends BGDialog {
     return okButton;
   }
 
-  private String getDateString() {
-    return "" + ((Number) daySpinner.getValue()).intValue() + "." + " "
-        + monthCombo.getSelectedItem() + " "
-        + ((Number) yearSpinner.getValue()).intValue() + " "
-        + halCombo.getSelectedItem();
+  private Date calcDate() {
+    return new Date(
+        ((Number) daySpinner.getValue()).intValue(), 
+        Date.Month.values()[monthCombo.getSelectedIndex()], 
+        ((Number) yearSpinner.getValue()).intValue(),
+        Date.Era.values()[eraCombo.getSelectedIndex()],
+        Date.Event.values()[eventCombo.getSelectedIndex()]);
   }
 
   /**
@@ -317,7 +302,7 @@ public class DateSelectionDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new java.awt.Rectangle(160, 143, 102, 23));
+      cancelButton.setBounds(new Rectangle(190, 100, 102, 23));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -327,6 +312,22 @@ public class DateSelectionDialog extends BGDialog {
       });
     }
     return cancelButton;
+  }
+
+  /**
+   * This method initializes eventCombo	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getEventCombo() {
+    if (eventCombo == null) {
+      eventCombo = new JComboBox();
+      eventCombo.setBounds(new Rectangle(200, 50, 121, 21));
+      for (Date.Event event : Date.Event.values()) {
+        eventCombo.addItem(event);
+      }
+    }
+    return eventCombo;
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

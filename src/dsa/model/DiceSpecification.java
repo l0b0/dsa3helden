@@ -46,6 +46,14 @@ public class DiceSpecification implements Cloneable {
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
   }
+  
+  public static DiceSpecification create(int nrOfDices, int diceSize, int fixedPoints) {
+    DiceSpecification ds = new DiceSpecification();
+    ds.nrOfDices = nrOfDices;
+    ds.diceSize = diceSize;
+    ds.fixedPoints = fixedPoints;
+    return ds;
+  }
 
   private DiceSpecification() {
   }

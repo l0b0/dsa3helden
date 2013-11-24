@@ -38,13 +38,15 @@ import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.UIManager;
 
+import dsa.gui.util.Help;
 import dsa.gui.util.HelpProvider;
 import dsa.util.Directories;
 
 /**
  * 
  */
-public abstract class SubFrame extends JFrame implements HelpProvider {
+public abstract class SubFrame extends JFrame 
+    implements HelpProvider, de.javasoft.plaf.synthetica.HelpButtonTitlePane.HelpCallback {
 
   private static boolean shallSave;
 
@@ -197,4 +199,11 @@ public abstract class SubFrame extends JFrame implements HelpProvider {
       }
   }
 
+  public void callHelp() {
+    String page = getHelpPage();
+    if (page != null) {
+      Help.showPage(getHelpParent(), page);
+    }    
+  }
+  
 }

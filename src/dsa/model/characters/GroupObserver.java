@@ -25,4 +25,6 @@ public interface GroupObserver extends CharactersObserver {
   
   void orderChanged();
   
+  void opponentsChanged();
+  
 }

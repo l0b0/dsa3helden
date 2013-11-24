@@ -32,8 +32,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.text.NumberFormatter;
 
 import dsa.gui.lf.BGTableCellRenderer;
-import dsa.gui.util.FormattedTextFieldCellEditor;
-import dsa.gui.util.TableSorter;
+import dsa.gui.util.table.FormattedTextFieldCellEditor;
+import dsa.gui.util.table.TableSorter;
 import dsa.model.data.Shield;
 import dsa.util.Optional;
 

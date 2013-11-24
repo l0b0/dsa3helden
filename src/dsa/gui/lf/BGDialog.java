@@ -33,9 +33,11 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
+import dsa.gui.util.Help;
 import dsa.gui.util.HelpProvider;
 
-public abstract class BGDialog extends JDialog implements HelpProvider{
+public abstract class BGDialog extends JDialog 
+  implements HelpProvider, de.javasoft.plaf.synthetica.HelpButtonTitlePane.HelpCallback {
 
   public BGDialog() {
     super();
@@ -89,6 +91,13 @@ public abstract class BGDialog extends JDialog implements HelpProvider{
     //return null;
   //}
   
+  public void callHelp() {
+    String page = getHelpPage();
+    if (page != null) {
+      Help.showPage(getHelpParent(), page);
+    }    
+  }
+  
   public final java.awt.Component getHelpParent() {
     return this;
   }
@@ -115,8 +124,9 @@ public abstract class BGDialog extends JDialog implements HelpProvider{
         e.printStackTrace();
         pane = super.createRootPane();
       }
-     if (pane != null)
+     if (pane != null) {
        registerEscape(pane);
+     }
      return pane;
   }
   

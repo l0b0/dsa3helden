@@ -21,7 +21,7 @@ package dsa.control;
 
 import java.util.prefs.Preferences;
 
-import dsa.model.characters.Hero;
+import dsa.model.Fighter;
 
 public class Markers {
 
@@ -40,9 +40,9 @@ public class Markers {
     useMarkers = use;
   }
 
-  public static int getMarkers(Hero hero) {
+  public static int getMarkers(Fighter fighter) {
     if (isUsingMarkers()) {
-      return hero.getMarkers();
+      return fighter.getMarkers();
     }
     else {
       return 0;

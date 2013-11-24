@@ -1657,11 +1657,13 @@ RootPane
     <imageIcon id="rootPaneMaximizeIcon" path="walnut/images/maximizeIcon.png"/>
     <imageIcon id="rootPaneMinimizeIcon" path="walnut/images/minimizeIcon.png"/>
     <imageIcon id="rootPaneIconifyIcon" path="walnut/images/iconifyIcon.png"/>
+    <imageIcon id="rootPaneHelpIcon" path="walnut/images/helpIcon.png"/>
 
     <imageIcon id="rootPaneCloseIconHover" path="walnut/images/closeIcon_hover.png"/>
     <imageIcon id="rootPaneMaximizeIconHover" path="walnut/images/maximizeIcon_hover.png"/>
     <imageIcon id="rootPaneMinimizeIconHover" path="walnut/images/minimizeIcon_hover.png"/>
     <imageIcon id="rootPaneIconifyIconHover" path="walnut/images/iconifyIcon_hover.png"/>
+    <imageIcon id="rootPaneHelpIconHover" path="walnut/images/helpIcon_hover.png"/>
 
     <object class="java.lang.String" id="rootPaneTitlePaneBackground">
       <string>walnut/images/rootPaneTitlePaneBackground.png</string>
@@ -1693,6 +1695,7 @@ RootPane
       <property key="RootPane.minimizeIcon" value="rootPaneMinimizeIcon"/>
       <property key="RootPane.maximizeIcon" value="rootPaneMaximizeIcon"/>
       <property key="RootPane.iconifyIcon" value="rootPaneIconifyIcon"/>
+      <property key="RootPane.helpIcon" value="rootPaneHelpIcon"/>
     </state>
 
     <state value="MOUSE_OVER">
@@ -1700,6 +1703,7 @@ RootPane
       <property key="RootPane.minimizeIcon" value="rootPaneMinimizeIconHover"/>
       <property key="RootPane.maximizeIcon" value="rootPaneMaximizeIconHover"/>
       <property key="RootPane.iconifyIcon" value="rootPaneIconifyIconHover"/>
+      <property key="RootPane.helpIcon" value="rootPaneHelpIconHover"/>
     </state>
 
   </style>

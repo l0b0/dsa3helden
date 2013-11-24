@@ -417,6 +417,10 @@ public final class ControlFrame extends SubFrame
             heroBox.addItem(h.getName());
           }
           heroBox.setSelectedItem(Group.getInstance().getActiveHero().getName());
+          listenForCharacterBox = true;
+        }
+        
+        public void opponentsChanged() {
         }
       });
       heroBox.addItemListener(new ItemListener() {
@@ -1280,6 +1284,29 @@ public final class ControlFrame extends SubFrame
       temp.add(opponentsButton);
       frameButtons.put("Gegner", opponentsButton);
       
+      groupFightButton = new JToggleButton("Kampf (Meister)");
+      groupFightButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (frame != null && frame.isVisible()) {
+            frame.dispose();
+            frame = null;
+          }
+          else {
+            frame = new GroupFightFrame();
+            frame.addWindowListener(new WindowAdapter() {
+              public void windowClosing(java.awt.event.WindowEvent e) {
+                ControlFrame.this.groupFightButton.setSelected(false);
+              }
+            });
+            frame.setVisible(true);
+          }
+        }
+
+        private GroupFightFrame frame = null;
+      });
+      temp.add(groupFightButton);
+      frameButtons.put("Kampf (Meister)", groupFightButton);
+
       fightPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
@@ -1303,6 +1330,8 @@ public final class ControlFrame extends SubFrame
   private JToggleButton fightButton;
   
   private JToggleButton opponentsButton;
+  
+  private JToggleButton groupFightButton;
 
   private JPanel getThingsPanel() {
     if (thingsPanel == null) {
@@ -2123,6 +2152,7 @@ public final class ControlFrame extends SubFrame
     groupMenu.add(getGroupSaveAsItem());
     groupMenu.addSeparator();
     groupMenu.add(getGroupPrintItem());
+    groupMenu.add(getGroupTimeItem());
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
         .userNodeForPackage(dsa.gui.PackageID.class);
     int nrOfLastGroups = prefs.getInt("LastUsedGroupsCount", 0);
@@ -2242,7 +2272,21 @@ public final class ControlFrame extends SubFrame
     }
     return groupPrintItem;
   }
-
+  
+  private JMenuItem getGroupTimeItem() {
+    if (groupTimeItem == null) {
+      groupTimeItem = new JMenuItem();
+      groupTimeItem.setText("Spielzeit ...");
+      groupTimeItem.setMnemonic(java.awt.event.KeyEvent.VK_Z);
+      groupTimeItem.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+          GroupOperations.selectGroupTime(ControlFrame.this);
+        }
+      });
+    }
+    return groupTimeItem;
+  }
+  
   /**
    * This method initializes newItem
    * 
@@ -2289,6 +2333,8 @@ public final class ControlFrame extends SubFrame
   private JMenuItem groupOpenItem = null;
   
   private JMenuItem groupPrintItem = null;
+  
+  private JMenuItem groupTimeItem = null;
 
   /**
    * This method initializes jMenuItem

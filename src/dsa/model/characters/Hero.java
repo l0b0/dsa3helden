@@ -23,13 +23,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import dsa.model.Date;
+import dsa.model.Fighter;
 import dsa.model.data.Animal;
 import dsa.model.data.ExtraThingData;
 
 /**
  * 
  */
-public interface Hero extends Printable {
+public interface Hero extends Printable, Fighter {
   
   long CLOTHES = 1;
   long THINGS = 2;
@@ -146,7 +148,7 @@ public interface Hero extends Printable {
 
   String getSex();
 
-  String getBirthday();
+  Date getBirthday();
 
   String getStand();
 
@@ -170,7 +172,7 @@ public interface Hero extends Printable {
 
   void setSex(String sex);
 
-  void setBirthday(String birthday);
+  void setBirthday(Date birthday);
 
   void setStand(String stand);
 
@@ -397,10 +399,6 @@ public interface Hero extends Printable {
 
   void setAT2Bonus(int bonus);
 
-  boolean isGrounded();
-
-  void setGrounded(boolean grounded);
-
   int getBF(String weaponName, int weaponNr);
 
   void setBF(String weaponName, int weaponNr, int bf);
@@ -408,12 +406,6 @@ public interface Hero extends Printable {
   int getBF(String shieldName);
 
   void setBF(String shieldName, int bf);
-
-  boolean isDazed();
-
-  void setDazed(boolean dazed);
-
-  int getMarkers();
 
   int getExtraMarkers();
 
@@ -442,4 +434,6 @@ public interface Hero extends Printable {
   void storeThingsToFile(File f) throws IOException;
   
   void readThingsFromFile(long thingTypes, File f) throws IOException;
+  
+  void fireActiveWeaponsChanged();
 }

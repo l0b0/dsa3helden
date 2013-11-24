@@ -29,22 +29,30 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTree;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeNode;
 
 import dsa.control.Dice;
+import dsa.control.HeroStepIncreaser;
 import dsa.gui.lf.BGDialog;
 import dsa.gui.util.PropertyLabel;
 import dsa.model.DataFactory;
+import dsa.model.Date;
 import dsa.model.DiceSpecification;
+import dsa.model.characters.Group;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 import dsa.model.data.CharacterType;
@@ -663,6 +671,10 @@ public final class HeroWizard extends BGDialog {
 
   private class ThirdPage extends JPanel {
     private final dsa.gui.dialogs.NameSelectionPanel panel;
+    
+    private JCheckBox autoStepIncreaseBox;
+    private JCheckBox autoStepShowLog;
+    private JSpinner  autoStepSpinner;
 
     public ThirdPage() {
       super();
@@ -670,6 +682,34 @@ public final class HeroWizard extends BGDialog {
       panel = new dsa.gui.dialogs.NameSelectionPanel();
       panel.setLocation(5, 5);
       add(panel, null);
+      JPanel autoStepPanel = new JPanel();
+      autoStepPanel.setLayout(null);
+      autoStepPanel.setBorder(BorderFactory.createTitledBorder(
+          BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Stufe festlegen"));
+      autoStepIncreaseBox = new JCheckBox("Automatisch auf höhere Stufe steigern", false);
+      autoStepIncreaseBox.setBounds(8, 20, 300, 20);
+      autoStepPanel.add(autoStepIncreaseBox, null);
+      JLabel autoStepLabel = new JLabel("Stufe: ");
+      autoStepLabel.setBounds(28, 50, 80, 20);
+      autoStepPanel.add(autoStepLabel, null);
+      autoStepSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
+      autoStepSpinner.setEnabled(false);
+      autoStepSpinner.setBounds(68, 50, 50, 20);
+      autoStepPanel.add(autoStepSpinner, null);
+      autoStepPanel.setPreferredSize(new java.awt.Dimension(300, 100));
+      autoStepPanel.setBounds(12, 250, 360, 90);
+      autoStepIncreaseBox.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          autoStepSpinner.setEnabled(autoStepIncreaseBox.isSelected());
+          autoStepShowLog.setEnabled(autoStepIncreaseBox.isSelected());
+        }
+      });
+      autoStepShowLog = new JCheckBox("Nachher Log anzeigen");
+      autoStepShowLog.setBounds(130, 50, 220, 20);
+      autoStepShowLog.setSelected(false);
+      autoStepShowLog.setEnabled(false);
+      autoStepPanel.add(autoStepShowLog, null);
+      add(autoStepPanel, null);
     }
 
     public void reInitialize() {
@@ -688,6 +728,17 @@ public final class HeroWizard extends BGDialog {
 
     public String getLanguage() {
       return panel.getNativeTongue();
+    }
+    
+    public int increaseToStep() {
+      if (autoStepIncreaseBox.isSelected()) {
+        return ((Number)autoStepSpinner.getValue()).intValue();
+      }
+      else return 0;
+    }
+    
+    public boolean showLog() {
+      return autoStepShowLog.isSelected();
     }
   }
 
@@ -822,10 +873,19 @@ public final class HeroWizard extends BGDialog {
       month = 11;
       break;
     }
-    String[] months = { "Praios", "Rondra", "Efferd", "Travia", "Boron",
-        "Hesinde", "Firun", "Tsa", "Phex", "Peraine", "Ingerimm", "Rhaja" };
-    hero.setBirthday("" + day + ". " + months[month] + " 4 vor Hal");
-    String msg = name + " hat im " + months[month] + " Geburtstag.\n";
+    Date currentDate = Group.getInstance().getDate();
+    int newYear = currentDate.getYear() - hero.getAge();
+    Date.Era currentEra = currentDate.getEra();
+    if (newYear < 0 && currentEra == Date.Era.nach) {
+      newYear = -newYear;
+      currentEra = Date.Era.vor;
+    }
+    else if (newYear < 0 && currentEra == Date.Era.vor) {
+      newYear = -newYear;
+      currentEra = Date.Era.nach;
+    }
+    hero.setBirthday(new Date(day, Date.Month.values()[month], newYear, currentEra, currentDate.getEvent()));
+    String msg = name + " hat im " + Date.Month.values()[month] + " Geburtstag.\n";
     switch (month) {
     case 0:
       msg += "Etwas des göttlichen Mutes färbt auch auf "
@@ -902,6 +962,20 @@ public final class HeroWizard extends BGDialog {
     hero.setPicture("");
     setInitialMoney(hero);
     hero.toStepOne(characterType.getTalentReducement());
+    int stepToIncrease = getThirdPage().increaseToStep();
+    if (stepToIncrease > 1) {
+      int apToGive = stepToIncrease * (stepToIncrease - 1) * 50;
+      hero.changeAP(apToGive);
+    }
+    if (stepToIncrease > 0) {
+      HeroStepIncreaser increaser = new HeroStepIncreaser(hero);
+      increaser.increaseStepsAutomatically(stepToIncrease);
+      if (getThirdPage().showLog()) {
+        ScrollableMessageDialog dialog = new ScrollableMessageDialog(this, 
+            increaser.getLog(), "Automatisch_Steigern");
+        dialog.setVisible(true);
+      }
+    }
     this.result = hero;
   }
 

@@ -45,6 +45,7 @@ import javax.swing.event.PopupMenuListener;
 import dsa.gui.dialogs.CitySelectionDialog;
 import dsa.gui.dialogs.DateSelectionDialog;
 import dsa.gui.dialogs.NameSelectionDialog;
+import dsa.model.Date;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
@@ -156,6 +157,10 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
         }
       }
     });
+  }
+  
+  public void groupDateChanged() {
+    updateData();
   }
 
   /**
@@ -797,7 +802,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       standComboFilled = false;
       getStandCombo().setSelectedItem(currentHero.getStand());
       getBirthplaceField().setText(currentHero.getBirthPlace());
-      getBirthdayField().setText(currentHero.getBirthday());
+      getBirthdayField().setText(currentHero.getBirthday().toString());
       getAgeSpinner().getModel().setValue(Integer.valueOf(currentHero.getAge()));
       int height = 170;
       try {
@@ -915,11 +920,11 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private void selectBirthday() {
     DateSelectionDialog dialog = new DateSelectionDialog(this, true);
     dialog.setLocationRelativeTo(this);
-    dialog.setDate(getBirthdayField().getText());
+    dialog.setDate(currentHero.getBirthday());
     dialog.setVisible(true);
-    String date = dialog.getDate();
+    Date date = dialog.getDate();
     if (date != null) {
-      getBirthdayField().setText(date);
+      getBirthdayField().setText(date.toString());
       currentHero.setBirthday(date);
     }
   }

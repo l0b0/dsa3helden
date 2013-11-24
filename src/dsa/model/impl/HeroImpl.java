@@ -34,8 +34,12 @@ import java.util.TreeSet;
 
 import static dsa.model.characters.Energy.*;
 import static dsa.model.characters.Property.*;
+import dsa.control.Fighting;
 import dsa.control.filetransforms.FileType;
 import dsa.control.printing.Printer;
+import dsa.model.Date;
+import dsa.model.DiceSpecification;
+import dsa.model.FarRangedFightParams;
 import dsa.model.characters.CharacterObserver;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
@@ -55,6 +59,7 @@ import dsa.model.data.Weapons;
 import dsa.model.talents.Talent;
 import dsa.util.AbstractObservable;
 import dsa.util.Directories;
+import dsa.util.Optional;
 
 /**
  * 
@@ -127,6 +132,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     rituals.clear();
     printFile = "";
     skin = "";
+    farRangedFightParams = new FarRangedFightParams();
     checkForMirakel();
   }
 
@@ -232,6 +238,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.nrOfProjectiles = new HashMap<String, Integer>();
     hero.nrOfProjectiles.putAll(nrOfProjectiles);
     hero.loadedNewerVersion = false;
+    hero.targets = new ArrayList<String>(targets);
+    hero.farRangedFightParams = (FarRangedFightParams) farRangedFightParams.clone();
     return hero;
   }
 
@@ -1048,7 +1056,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static final int FILE_VERSION = 39;
+  private static final int FILE_VERSION = 42;
 
   /*
    * (non-Javadoc)
@@ -1222,6 +1230,15 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       printProjectiles(file);
       // version 39
       file.println(internalType);
+      // version 40
+      file.println(targets.size());
+      for (int i = 0; i < targets.size(); ++i) {
+        file.println(targets.get(i));
+      }
+      // version 41
+      file.println(hasStumbled ? "1" : "0");
+      // version 42
+      file.println(farRangedFightParams.writeToString());
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1709,6 +1726,31 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     else {
       internalType = type;
     }
+    targets = new ArrayList<String>();
+    if (version > 39) {
+      lineNr++;
+      line = file.readLine();
+      int nrOfTargets = parseInt(line, lineNr);
+      for (int i = 0; i < nrOfTargets; ++i) {
+        lineNr++;
+        line = file.readLine();
+        targets.add(line);
+      }
+    }
+    if (version > 40) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      hasStumbled = "1".equals(line);
+    }
+    else hasStumbled = false;
+    if (version > 41) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      farRangedFightParams = new FarRangedFightParams(line);
+    }
+    else farRangedFightParams = new FarRangedFightParams();
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -2342,7 +2384,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    birthday = line;
+    try {
+      birthday = Date.parse(line);
+    }
+    catch (java.text.ParseException e) {
+      throw new IOException(e);
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -2463,6 +2510,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     for (int i = 0; i < animals.size(); ++i) {
       if (animals.get(i).isChanged()) return true;
     }
+    if (farRangedFightParams.isChanged()) return true;
     return false;
   }
 
@@ -2502,7 +2550,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   String sex = "";
 
-  String birthday = "";
+  Date birthday = new Date(1, Date.Month.Praios, 1);
 
   String stand = "";
 
@@ -2573,7 +2621,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     return sex;
   }
 
-  public String getBirthday() {
+  public Date getBirthday() {
     return birthday;
   }
 
@@ -2654,7 +2702,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  public void setBirthday(String birthday) {
+  public void setBirthday(Date birthday) {
     if (birthday.equals(this.birthday)) return;
     this.birthday = birthday;
     changed = true;
@@ -2884,13 +2932,13 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   public void increaseLEAndAE(int lePlus, int aePlus)
       throws LEAEIncreaseException {
-    if (getType().equals("Scharlatan")) {
+    if (getInternalType().equals("Scharlatan")) {
       if (((lePlus == 0) || (aePlus == 0)) && (lePlus + aePlus > 1)) {
         throw new LEAEIncreaseException(
             "Ein Scharlatan muss auf AE und LE je mindestens 1 Punkt setzen.");
       }
     }
-    if (getType().startsWith("Sharizad")) {
+    if (getInternalType().startsWith("Sharizad")) {
       if ((aePlus > 0) && (this.getDefaultEnergy(Energy.AE) + aePlus > 30)) {
         throw new LEAEIncreaseException(
             "Eine Sharizad darf nicht mehr als 30 ASP haben.");
@@ -3781,6 +3829,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     if (mIsGrounded != grounded) {
       mIsGrounded = grounded;
       changed = true;
+      for (CharacterObserver observer : observers)
+        observer.fightingStateChanged();
     }
   }
 
@@ -3824,6 +3874,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     if (dazed == this.dazed) return;
     this.dazed = dazed;
     changed = true;
+    for (CharacterObserver observer : observers) {
+      observer.fightingStateChanged();
+    }
   }
 
   int extraMarkers = 0;
@@ -3963,5 +4016,126 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   public void setHasLoadedNewerVersion(boolean newer) {
     loadedNewerVersion = newer;
+  }
+
+  public int getCurrentLE() {
+    return getCurrentEnergy(Energy.LE);
+  }
+
+  public int getMR() {
+    return getCurrentDerivedValue(DerivedValue.MR);
+  }
+
+  public int getMaxLE() {
+    return getDefaultEnergy(Energy.LE);
+  }
+
+  public int getNrOfAttacks() {
+    if (getFightMode().equals("Zwei Waffen")) {
+      return 2;
+    }
+    else {
+      return 1;
+    }
+  }
+
+  public int getNrOfParades() {
+    if (getFightMode().equals("Zwei Waffen") || getFightMode().equals("Waffe + Parade, separat")) {
+      if (getCurrentTalentValue("Linkshändig") >= 9) {
+        return 2;
+      }
+    }
+    return 1;
+  }
+
+  public Optional<Integer> getAT(int nr) {
+    if (nr == 0) {
+      return Fighting.getFirstATValue(this);
+    }
+    else if (nr == 1) {
+      return Fighting.getSecondATValue(this);
+    }
+    else return Optional.NULL_INT;
+  }
+
+  public Optional<Integer> getPA(int nr) {
+    if (nr == 0) {
+      return Fighting.getFirstPAValue(this);
+    }
+    else if (nr == 1) {
+      return Fighting.getSecondPAValue(this);
+    }
+    else return Optional.NULL_INT;
+  }
+
+  public DiceSpecification getTP(int nr) {
+    if (nr == 0) {
+      return Fighting.getFirstTP(this);
+    }
+    else {
+      return Fighting.getSecondTP(this);
+    }
+  }
+
+  public void setCurrentLE(int le) {
+    setCurrentEnergy(Energy.LE, le);
+  }
+
+  public List<String> getFightingWeapons() {
+    ArrayList<String> weapons = new ArrayList<String>();
+    weapons.add(getFirstHandWeapon());
+    if (getFightMode().equals("Zwei Waffen")) {
+      weapons.add(getSecondHandItem());
+    }
+    return weapons;
+  }
+  
+  private ArrayList<String> targets = new ArrayList<String>();
+  
+  public void setTarget(int weaponIndex, String target) {
+    if (weaponIndex < 0) return;
+    if (weaponIndex > 1) return;
+    while (weaponIndex >= targets.size()) targets.add("");
+    if (targets.get(weaponIndex).equals(target)) return;
+    targets.set(weaponIndex, target);
+    changed = true;
+  }
+  
+  public String getTarget(int weaponIndex) {
+    if (weaponIndex < 0) return "";
+    if (weaponIndex >= targets.size()) return "";
+    return targets.get(weaponIndex);
+  }
+  
+  public void fireActiveWeaponsChanged() {
+    for (CharacterObserver o : observers) o.activeWeaponsChanged();
+  }
+  
+  private boolean hasStumbled = false;
+
+  public boolean hasStumbled() {
+    return hasStumbled;
+  }
+
+  public void setHasStumbled(boolean hasStumbled) {
+    if (this.hasStumbled != hasStumbled) {
+      this.hasStumbled = hasStumbled;
+      changed = true;
+    }
+  }
+
+  public int getATBonus(int nr) {
+    return (nr == 0) ? getAT1Bonus() : getAT2Bonus();
+  }
+
+  public void setATBonus(int nr, int bonus) {
+    if (nr == 0) setAT1Bonus(bonus);
+    else setAT2Bonus(bonus);
+  }
+  
+  private FarRangedFightParams farRangedFightParams;
+
+  public FarRangedFightParams getFarRangedFightParams() {
+    return farRangedFightParams;
   }
 }

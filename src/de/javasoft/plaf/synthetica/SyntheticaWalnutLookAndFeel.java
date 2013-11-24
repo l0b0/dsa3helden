@@ -243,7 +243,7 @@ public class SyntheticaWalnutLookAndFeel extends SynthLookAndFeel {
     addResourceBundleToDefaults("synthetica", defaults);
     if (UIManager.getBoolean("Synthetica.window.decoration"))
       defaults.put("RootPaneUI",
-          "de.javasoft.plaf.synthetica.SyntheticaRootPaneUI");
+          "de.javasoft.plaf.synthetica.HelpButtonRootPaneUI");
     else
       decorated = false;
     JFrame.setDefaultLookAndFeelDecorated(decorated);

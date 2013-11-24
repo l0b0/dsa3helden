@@ -64,5 +64,8 @@ public interface CharacterObserver extends dsa.util.Observer {
   void beModificationChanged();
   
   void thingsChanged();
+  
+  void activeWeaponsChanged();
 
+  void fightingStateChanged();
 }

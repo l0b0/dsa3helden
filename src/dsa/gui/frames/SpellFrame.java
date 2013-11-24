@@ -34,13 +34,15 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.NumberFormatter;
 
 import dsa.gui.dialogs.SpellSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
-import dsa.gui.util.FormattedTextFieldCellEditor;
 import dsa.gui.util.ImageManager;
+import dsa.gui.util.table.CellRenderers;
+import dsa.gui.util.table.FormattedTextFieldCellEditor;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.data.SpellStartValues;
@@ -155,7 +157,7 @@ public final class SpellFrame extends TalentFrame {
         new NumberFormatter(NumberFormat.getIntegerInstance()), this);
     numberEditor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
     numberEditor.addCellEditorListener(new SpellIncrChanger());
-    GreyingCellRenderer greyingRenderer = new GreyingCellRenderer();
+    TableCellRenderer greyingRenderer = CellRenderers.createGreyingCellRenderer(this);
     tcm.addColumn(new TableColumn(getIncrCountColumn(), 15, greyingRenderer,
         numberEditor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getIncrCountColumn());

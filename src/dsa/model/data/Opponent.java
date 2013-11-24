@@ -21,17 +21,29 @@ package dsa.model.data;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import dsa.model.DiceSpecification;
+import dsa.model.FarRangedFightParams;
+import dsa.model.Fighter;
+import dsa.util.AbstractObservable;
+import dsa.util.Observer;
+import dsa.util.Optional;
 
-public class Opponent implements Cloneable {
+public class Opponent extends AbstractObservable<Opponent.OpponentObserver> implements Cloneable, Fighter {
+  
+  public interface OpponentObserver extends Observer {
+    void opponentChanged();
+  }
   
   private String name;
   
   private String category;
   
   private int le;
+  
+  private int currentLE;
   
   private int rs;
   
@@ -53,6 +65,16 @@ public class Opponent implements Cloneable {
   
   private boolean userDefined;
   
+  private ArrayList<String> targets;
+  
+  private boolean hasStumbled;
+  
+  private boolean isGrounded;
+  
+  private ArrayList<Integer> atBoni;
+  
+  private FarRangedFightParams farRangedFightParams;
+
   public Object clone() {
     try {
       Opponent newObject = (Opponent) super.clone();
@@ -60,6 +82,9 @@ public class Opponent implements Cloneable {
       newObject.ats = new ArrayList<Integer>(ats);
       newObject.pas = new ArrayList<Integer>(pas);
       newObject.tps = new ArrayList<DiceSpecification>(tps);
+      newObject.targets = new ArrayList<String>(targets);
+      newObject.atBoni = new ArrayList<Integer>(atBoni);
+      newObject.farRangedFightParams = (FarRangedFightParams) farRangedFightParams.clone();
       newObject.changed = false;
       newObject.userDefined = true;
       return newObject;
@@ -99,6 +124,7 @@ public class Opponent implements Cloneable {
     this.name = name;
     this.category = category;
     this.le = le;
+    this.currentLE = le;
     this.rs = rs;
     this.mr = mr;
     this.weapons = new ArrayList<String>(weapons);
@@ -107,7 +133,16 @@ public class Opponent implements Cloneable {
     this.nrOfAttacks = nrOfAttacks;
     this.nrOfParades = nrOfParades;
     this.pas = new ArrayList<Integer>(pas);
+    this.targets = new ArrayList<String>();
+    this.atBoni = new ArrayList<Integer>();
+    this.farRangedFightParams = new FarRangedFightParams();
+    for (int i = 0; i < weapons.size(); ++i) {
+      targets.add("");
+      atBoni.add(0);
+    }
     userDefined = true;
+    hasStumbled = false;
+    isGrounded = false;
     changed = false;
   }
     
@@ -171,6 +206,76 @@ public class Opponent implements Cloneable {
     for (int j = 0; j < neededValues; ++j) {
       pas.add(parseInt(innerTokens.nextToken(), 12));
     }
+    if (version > 1) {
+      if (outerTokens.length < 12) {
+        throw new ParseException(inputLine, 0);
+      }
+      currentLE = parseInt(outerTokens[i++], 14);
+    }
+    else {
+      currentLE = le;
+    }
+    targets = new ArrayList<String>();
+    int index = 0;
+    if (version > 2) {
+      if (outerTokens.length > i) {
+        innerTokens = new StringTokenizer(outerTokens[i++], "/");
+        int tokenCount = innerTokens.countTokens();
+        while (index < tokenCount) {
+          targets.add(innerTokens.nextToken());
+          ++index;
+        }
+      }
+    }
+    atBoni = new ArrayList<Integer>();
+    int atBoniIndex = 0;
+    if (version > 3) {
+      if (outerTokens.length > i) {
+        hasStumbled = (outerTokens[i++].equals("1"));
+      }
+      else hasStumbled = false;
+      if (outerTokens.length > i) {
+        isGrounded = (outerTokens[i++].equals("1"));
+      }
+      if (outerTokens.length > i) {
+        innerTokens = new StringTokenizer(outerTokens[i++], "/");
+        int tokenCount = innerTokens.countTokens();
+        while (atBoniIndex < tokenCount) try {
+          atBoni.add(Integer.parseInt(innerTokens.nextToken()));
+          ++atBoniIndex;
+        } catch (NumberFormatException e) {
+          throw new ParseException(inputLine, 15);
+        }
+      }
+      if (outerTokens.length > i) {
+        try {
+          farRangedFightParams = new FarRangedFightParams(outerTokens[i++]);
+        }
+        catch (java.io.IOException e) {
+          throw new ParseException(inputLine, 16);
+        }
+      }
+      else farRangedFightParams = new FarRangedFightParams();
+    }
+    else {
+      hasStumbled = false;
+      isGrounded = false;
+      farRangedFightParams = new FarRangedFightParams();
+    }
+    while (index < weapons.size()) {
+      targets.add("");
+      ++index;
+    }
+    while (atBoniIndex < weapons.size()) {
+      atBoni.add(0);
+      ++atBoniIndex;
+    }
+    if (version > 4) {
+      if (outerTokens.length > i) {
+        isDazed = (outerTokens[i++].equals("1"));
+      }
+    }
+    else isDazed = false;
   }
   
   public String writeToLine(int version) {
@@ -212,6 +317,34 @@ public class Opponent implements Cloneable {
         buffer.append(pas.get(i));
       }
     }    
+    if (version > 1) {
+      buffer.append(';');
+      buffer.append(currentLE);
+    }
+    if (version > 2) {
+      buffer.append(';');
+      for (int i = 0; i < targets.size(); ++i) {
+        if (i > 0) buffer.append('/');
+        buffer.append(targets.get(i));
+      }
+    }
+    if (version > 3) {
+      buffer.append(';');
+      buffer.append(hasStumbled ? '1' : '0');
+      buffer.append(';');
+      buffer.append(isGrounded ? '1' : '0');
+      buffer.append(';');
+      for (int i = 0; i < atBoni.size(); ++i) {
+        if (i > 0) buffer.append('/');
+        buffer.append(atBoni.get(i));
+      }
+      buffer.append(';');
+      buffer.append(farRangedFightParams.writeToString());
+    }
+    if (version > 4) {
+      buffer.append(';');
+      buffer.append(isDazed ? '1' : '0');
+    }
     return buffer.toString();
   }
 
@@ -233,7 +366,13 @@ public class Opponent implements Cloneable {
   public void setLE(int le) {
     if (this.le != le) {
       this.le = le;
+      if (currentLE > le) {
+        currentLE = le;
+      }
       changed = true;
+      for (OpponentObserver o : observers) {
+        o.opponentChanged();
+      }
     }
   }
 
@@ -245,6 +384,9 @@ public class Opponent implements Cloneable {
     if (this.mr != mr) {
       this.mr = mr;
       changed = true;
+      for (OpponentObserver o : observers) {
+        o.opponentChanged();
+      }
     }
   }
 
@@ -278,6 +420,9 @@ public class Opponent implements Cloneable {
     if (this.rs != rs) {
       this.rs = rs;
       changed = true;
+      for (OpponentObserver o : observers) {
+        o.opponentChanged();
+      }
     }
   }
 
@@ -294,18 +439,18 @@ public class Opponent implements Cloneable {
     }
   }
   
-  public int getAT(int nr) {
+  public Optional<Integer> getAT(int nr) {
     if (nr >= 0 && nr < ats.size()) {
-      return ats.get(nr);
+      return new Optional<Integer>(ats.get(nr));
     }
-    else return 0;
+    else return Optional.NULL_INT;
   }
   
-  public int getPA(int nr) {
+  public Optional<Integer> getPA(int nr) {
     if (nr >= 0 && nr < pas.size()) {
-      return pas.get(nr);
+      return new Optional<Integer>(pas.get(nr));
     }
-    else return 0;
+    else return Optional.NULL_INT;
   }
 
   public int getNrOfParades() {
@@ -354,6 +499,7 @@ public class Opponent implements Cloneable {
     tps.add(tp);
     ats.add(at);
     pas.add(pa);
+    targets.add("");
     changed = true;
   }
   
@@ -362,6 +508,7 @@ public class Opponent implements Cloneable {
     tps.remove(index);
     ats.remove(index);
     pas.remove(index);
+    targets.remove(index);
     changed = true;
   }
   
@@ -370,6 +517,100 @@ public class Opponent implements Cloneable {
   }
   
   public boolean wasChanged() {
-    return changed;
+    return changed || farRangedFightParams.isChanged();
+  }
+
+  public int getMaxLE() {
+    return le;
+  }
+  
+  public int getCurrentLE() {
+    return currentLE;
+  }
+
+  public void setCurrentLE(int le) {
+    if (currentLE != le) {
+      currentLE = le;
+      changed = true;
+      for (OpponentObserver o : observers) {
+        o.opponentChanged();
+      }
+    }
+  }
+
+  public List<String> getFightingWeapons() {
+    return getWeapons();
+  }
+  
+  public void setTarget(int weaponIndex, String target) {
+    if (weaponIndex >= 0 && weaponIndex < targets.size()) {
+      if (targets.get(weaponIndex).equals(target)) return;
+      targets.set(weaponIndex, target);
+      changed = true;
+    }
+  }
+  
+  public String getTarget(int weaponIndex) {
+    if (weaponIndex >= 0 && weaponIndex < targets.size()) {
+      return targets.get(weaponIndex);
+    }
+    else return "";
+  }
+
+  public boolean hasStumbled() {
+    return hasStumbled;
+  }
+
+  public void setHasStumbled(boolean hasStumbled) {
+    if (hasStumbled != this.hasStumbled) {
+      this.hasStumbled = hasStumbled;
+      changed = true;
+    }
+  }
+  
+  public boolean isGrounded() {
+    return isGrounded;
+  }
+
+  public void setGrounded(boolean grounded) {
+    if (isGrounded != grounded) {
+      isGrounded = grounded;
+      changed = true;
+    }
+  }
+
+  public int getATBonus(int nr) {
+    if (nr < 0 || nr >= atBoni.size()) return 0;
+    else return atBoni.get(nr);
+  }
+
+  public void setATBonus(int nr, int bonus) {
+    if (nr >= 0 && nr < atBoni.size()) {
+      int oldValue = atBoni.get(nr);
+      if (bonus != oldValue) {
+        atBoni.set(nr, bonus);
+        changed = true;
+      }
+    }
+  }
+
+  public int getMarkers() {
+    return 0;
+  }
+
+  public FarRangedFightParams getFarRangedFightParams() {
+    return farRangedFightParams;
+  }
+  
+  private boolean isDazed = false;
+  
+  public boolean isDazed() {
+    return isDazed;
+  }
+  
+  public void setDazed(boolean dazed) {
+    if (dazed == isDazed) return;
+    isDazed = dazed;
+    changed = true;
   }
 }

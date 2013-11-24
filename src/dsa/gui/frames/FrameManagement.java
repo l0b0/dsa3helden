@@ -210,6 +210,7 @@ public class FrameManagement {
     windowSnapper = new WindowSnapper();
     KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
     manager.addPropertyChangeListener("permanentFocusOwner", new HelpListener());
+    frameStateChanger = null;
   }
 
   private final java.util.LinkedList<SubFrame> frames;

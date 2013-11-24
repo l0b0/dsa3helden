@@ -23,12 +23,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import javax.swing.JButton;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import dsa.gui.util.ImageManager;
+import dsa.gui.util.table.CellRenderers;
+import dsa.gui.util.table.TableButtonInput;
 import dsa.model.characters.Hero;
 import dsa.model.talents.FightingTalent;
 import dsa.model.talents.Talent;
@@ -103,7 +109,7 @@ public class FightingTalentsFrame extends TalentFrame {
       return super.getColumnClass(column, defaultValue);
   }
 
-  protected boolean shallBeGray(int row, int column) {
+  public boolean shallBeGray(int row, int column) {
     if (column == getATColumn())
       return true;
     else if (column == getPAColumn())
@@ -182,28 +188,28 @@ public class FightingTalentsFrame extends TalentFrame {
   }
 
   protected void addSubclassSpecificColumns(DefaultTableColumnModel tcm) {
-    GreyingCellRenderer greyingRenderer = new GreyingCellRenderer();
+    DefaultTableCellRenderer greyingRenderer = CellRenderers.createGreyingCellRenderer(this);
     greyingRenderer.setHorizontalAlignment(SwingConstants.CENTER);
     // FormattedTextFieldCellEditor editor = new
     // FormattedTextFieldCellEditor(new
     // NumberFormatter(NumberFormat.getIntegerInstance()));
     // editor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-    DummyCellEditor editor = new DummyCellEditor();
+    TableCellEditor editor = TableButtonInput.createDummyCellEditor();
     tcm.addColumn(new TableColumn(getATColumn(), 20, greyingRenderer, editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getATColumn());
-    PretenderButton incrATButton = new PretenderButton(ImageManager.getIcon("move_left"));
+    JButton incrATButton = TableButtonInput.createButton(ImageManager.getIcon("move_left"));
     incrATButton.addActionListener(new ATPAMover(true));
-    ButtonCellRenderer atRenderer = new ButtonCellRenderer(incrATButton,
+    TableCellRenderer atRenderer = TableButtonInput.createButtonCellRenderer(incrATButton,
         new javax.swing.table.DefaultTableCellRenderer());
     tcm.addColumn(new TableColumn(getATIncrColumn(), 20, atRenderer,
-        new DummyCellEditor()));
+        editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getATIncrColumn());
-    PretenderButton incrPAButton = new PretenderButton(ImageManager.getIcon("move_right"));
+    JButton incrPAButton = TableButtonInput.createButton(ImageManager.getIcon("move_right"));
     incrPAButton.addActionListener(new ATPAMover(false));
-    ButtonCellRenderer paRenderer = new ButtonCellRenderer(incrPAButton,
+    TableCellRenderer paRenderer = TableButtonInput.createButtonCellRenderer(incrPAButton,
         new javax.swing.table.DefaultTableCellRenderer());
     tcm.addColumn(new TableColumn(getPAIncrColumn(), 20, paRenderer,
-        new DummyCellEditor()));
+        editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getPAIncrColumn());
     tcm.addColumn(new TableColumn(getPAColumn(), 20, greyingRenderer, editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getPAColumn());

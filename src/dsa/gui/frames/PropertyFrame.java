@@ -43,7 +43,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.text.NumberFormatter;
 
-import dsa.control.Dice;
+import dsa.control.HeroStepIncreaser;
 import dsa.gui.dialogs.ProbeDialog;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.CharacterAdapter;
@@ -419,18 +419,13 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
     public void actionPerformed(ActionEvent e) {
       Hero hero = PropertyFrame.this.currentHero;
       if (hero == null) return;
-      int currentValue = hero.getDefaultProperty(property);
       boolean goodProperty = property.ordinal() <= Property.KK.ordinal();
-      for (int i = 0; i < 3; ++i) {
-        int diceThrow = Dice.roll(20);
-        if (goodProperty && (diceThrow >= currentValue)) {
-          hero.changeDefaultProperty(property, 1);
-          break;
-        }
-        else if (!goodProperty && (diceThrow <= currentValue)) {
-          hero.changeDefaultProperty(property, -1);
-          break;
-        }
+      HeroStepIncreaser increaser = new HeroStepIncreaser(hero);
+      if (goodProperty) {
+        increaser.tryToIncreaseGoodProperty(property);
+      }
+      else {
+        increaser.tryToDecreaseBadProperty(property);
       }
       if (!lock.isSelected() && !Group.getInstance().getGlobalUnlock()) {
         hero.removePropertyChangeTry(goodProperty);
@@ -507,6 +502,10 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
     }
 
     public void stepIncreased() {
+      PropertyFrame.this.updateData();
+    }
+    
+    public void increaseTriesChanged() {
       PropertyFrame.this.updateData();
     }
 

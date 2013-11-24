@@ -31,8 +31,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import dsa.gui.lf.BGTableCellRenderer;
-import dsa.gui.util.SpinnerCellEditor;
-import dsa.gui.util.TableSorter;
+import dsa.gui.util.table.SpinnerCellEditor;
+import dsa.gui.util.table.TableSorter;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.util.Optional;

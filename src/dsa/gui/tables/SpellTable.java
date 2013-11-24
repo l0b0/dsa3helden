@@ -28,7 +28,7 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
-import dsa.gui.util.TableSorter;
+import dsa.gui.util.table.TableSorter;
 import dsa.model.data.SpellStartValues;
 import dsa.model.talents.Spell;
 

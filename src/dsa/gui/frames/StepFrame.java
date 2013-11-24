@@ -38,6 +38,9 @@ import javax.swing.JToggleButton;
 import javax.swing.JButton;
 import javax.swing.text.NumberFormatter;
 
+import dsa.control.HeroStepIncreaser;
+import dsa.gui.dialogs.NewStepDialog;
+import dsa.gui.dialogs.ScrollableMessageDialog;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.Group;
@@ -283,9 +286,17 @@ public final class StepFrame extends SubFrame implements CharactersObserver {
     currentHero.changeAP(ap);
     updateData();
     if (currentHero.getStep() > currentStep) {
-      JOptionPane.showMessageDialog(this, currentHero.getName()
-          + " ist gerade auf Stufe " + currentHero.getStep() + " gestiegen!",
-          "Stufenanstieg", JOptionPane.INFORMATION_MESSAGE);
+      NewStepDialog dialog = new NewStepDialog(this, currentHero.getName(), currentHero.getStep());
+      dialog.setVisible(true);
+      if (dialog.isAutomaticSelected()) {
+        HeroStepIncreaser increaser = new HeroStepIncreaser(currentHero);
+        increaser.increaseStepsAutomatically(currentHero.getStep() - currentStep);
+        updateData();
+        if (dialog.shallShowLog()) {
+          ScrollableMessageDialog dialog2 = new ScrollableMessageDialog(this, increaser.getLog(), "Automatisch_Steigern");
+          dialog2.setVisible(true);
+        }
+      }
     }
   }
 

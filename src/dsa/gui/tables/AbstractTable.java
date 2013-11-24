@@ -40,7 +40,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
 import dsa.gui.lf.BGTableCellRenderer;
-import dsa.gui.util.TableSorter;
+import dsa.gui.util.table.TableSorter;
 
 public abstract class AbstractTable implements TableSorter.SortingListener {
 
@@ -98,13 +98,13 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
 
   public void restoreSortingState(String title) {
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
-        .userNodeForPackage(dsa.gui.util.TableSorter.class);
+        .userNodeForPackage(dsa.gui.util.table.TableSorter.class);
     mSorter.restoreState(title, prefs);
   }
 
   public void saveSortingState(String title) {
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
-        .userNodeForPackage(dsa.gui.util.TableSorter.class);
+        .userNodeForPackage(dsa.gui.util.table.TableSorter.class);
     mSorter.saveState(title, prefs);
   }
 

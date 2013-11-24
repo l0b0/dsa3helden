@@ -30,6 +30,7 @@ import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
 import dsa.model.DataFactory;
+import dsa.model.Date;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 import dsa.model.data.Armour;
@@ -191,7 +192,7 @@ public class WiegeImporter {
     lineNr++;
     String dateString = in.readLine();
     lineNr++;
-    dateString = parseDate(dateString);
+    Date date = parseDate(dateString);
     line = in.readLine();
     lineNr++;
     int tempAge = 0;
@@ -302,7 +303,7 @@ public class WiegeImporter {
     }
     hero.setGod(tempGod);
     hero.setEyeColor(tempEyeColor);
-    hero.setBirthday(dateString);
+    hero.setBirthday(date);
     hero.setBirthPlace(tempBirthplace);
     hero.setSex(tempSex);
     hero.setHairColor(tempHairColor);
@@ -720,7 +721,7 @@ public class WiegeImporter {
     }
   }
 
-  private static String parseDate(String dateString) throws IOException {
+  private static Date parseDate(String dateString) throws IOException {
     StringTokenizer tokenizer;
     if (dateString == null)
       throw new IOException("Zeile " + lineNr + ": Geburtstag fehlt!");
@@ -734,15 +735,14 @@ public class WiegeImporter {
       int month = Integer.parseInt(tokenizer.nextToken());
       if (month < 1 || month > 12) throw new NumberFormatException("");
       int year = Integer.parseInt(tokenizer.nextToken());
-      dsa.model.Date date = new dsa.model.Date(day, dsa.model.Date.Month
+      Date date = new Date(day, dsa.model.Date.Month
           .values()[month - 1], year);
-      dateString = date.format();
+      return date;
     }
     catch (NumberFormatException e) {
       throw new IOException("Zeile " + lineNr
           + ": Geburtstag hat falsches Format!");
     }
-    return dateString;
   }
 
   private static void readSpells(BufferedReader in, Map<String, Integer> temptalents, Map<String, Integer> tempSpellIncreases) throws IOException {

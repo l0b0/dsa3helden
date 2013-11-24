@@ -115,6 +115,14 @@ public class Weapons {
     }
     return -1;
   }
+  
+  public static boolean isAUCategory(int index) {
+    return isAUCategory(getCategoryName(index));
+  }
+  
+  public static boolean isAUCategory(String name) {
+    return name.equals("Raufen") || name.equals("Boxen") || name.equals("Ringen");
+  }
 
   public static boolean isFarRangedCategory(String category) {
     int index = getCategoryIndex(category);

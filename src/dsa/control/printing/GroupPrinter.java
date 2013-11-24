@@ -82,8 +82,8 @@ public class GroupPrinter extends AbstractPrinter {
       Opponent o = group.getOpponent(name);
       for (int i = 0; i < o.getNrOfAttacks(); ++i) {
         table.addItem("Geg" + app, o.getName());
-        table.addItem("Gat" + app, o.getAT(i));
-        table.addItem("Gpa" + app, o.getPA(i));
+        table.addItem("Gat" + app, o.getAT(i).getValue());
+        table.addItem("Gpa" + app, o.getPA(i).getValue());
         table.addItem("Gtp" + app, o.getTP(i).toString());
         table.addItem("Grs" + app, o.getRS());
         table.addItem("Gmr" + app, o.getMR());

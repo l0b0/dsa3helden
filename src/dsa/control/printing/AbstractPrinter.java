@@ -87,7 +87,7 @@ abstract class AbstractPrinter implements Printer {
       table.addItem("haar" + app, character.getHairColor());
       table.addItem("sex" + app, character.getSex());
       table.addItem("alt" + app, character.getAge());
-      table.addItem("geb" + app, character.getBirthday());
+      table.addItem("geb" + app, character.getBirthday().toString());
       table.addItem("gott" + app, character.getGod());
       table.addItem("augen" + app, character.getEyeColor());
       table.addItem("skin" + app, character.getSkinColor());

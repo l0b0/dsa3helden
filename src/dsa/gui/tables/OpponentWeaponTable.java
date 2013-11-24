@@ -32,9 +32,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import dsa.gui.lf.BGTableCellRenderer;
-import dsa.gui.util.TableSorter;
-import dsa.gui.util.SpinnerCellEditor;
-import dsa.gui.util.TextFieldCellEditor;
+import dsa.gui.util.table.SpinnerCellEditor;
+import dsa.gui.util.table.TableSorter;
+import dsa.gui.util.table.TextFieldCellEditor;
 import dsa.model.DiceSpecification;
 
 public final class OpponentWeaponTable extends AbstractTable 

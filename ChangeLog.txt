@@ -1,3 +1,14 @@
+Version 1.5.0
+-------------
+- Hilfebutton in der Titelzeile aller Fenster und Dialoge
+- Automatischer Stufenanstieg (Achtung, Heuristiken!)
+- Kampffenster für den Meister
+- Bugfix: Buttons in den Talentfenstern waren auch aktiv, wenn sie grau waren
+- Bugfix: Nach dem Umsortieren von Helden ging die Auswahl in der ComboBox nicht
+- Andere Zeitrechnungen können gewählt werden
+- Spielzeit kann gewählt werden
+- Startbedingungen für Magier aus Beilunk und Vinsalt korrigiert
+
 Version 1.4.2
 -------------
 - Scrollbar für Bemerkungen

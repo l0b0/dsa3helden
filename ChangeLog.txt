@@ -1,3 +1,11 @@
+Version 1.8.3
+-------------
+- Regeneration kann für alle Helden in der Gruppe gleichzeitig gemacht
+  werden
+- Bei Regeneration ist halbe Regeneration oder Bonus / Malus möglich
+- Ergebnis der Regeneration kann in die Zwischenablage kopiert werden
+- Bei Proben kann Name und Schwierigkeit im Ergebnis angezeigt werden
+
 Version 1.8.2
 -------------
 - Bugfix: Helden mit bestimmten Sonderzeichen im Namen konnten unter

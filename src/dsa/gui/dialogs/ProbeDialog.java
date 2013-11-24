@@ -41,6 +41,7 @@ import dsa.model.characters.Property;
 import dsa.model.data.Talents;
 import dsa.model.talents.NormalTalent;
 import dsa.util.Strings;
+import java.awt.Rectangle;
 
 /**
  * 
@@ -61,8 +62,6 @@ public final class ProbeDialog extends BGDialog {
 
   private JCheckBox jCheckBox = null;
 
-  private JLabel jLabel1 = null;
-
   private Hero hero;
 
   private String talentName;
@@ -74,6 +73,8 @@ public final class ProbeDialog extends BGDialog {
   private boolean isKOProbe;
 
   private JLabel jLabel2 = null;
+
+private JCheckBox resultBox = null;
 
   /**
    * This is the default constructor
@@ -111,7 +112,7 @@ public final class ProbeDialog extends BGDialog {
    */
   private void initialize() {
     this.setTitle("Probe");
-    this.setSize(289, 189);
+    this.setSize(275, 202);
     this.setContentPane(getJContentPane());
     getDifficultySpinner().requestFocus();
     ((JSpinner.DefaultEditor) getDifficultySpinner().getEditor()).getTextField().select(
@@ -205,8 +206,8 @@ public final class ProbeDialog extends BGDialog {
       probeButton.setText("Probe!");
       probeButton.setMnemonic(java.awt.event.KeyEvent.VK_P);
       probeButton.setPreferredSize(new java.awt.Dimension(90, 25));
-      probeButton.setLocation(33, 122);
-      probeButton.setSize(90, 25);
+      probeButton.setLocation(70, 140);
+      probeButton.setSize(90, 21);
       probeButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           doProbe();
@@ -222,30 +223,46 @@ public final class ProbeDialog extends BGDialog {
     java.awt.Container parent = getParent();
     dispose();
     String result = "";
+    String intro = "";
     if (all) {
       for (Hero aHero : Group.getInstance().getAllCharacters()) {
-        result += Strings.cutTo(aHero.getName(), ' ') + ": ";
+        result += Strings.firstWord(aHero.getName()) + ": ";
         if (isTalentProbe) {
           result += doProbe(aHero, talentName, difficulty) + "\n";
+          intro = talentName;
         }
         else if (isKOProbe) {
           result += doProbe(aHero, difficulty) + "\n";
+          intro = "KO";
         }
         else {
           result += doProbe(aHero, property, difficulty) + "\n";
+          intro = property.toString();
         }
       }
     }
     else if (isTalentProbe) {
       result = doProbe(hero, talentName, difficulty);
+      intro = talentName;
     }
     else if (isKOProbe) {
       result = doProbe(hero, difficulty);
+      intro = "KO";
     }
-    else
-      result = doProbe(hero, property, difficulty);
+    else {
+       result = doProbe(hero, property, difficulty);
+       intro = property.toString();
+    }
+    if (getResultBox().isSelected())
+    {
+    	if (difficulty > 0)
+    		intro += " +" + difficulty;
+    	else if (difficulty < 0)
+    		intro += " " + difficulty;
+    	result = intro + ":" + (all ? "\n" : " ") + result;
+    }
     ProbeResultDialog.showDialog(parent, result, all ? "Proben" : "Probe für "
-        + Strings.cutTo(hero.getName(), ' '));
+        + Strings.firstWord(hero.getName()));
   }
 
   private static String doProbe(Hero character, String talentName, int mod) {
@@ -333,8 +350,8 @@ public final class ProbeDialog extends BGDialog {
       cancelButton.setPreferredSize(new java.awt.Dimension(90, 25));
       cancelButton.setText("Abbruch");
       cancelButton.setMnemonic(java.awt.event.KeyEvent.VK_A);
-      cancelButton.setLocation(148, 122);
-      cancelButton.setSize(90, 25);
+      cancelButton.setLocation(170, 140);
+      cancelButton.setSize(90, 21);
       cancelButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           ProbeDialog.this.dispose();
@@ -354,26 +371,22 @@ public final class ProbeDialog extends BGDialog {
       jLabel2 = new JLabel();
       jPanel = new JPanel();
       jLabel = new JLabel();
-      jLabel1 = new JLabel();
       jPanel.setLayout(null);
-      jPanel.setBounds(17, 14, 247, 96);
+      jPanel.setBounds(17, 14, 247, 117);
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
-      jLabel.setBounds(12, 12, 62, 19);
+      jLabel.setBounds(10, 10, 62, 19);
       jLabel.setText("Zuschlag:");
       // jLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-      jLabel1.setBounds(32, 69, 149, 19);
-      jLabel1.setText("Probe aller Helden");
       jPanel.add(getDifficultySpinner(), null);
       jPanel.add(jLabel, null);
       jPanel.add(getJCheckBox(), null);
-      jPanel.add(jLabel1, null);
       jLabel.setLabelFor(getDifficultySpinner());
-      jLabel1.setLabelFor(getJCheckBox());
-      jLabel2.setBounds(12, 42, 224, 20);
+      jLabel2.setBounds(10, 40, 224, 20);
       jLabel2.setText("Erfolgswahrscheinlichkeit");
       jLabel2.setForeground(java.awt.Color.RED);
       jPanel.add(jLabel2, null);
+      jPanel.add(getResultBox(), null);
     }
     return jPanel;
   }
@@ -386,8 +399,8 @@ public final class ProbeDialog extends BGDialog {
   private JSpinner getDifficultySpinner() {
     if (difficultySpinner == null) {
       difficultySpinner = new JSpinner();
-      difficultySpinner.setSize(43, 20);
-      difficultySpinner.setLocation(81, 12);
+      difficultySpinner.setSize(51, 20);
+      difficultySpinner.setLocation(80, 10);
       difficultySpinner.setModel(new SpinnerNumberModel(0, -50, 80, 1));
       difficultySpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
@@ -406,8 +419,9 @@ public final class ProbeDialog extends BGDialog {
   private JCheckBox getJCheckBox() {
     if (jCheckBox == null) {
       jCheckBox = new JCheckBox();
-      jCheckBox.setSize(23, 17);
-      jCheckBox.setLocation(9, 69);
+      jCheckBox.setSize(221, 17);
+      jCheckBox.setText("Probe aller Helden");
+      jCheckBox.setLocation(10, 70);
     }
     return jCheckBox;
   }
@@ -415,4 +429,18 @@ public final class ProbeDialog extends BGDialog {
   public String getHelpPage() {
     return "Probe";
   }
+
+/**
+ * This method initializes resultBox	
+ * 	
+ * @return javax.swing.JCheckBox	
+ */
+private JCheckBox getResultBox() {
+	if (resultBox == null) {
+		resultBox = new JCheckBox();
+		resultBox.setBounds(new Rectangle(10, 90, 231, 21));
+		resultBox.setText("Probe im Ergebnis anzeigen");
+	}
+	return resultBox;
+}
 } //  @jve:decl-index=0:visual-constraint="10,10"

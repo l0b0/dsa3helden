@@ -1,4 +1,5 @@
 /*
+
  Copyright (c) 2006-2008 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
@@ -48,8 +49,11 @@ import javax.swing.text.NumberFormatter;
 import dsa.control.Dice;
 import dsa.control.Markers;
 import dsa.control.Probe;
+import dsa.control.Regeneration;
 import dsa.gui.dialogs.ProbeDialog;
+import dsa.gui.dialogs.ProbeResultDialog;
 import dsa.gui.dialogs.RedistributionDialog;
+import dsa.gui.dialogs.RegenerationDialog;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.CharacterObserver;
@@ -806,75 +810,29 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
   }
 
   void doRegeneration() {
-    int missingLE = currentHero.getDefaultEnergy(Energy.LE)
-        - currentHero.getCurrentEnergy(Energy.LE);
-    if (currentHero.isMagicDilletant()) {
-      int missingAE = currentHero.getDefaultEnergy(Energy.AE)
-        - currentHero.getCurrentEnergy(Energy.AE);
-      int aeChange = 0;
-      if (missingAE > 0 && missingLE < currentHero.getDefaultEnergy(Energy.LE) / 2) {
-        currentHero.changeCurrentEnergy(Energy.AE, 1);
-        aeChange = 1;
-      }
-      int value = Dice.roll(6);
-      value = Math.min(value, missingLE);
-      currentHero.changeCurrentEnergy(Energy.LE, value);
-      JOptionPane.showMessageDialog(this, "LE: " + value
-          + " Punkte regeneriert.\nAE: " + 
-          ((aeChange > 0) ? "1 Punkt" : "0 Punkte") + " regeneriert.", "Regeneration",
-          JOptionPane.INFORMATION_MESSAGE);
-    }
-    else if (currentHero.hasEnergy(Energy.AE)
-        && currentHero.getCurrentEnergy(Energy.AE) < currentHero
-            .getDefaultEnergy(Energy.AE)) {
-      int missingAE = currentHero.getDefaultEnergy(Energy.AE)
-          - currentHero.getCurrentEnergy(Energy.AE);
-      boolean hasBonus = Group.getInstance().getOptions()
-          .hasFastAERegeneration();
-      int bonusRegeneration = hasBonus ? (int) Math
-          .round((double) missingAE / 10.0) : 0;
-      if (missingLE > 0) {
-        int first = Dice.roll(6);
-        int second = Dice.roll(6);
-        int aeRoll = second;
-        if (first < second) {
-          int temp = first;
-          first = second;
-          second = temp;
-        }
-        first = Math.min(first, missingLE);
-        second = Math.min(second + bonusRegeneration, missingAE);
-        currentHero.changeCurrentEnergy(Energy.LE, first);
-        currentHero.changeCurrentEnergy(Energy.AE, second);
-        String text = "LE: " + first + " Punkte regeneriert\n";
-        text += "AE: " + second + " Punkte regeneriert";
-        if (hasBonus) {
-          text += "\n(Gewürfelt: " + aeRoll + ", Bonus: " + bonusRegeneration + ")";  
-        }
-        JOptionPane.showMessageDialog(this, text, "Regeneration",
-            JOptionPane.INFORMATION_MESSAGE);
-      }
-      else {
-        int aeRoll = Dice.roll(6);
-        int value = aeRoll + bonusRegeneration;
-        value = Math.min(value, missingAE);
-        currentHero.changeCurrentEnergy(Energy.AE, value);
-        String text = "AE: " + value + " Punkte regeneriert";
-        if (hasBonus) {
-          text += "\n(Gewürfelt: " + aeRoll + ", Bonus: " + bonusRegeneration + ")";
-        }
-        JOptionPane.showMessageDialog(this, text, "Regeneration",
-            JOptionPane.INFORMATION_MESSAGE);
-      }
-    }
-    else {
-      int value = Dice.roll(6);
-      value = Math.min(value, missingLE);
-      currentHero.changeCurrentEnergy(Energy.LE, value);
-      JOptionPane.showMessageDialog(this, "LE: " + value
-          + " Punkte regeneriert.", "Regeneration",
-          JOptionPane.INFORMATION_MESSAGE);
-    }
+	RegenerationDialog dialog = new RegenerationDialog(this);
+	dialog.setVisible(true);
+	if (dialog.wasClosedByOK())
+	{
+		Regeneration.RegenerationOptions options = dialog.getOptions();
+		String overallResult = "";
+		if (options.regenerateWholeGroup())
+		{
+			for (Hero hero : Group.getInstance().getAllCharacters())
+			{
+				String subResult = dsa.util.Strings.firstWord(hero.getName()) + ":\n";
+				subResult += Regeneration.regenerate(hero, options);
+				if (!overallResult.isEmpty())
+					overallResult += "\n";
+				overallResult += subResult;
+			}
+		}
+		else
+		{
+			overallResult = Regeneration.regenerate(Group.getInstance().getActiveHero(), options);
+		}
+		ProbeResultDialog.showDialog(this, overallResult, "Regeneration");
+	}
   }
 
   /*

@@ -21,6 +21,7 @@ package dsa.gui.frames;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
@@ -47,6 +48,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.swing.DefaultListModel;
@@ -91,9 +94,6 @@ import dsa.model.data.Weapons;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-
-import org.jdesktop.jdic.desktop.Desktop;
-import org.jdesktop.jdic.desktop.Message;
 
 /**
  * 
@@ -1859,16 +1859,28 @@ public final class ControlFrame extends SubFrame
       mailItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
       mailItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          try {
-            Message message = new Message();
-            message.setSubject("Heldenverwaltung "
-                + dsa.control.Version.getCurrentVersionString());
-            java.util.ArrayList<String> tos = new java.util.ArrayList<String>();
-            tos.add("joerg@ruedenauer.net");
-            message.setToAddrs(tos);
-            Desktop.mail(message);
+          Desktop desktop = null;
+          if (Desktop.isDesktopSupported()) {
+            desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.OPEN)) {
+              desktop = null;
+            }
           }
-          catch (org.jdesktop.jdic.desktop.DesktopException ex) {
+          if (desktop == null) {
+            JOptionPane.showMessageDialog(ControlFrame.this, "Das Betriebssystem erlaubt keine direkte Mail-Erstellung.\n"
+                + "Bitte schreibe manuell an joerg@ruedenauer.net.", 
+                "Fehler", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+          try {
+            String messageURI = "joerg@ruedenauer.net?subject=Heldenverwaltung "
+                + dsa.control.Version.getCurrentVersionString();
+            desktop.mail(new URI("mailto", messageURI, null));
+          }
+          catch (URISyntaxException ex) {
+            ex.printStackTrace();
+          }
+          catch (IOException ex) {
             JOptionPane.showMessageDialog(ControlFrame.this,
                 "Die E-Mail kann nicht erstellt werden. Fehler:\n"
                     + ex.getMessage()
@@ -1889,15 +1901,28 @@ public final class ControlFrame extends SubFrame
       manualItem.addActionListener(new ActionListener() {
 
         public void actionPerformed(ActionEvent e) {
+          Desktop desktop = null;
+          if (Desktop.isDesktopSupported()) {
+            desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.OPEN)) {
+              desktop = null;
+            }
+          }
+          if (desktop == null) {
+            JOptionPane.showMessageDialog(ControlFrame.this, "Das Betriebssystem erlaubt keinen direkten Browser-Aufruf."
+                + "\nBitte öffne manuell hilfe/Start.html",
+                "Fehler", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
           try {
             File file = new File(Directories.getApplicationPath() + "hilfe/Start.html");
-            java.net.URL url = file.toURI().toURL();
-            Desktop.browse(url);
+            URI uri = file.toURI();
+            desktop.browse(uri);
           }
           catch (java.net.MalformedURLException ex) {
             ex.printStackTrace();
           }
-          catch (org.jdesktop.jdic.desktop.DesktopException ex) {
+          catch (IOException ex) {
             JOptionPane.showMessageDialog(ControlFrame.this,
                 "Die Anleitung konnte nicht geöffnet werden. Fehler:\n"
                     + ex.getMessage() + "\nBitte öffne manuell hilfe/Start.html",
@@ -1926,13 +1951,26 @@ public final class ControlFrame extends SubFrame
   private void showHomepage(boolean download) {
     String url = "http://www.ruedenauer.net/Software/dsa/helden.html";
     if (download) url += "#Download";
-    try {
-      Desktop.browse(new java.net.URL(url));
+    Desktop desktop = null;
+    if (Desktop.isDesktopSupported()) {
+      desktop = Desktop.getDesktop();
+      if (!desktop.isSupported(Desktop.Action.OPEN)) {
+        desktop = null;
+      }
     }
-    catch (java.net.MalformedURLException ex) {
+    if (desktop == null) {
+      JOptionPane.showMessageDialog(ControlFrame.this, "Das Betriebssystem erlaubt keinen direkten Browser-Aufruf."
+          + "\nBitte öffne manuell " + url,
+          "Fehler", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    try {
+      desktop.browse(new URI(url));
+    }
+    catch (URISyntaxException ex) {
       ex.printStackTrace();
     }
-    catch (org.jdesktop.jdic.desktop.DesktopException ex) {
+    catch (IOException ex) {
       JOptionPane.showMessageDialog(ControlFrame.this,
           "Die Homepage konnte nicht geöffnet werden. Fehler:\n"
               + ex.getMessage() + "\nBitte öffne manuell " + url, "Fehler",

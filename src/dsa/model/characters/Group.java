@@ -208,10 +208,8 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     characters = new ArrayList<Hero>();
     filePaths = new ArrayList<String>();
     options = new GroupOptions();
-    opponents = new Opponents();
-    options.getDefaults();
     options.setChanged(false);
-    options.loadCorrectFiles();
+    prepareNewGroup();
   }
 
   public String getFilePath(Hero hero) {

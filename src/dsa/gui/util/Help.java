@@ -21,11 +21,12 @@ package dsa.gui.util;
 
 import java.awt.Component;
 import java.io.File;
-import java.net.URL;
+import java.io.IOException;
+import java.net.URI;
 
 import javax.swing.JOptionPane;
 
-import org.jdesktop.jdic.desktop.Desktop;
+import java.awt.Desktop;
 
 import dsa.util.Directories;
 
@@ -52,14 +53,27 @@ public class Help {
       JOptionPane.showMessageDialog(parent, "Hilfedatei " + file.getName() + " nicht gefunden!", "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
       return;
     }
+    Desktop desktop = null;
+    if (Desktop.isDesktopSupported()) {
+      desktop = Desktop.getDesktop();
+      if (!desktop.isSupported(Desktop.Action.OPEN)) {
+        desktop = null;
+      }
+    }
+    if (desktop == null) {
+      JOptionPane.showMessageDialog(parent, "Das Betriebssystem erlaubt keinen direkten Browser-Aufruf."
+          + "\nBitte öffne manuell " + file.getAbsolutePath(),
+          "Fehler", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     try {
-      URL url = file.toURI().toURL();
-      Desktop.browse(url);
+      URI uri = file.toURI();
+      desktop.browse(uri);
     }
     catch (java.net.MalformedURLException ex) {
       ex.printStackTrace();
     }
-    catch (org.jdesktop.jdic.desktop.DesktopException ex) {
+    catch (IOException ex) {
       JOptionPane.showMessageDialog(parent,
           "Die Hilfe konnte nicht geöffnet werden. Fehler:\n"
               + ex.getMessage() + "\nBitte öffne manuell " + file.getAbsolutePath(), "Heldenverwaltung",

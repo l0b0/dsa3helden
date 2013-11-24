@@ -22,12 +22,14 @@ package dsa.gui.frames;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -37,9 +39,6 @@ import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import org.jdesktop.jdic.desktop.Desktop;
-import org.jdesktop.jdic.desktop.DesktopException;
 
 import dsa.gui.util.ExampleFileFilter;
 import dsa.model.characters.Group;
@@ -346,12 +345,24 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
       editButton.setText("Editieren ...");
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          try {
-            Desktop.open(new File(backgroundFileField.getText()));
+          Desktop desktop = null;
+          if (Desktop.isDesktopSupported()) {
+            desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.OPEN)) {
+              desktop = null;
+            }
           }
-          catch (DesktopException ex) {
+          if (desktop == null) {
+            JOptionPane.showMessageDialog(BackgroundFrame.this, "Das Betriebssystem erlaubt keinen direkten Viewer-Aufruf.", 
+                "Fehler", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+          try {
+            desktop.open(new File(backgroundFileField.getText()));
+          }
+          catch (IOException ex) {
             JOptionPane.showMessageDialog(BackgroundFrame.this,
-                "Auruf des Editors fehlgeschlagen:\n" + ex.getMessage(),
+                "Aufruf des Editors fehlgeschlagen:\n" + ex.getMessage(),
                 "Fehler", JOptionPane.ERROR_MESSAGE);
           }
         }

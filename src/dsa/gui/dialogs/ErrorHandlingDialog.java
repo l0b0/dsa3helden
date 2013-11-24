@@ -19,20 +19,21 @@
  */
 package dsa.gui.dialogs;
 
+import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import dsa.gui.lf.BGDialog;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JButton;
-
-import org.jdesktop.jdic.desktop.Desktop;
-import org.jdesktop.jdic.desktop.Message;
 
 public final class ErrorHandlingDialog extends BGDialog {
 
@@ -144,29 +145,40 @@ public final class ErrorHandlingDialog extends BGDialog {
 
   protected void sendMail() {
     try {
-      Message message = new Message();
-      message.setSubject("Fehler in Heldenverwaltung "
-          + dsa.control.Version.getCurrentVersionString());
-      java.util.ArrayList<String> tos = new java.util.ArrayList<String>();
-      tos.add("joerg@ruedenauer.net");
-      message.setToAddrs(tos);
-      String body = "Ich habe in der Heldenverwaltung gerade: \n\n\nAls folgender Fehler aufgetreten ist:\n"
-          + "Fehlermeldung: "
-          + error.getLocalizedMessage()
-          + "\nStack trace:\n";
+      StringBuilder mailURI = new StringBuilder();
+      mailURI.append("joerg@ruedenauer.net?subject=");
+      mailURI.append("Fehler in Heldenverwaltung ");
+      mailURI.append(dsa.control.Version.getCurrentVersionString());
+      mailURI.append("&body=Ich habe in der Heldenverwaltung gerade: %0D%0A%0D%0A%0D%0A");
+      mailURI.append("Als folgender Fehler aufgetreten ist:%0D%0A");
+      mailURI.append("Fehlermeldung: ");
+      mailURI.append(error.getLocalizedMessage());
+      mailURI.append("%0D%0AStack trace:%0D%0A");
       StackTraceElement[] stackTrace = error.getStackTrace();
       for (StackTraceElement ste : stackTrace) {
-        body += ste.toString();
+        mailURI.append(ste.toString());
       }
-      message.setBody(body);
-      Desktop.mail(message);
+      URI uri = new URI("mailto", mailURI.toString(), null);
+      if (Desktop.isDesktopSupported()) {
+        Desktop desktop = Desktop.getDesktop();
+        if (desktop.isSupported(Desktop.Action.MAIL)) {
+          desktop.mail(uri);
+        }
+      }
     }
-    catch (org.jdesktop.jdic.desktop.DesktopException ex) {
+    catch (URISyntaxException ex) {
+      ex.printStackTrace();
+    }
+    catch (IOException ex) {
       JOptionPane.showMessageDialog(this,
           "Die E-Mail kann nicht erstellt werden. Fehler:\n" + ex.getMessage()
               + "\nBitte schreibe manuell an joerg@ruedenauer.net.", "Fehler",
           JOptionPane.ERROR_MESSAGE);
     }
+    JOptionPane.showMessageDialog(this,
+        "Die E-Mail kann nicht erstellt werden -- das Betriebssystem unterstützt keinen automatischen Mail-Versand."
+            + "\nBitte schreibe manuell an joerg@ruedenauer.net.", "Fehler",
+        JOptionPane.ERROR_MESSAGE);
   }
 
   /**

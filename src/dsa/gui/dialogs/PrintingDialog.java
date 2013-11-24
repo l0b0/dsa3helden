@@ -20,6 +20,7 @@
 package dsa.gui.dialogs;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -32,8 +33,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import org.jdesktop.jdic.desktop.Desktop;
 
 import dsa.control.filetransforms.FileType;
 import dsa.gui.lf.BGDialog;
@@ -48,6 +47,7 @@ import javax.swing.BorderFactory;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 
@@ -450,10 +450,22 @@ public final class PrintingDialog extends BGDialog {
    * 
    */
   protected void displayTransformed() {
-    try {
-      Desktop.open(new File(getOutputField().getText()));
+    Desktop desktop = null;
+    if (Desktop.isDesktopSupported()) {
+      desktop = Desktop.getDesktop();
+      if (!desktop.isSupported(Desktop.Action.OPEN)) {
+        desktop = null;
+      }
     }
-    catch (org.jdesktop.jdic.desktop.DesktopException e) {
+    if (desktop == null) {
+      JOptionPane.showMessageDialog(this, "Das Betriebssystem erlaubt keinen direkten Viewer-Aufruf.", 
+          "Fehler", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    try {
+      desktop.open(new File(getOutputField().getText()));
+    }
+    catch (IOException e) {
       JOptionPane.showMessageDialog(this, "Auruf des Viewers fehlgeschlagen:\n"
           + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
     }

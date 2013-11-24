@@ -1,3 +1,12 @@
+Version 1.5.1
+-------------
+- Wechsel zu Java 6
+- Bugfix: Eigenschaften der Körperbeherrschung waren falsch
+- Bugfix: Wurde das Programm ohne letzte Gruppe gestartet, war das Datum nicht
+  initialisiert
+- Bugfix: Unter Linux wurde der Menüeintrag "Helden Speichern" nach dem ersten 
+  "Speichern unter..." eines neuen Helden nicht sofort aktiv
+
 Version 1.5.0
 -------------
 - Hilfebutton in der Titelzeile aller Fenster und Dialoge

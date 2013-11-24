@@ -171,6 +171,7 @@ public final class GroupOperations {
       else {
         copyFile(tempFile, realFile);
         tempFile.deleteOnExit();
+        return true;
       }
     }
     catch (IOException e) {

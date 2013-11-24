@@ -80,12 +80,12 @@ public class GroupPrinter extends AbstractPrinter {
     char app = 'A';
     for (String name : group.getOpponentNames()) {
       Opponent o = group.getOpponent(name);
-      for (int i = 0; i < o.getNrOfAttacks(); ++i) {
+      for (int i = 0; i < o.getWeapons().size(); ++i) {
         table.addItem("Geg" + app, o.getName());
-        table.addItem("Gat" + app, o.getAT(i).getValue());
-        String opa = o.getPA(i).hasValue() ? "" + o.getPA(i).getValue() : "-";
+        table.addItem("Gat" + app, o.getWeaponAT(i).getValue());
+        String opa = o.getPA(i).hasValue() ? "" + o.getWeaponPA(i).getValue() : "-";
         table.addItem("Gpa" + app, opa);
-        table.addItem("Gtp" + app, o.getTP(i).toString());
+        table.addItem("Gtp" + app, o.getWeaponTP(i).toString());
         table.addItem("Grs" + app, o.getRS());
         table.addItem("Gmr" + app, o.getMR());
         table.addItem("Gle" + app, o.getLE());

@@ -19,10 +19,13 @@
  */
 package dsa.gui.dialogs;
 
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.lf.BGDialog;
 import dsa.gui.tables.OpponentWeaponTable;
 import dsa.model.DiceSpecification;
 import dsa.model.data.Opponent;
+import dsa.model.data.Weapon;
+import dsa.model.data.Weapons;
 import dsa.util.Optional;
 
 import java.awt.Dimension;
@@ -60,6 +63,7 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
   private JPanel jPanel1 = null;
   private JPanel jPanel2 = null;
   private JButton addWeaponButton = null;
+  private JButton addKnownWeaponButton = null;
   private JButton removeWeaponButton = null;
   private JPanel jPanel3 = null;
   private JButton okButton = null;
@@ -131,10 +135,10 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     paSpinner.setValue(o.getNrOfParades());
     ArrayList<String> weapons = o.getWeapons();
     for (int i = 0; i < weapons.size(); ++i) {
-      DiceSpecification tp = o.getTP(i);
-      int at = o.getAT(i).getValue();
+      DiceSpecification tp = o.getWeaponTP(i);
+      int at = o.getWeaponAT(i).getValue();
       Optional<Integer> pa = o.getNrOfParades() > i ? 
-          new Optional<Integer>(o.getPA(i).getValue()) : new Optional<Integer>(null);
+          new Optional<Integer>(o.getWeaponPA(i).getValue()) : new Optional<Integer>(null);
       weaponTable.addWeapon(weapons.get(i), tp, at, pa);
     }
     weaponTable.setFirstSelectedRow();
@@ -333,6 +337,7 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
       jPanel2.setLayout(null);
       jPanel2.setPreferredSize(new Dimension(70, 100));
       jPanel2.add(getAddWeaponButton(), null);
+      jPanel2.add(getAddKnownWeaponButton(), null);
       jPanel2.add(getRemoveWeaponButton(), null);
     }
     return jPanel2;
@@ -346,7 +351,7 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
   private JButton getAddWeaponButton() {
     if (addWeaponButton == null) {
       addWeaponButton = new JButton();
-      addWeaponButton.setBounds(new Rectangle(10, 10, 51, 21));
+      addWeaponButton.setBounds(new Rectangle(10, 0, 51, 21));
       addWeaponButton.setToolTipText("Waffe hinzufügen");
       addWeaponButton.setIcon(dsa.gui.util.ImageManager.getIcon("increase"));
       addWeaponButton.addActionListener(new java.awt.event.ActionListener() {
@@ -358,11 +363,27 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     return addWeaponButton;
   }
   
-  private void addWeapon() {
-    String name = "Waffe";
-    DiceSpecification tp = DiceSpecification.parse("1W6");
-    int at = 10;
-    int pa = 10;
+  /**
+   * This method initializes addKnownWeaponButton  
+   *  
+   * @return javax.swing.JButton  
+   */
+  private JButton getAddKnownWeaponButton() {
+    if (addKnownWeaponButton == null) {
+      addKnownWeaponButton = new JButton();
+      addKnownWeaponButton.setBounds(new Rectangle(10, 30, 51, 21));
+      addKnownWeaponButton.setToolTipText("Waffe aus DB hinzufügen");
+      addKnownWeaponButton.setIcon(dsa.gui.util.ImageManager.getIcon("attack"));
+      addKnownWeaponButton.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+          addKnownWeapon();
+        }
+      });
+    }
+    return addKnownWeaponButton;
+  }
+  
+  private void addWeapon(String name, DiceSpecification tp, int at, int pa) {
     weaponTable.addWeapon(name, tp, at, new Optional<Integer>(pa));
     removeWeaponButton.setEnabled(true);
     opponent.addWeapon(name, tp, at, pa);
@@ -371,7 +392,38 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     }
     if (((Number)paSpinner.getValue()).intValue() == 0) {
       paSpinner.setValue(1);
-    }
+    }    
+  }
+
+  private void addWeapon() {
+    String name = "Waffe";
+    DiceSpecification tp = DiceSpecification.parse("1W6");
+    int at = 10;
+    int pa = 10;
+    addWeapon(name, tp, at, pa);
+  }
+  
+  private void addKnownWeapon() {
+    WeaponsSelectionDialog dialog = new WeaponsSelectionDialog(this, true);
+    dialog.setCallback(new SelectionDialogCallback() {
+      public void itemChanged(String item) {
+      }
+      
+      public void itemSelected(String item) {
+        Weapon weapon = Weapons.getInstance().getWeapon(item);
+        if (weapon == null) {
+          addWeapon();
+          return;
+        }
+        int at = 10;
+        int pa = 10;
+        String name = weapon.getName();
+        DiceSpecification tp = DiceSpecification.create(
+            weapon.getW6damage(), 6, weapon.getConstDamage());
+        addWeapon(name, tp, at, pa);
+      }
+    });
+    dialog.setVisible(true);    
   }
 
   /**
@@ -385,7 +437,7 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
       removeWeaponButton.setToolTipText("Waffe entfernen");
       removeWeaponButton.setIcon(dsa.gui.util.ImageManager.getIcon("decrease_enabled"));
       removeWeaponButton.setDisabledIcon(dsa.gui.util.ImageManager.getIcon("decrease"));
-      removeWeaponButton.setBounds(new Rectangle(10, 40, 51, 21));
+      removeWeaponButton.setBounds(new Rectangle(10, 60, 51, 21));
       removeWeaponButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           removeWeapon();

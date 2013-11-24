@@ -238,7 +238,11 @@ public final class GroupOperations {
       tempFile = File.createTempFile("dsa_" + hero.getName(), null);
       File realFile = new File(filePath);
       hero.storeToFile(tempFile, realFile);
-      if (realFile.exists()) realFile.delete();
+      if (realFile.exists()) {
+        @SuppressWarnings("unused")
+        boolean success = realFile.delete();
+        // success is actually irrelevant here
+      }
       if (tempFile.renameTo(realFile) && realFile.exists()) {
         return true;
       }
@@ -510,7 +514,7 @@ public final class GroupOperations {
     }
   }
 
-  private static java.util.List textURIListToFileList(String data) {
+  private static java.util.List<File> textURIListToFileList(String data) {
     java.util.List<File> list = new java.util.ArrayList<File>(1);
     for (java.util.StringTokenizer st = new java.util.StringTokenizer(data,
         "\r\n"); st.hasMoreTokens();) {
@@ -536,14 +540,15 @@ public final class GroupOperations {
     return list;
   }
 
+  @SuppressWarnings("unchecked")
   public static void dragEnter(DropTargetDragEvent dtde) {
     try {
       Transferable tr = dtde.getTransferable();
-      List fileList = null;
+      List<File> fileList = null;
       DataFlavor uriListFlavor = new DataFlavor(
           "text/uri-list;class=java.lang.String");
       if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-        fileList = (java.util.List) tr
+        fileList = (java.util.List<File>) tr
             .getTransferData(DataFlavor.javaFileListFlavor);
       }
       else if (tr.isDataFlavorSupported(uriListFlavor)) {
@@ -551,9 +556,9 @@ public final class GroupOperations {
         fileList = textURIListToFileList(data);
       }
       if (fileList != null) {
-        Iterator iterator = fileList.iterator();
+        Iterator<File> iterator = fileList.iterator();
         while (iterator.hasNext()) {
-          File f = (File) iterator.next();
+          File f = iterator.next();
           if (f.getName().endsWith(".dsagroup")
               || f.getName().endsWith(".dsahero")
               || f.getName().endsWith(".dsa") || f.getName().endsWith(".grp")) {
@@ -577,11 +582,12 @@ public final class GroupOperations {
   }
 
 
+  @SuppressWarnings("unchecked")
   public static boolean drop(DropTargetDropEvent dtde, JFrame parent) {
     boolean retCode = false;
     try {
       Transferable tr = dtde.getTransferable();
-      List fileList = null;
+      List<File> fileList = null;
       DataFlavor uriListFlavor = new DataFlavor(
           "text/uri-list;class=java.lang.String");
       if (dtde.getDropAction() == DnDConstants.ACTION_MOVE) {
@@ -596,7 +602,7 @@ public final class GroupOperations {
       }
       if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
         dtde.acceptDrop(DnDConstants.ACTION_COPY);
-        fileList = (java.util.List) tr
+        fileList = (java.util.List<File>) tr
             .getTransferData(DataFlavor.javaFileListFlavor);
       }
       else if (tr.isDataFlavorSupported(uriListFlavor)) {
@@ -605,11 +611,11 @@ public final class GroupOperations {
         fileList = textURIListToFileList(data);
       }
       if (fileList != null) {
-        Iterator iterator = fileList.iterator();
+        Iterator<File> iterator = fileList.iterator();
         File groupFile = null;
         boolean ok = false;
         while (iterator.hasNext()) {
-          File file = (File) iterator.next();
+          File file = iterator.next();
           if (file.getName().endsWith(".dsagroup")
               || file.getName().endsWith(".grp")) {
             groupFile = file;
@@ -631,7 +637,7 @@ public final class GroupOperations {
         else {
           iterator = fileList.iterator();
           while (iterator.hasNext()) {
-            File file = (File) iterator.next();
+            File file = iterator.next();
             if (file.getName().endsWith(".dsahero")
                 || file.getName().endsWith(".dsa")) {
               GroupOperations.openHero(file, parent);

@@ -19,6 +19,8 @@
  */
 package dsa.control;
 
+import java.util.ArrayList;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -292,6 +294,21 @@ public final class Fighting {
     return DiceSpecification.create(wDamage, 6, constDamage);
   }
   
+  public static int getFirstKKBonus(Hero hero) {
+    if (hero.getFightMode().equals("Waffenlos")) {
+      if (hero.getFirstHandWeapon().equals("Boxen")) {
+        return getKKBonus(hero, 14);
+      }
+    }
+    else {
+      Weapon weapon = Weapons.getInstance().getWeapon(hero.getFirstHandWeapon());
+      if (weapon != null) {
+        return getKKBonus(hero, weapon); 
+      }
+    }
+    return 0;
+  }
+  
   public static DiceSpecification getFirstTP(Hero hero) {
     if (hero.getFightMode().equals("Waffenlos")) {
       int fixedTP = 0;
@@ -304,6 +321,13 @@ public final class Fighting {
       String weapon = hero.getFirstHandWeapon();
       return getTP(hero, weapon);
     }
+  }
+  
+  public static int getSecondKKBonus(Hero hero) {
+    if (!hero.getFightMode().equals("Zwei Waffen")) return 0;
+    String s = hero.getSecondHandItem();
+    Weapon w = Weapons.getInstance().getWeapon(s);
+    return w != null ? getKKBonus(hero, w) : 0;
   }
   
   public static DiceSpecification getSecondTP(Hero hero) {
@@ -456,6 +480,84 @@ public final class Fighting {
       }
     }
     return sp;
+  }
+
+  private static boolean isProjectileWeapon(Weapon w) {
+    return Weapons.isFarRangedCategory(w.getType());
+  }
+
+  public static ArrayList<String> getProjectileWeapons(Hero currentHero) {
+    String[] weapons = currentHero.getWeapons();
+    ArrayList<String> result = new ArrayList<String>();
+    for (String s : weapons) {
+      Weapon w = Weapons.getInstance().getWeapon(s);
+      if (isProjectileWeapon(w)) result.add(s);
+    }
+    return result;
+  }
+
+  public static ArrayList<String> getCloseRangeWeapons(Hero currentHero) {
+    String[] weapons = currentHero.getWeapons();
+    ArrayList<String> result = new ArrayList<String>();
+    for (String s : weapons) {
+      Weapon w = Weapons.getInstance().getWeapon(s);
+      if (!isProjectileWeapon(w) && !w.isTwoHanded()) {
+        for (int i = 0; i < currentHero.getWeaponCount(s); ++i)
+          result.add(s);
+      }
+    }
+    return result;
+  }
+
+  public static ArrayList<String> getTwoHandedWeapons(Hero currentHero) {
+    String[] weapons = currentHero.getWeapons();
+    ArrayList<String> result = new ArrayList<String>();
+    for (String s : weapons) {
+      Weapon w = Weapons.getInstance().getWeapon(s);
+      if (!isProjectileWeapon(w) && w.isTwoHanded()) result.add(s);
+    }
+    return result;
+  }
+  
+  public static java.util.List<String> getPossibleItems(Hero hero, String fightMode, int hand) {
+    if (hand == 0) {
+      if (fightMode.equals("Eine Waffe")) {
+        return getCloseRangeWeapons(hero);
+      }
+      else if (fightMode.equals("Waffe + Parade")) {
+        return getCloseRangeWeapons(hero);
+      }
+      else if (fightMode.equals("Zwei Waffen")) {
+        return getCloseRangeWeapons(hero);
+      }
+      else if (fightMode.equals("Waffenlos")) {
+        ArrayList<String> items = new ArrayList<String>();
+        items.add("Raufen");
+        items.add("Boxen");
+        items.add("Ringen");
+        items.add("Hruruzat");
+        return items;
+      }
+      else if (fightMode.equals("Zweihandwaffe")) {
+        return getTwoHandedWeapons(hero);
+      }
+      else {
+        return getProjectileWeapons(hero);
+      }
+    }
+    else {
+      // left hand
+      if (fightMode.equals("Waffe + Parade")) {
+        return java.util.Arrays.asList(hero.getShields());
+      }
+      else if (fightMode.equals("Zwei Waffen")) {
+        ArrayList<String> items = getCloseRangeWeapons(hero);
+        if (items.contains(hero.getFirstHandWeapon()))
+          items.remove(hero.getFirstHandWeapon());
+        return items;
+      }
+      else return new ArrayList<String>();
+    }
   }
 
 }

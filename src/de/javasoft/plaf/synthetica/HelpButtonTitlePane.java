@@ -193,12 +193,6 @@ public class HelpButtonTitlePane extends JPanel
         window.addPropertyChangeListener(propertyChangeListener);
     }
 
-    private void uninstallListeners()
-    {
-        window.removeWindowListener(windowListener);
-        window.removePropertyChangeListener(propertyChangeListener);
-    }
-
     public JRootPane getRootPane()
     {
         return rootPane;

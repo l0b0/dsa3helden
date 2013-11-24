@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -47,6 +48,15 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   }
   
   public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
+      String tableSortingID, boolean singleSelection) {
+    super(owner, true);
+    mTable = table;
+    setTitle(title);
+    mSortingID = tableSortingID;
+    mSingleSelection = singleSelection;
+  }
+  
+  public AbstractSelectionDialog(JDialog owner, String title, AbstractTable table,
       String tableSortingID, boolean singleSelection) {
     super(owner, true);
     mTable = table;

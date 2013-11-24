@@ -156,7 +156,7 @@ public class Opponents {
   }
   
   public void writeToFile(PrintWriter out, boolean onlyUserDefined) throws IOException {
-    final int VERSION = 6;
+    final int VERSION = 7;
     out.println(VERSION);
     for (Opponent o : opponents.values()) {
       if (!onlyUserDefined || o.isUserDefined()) {

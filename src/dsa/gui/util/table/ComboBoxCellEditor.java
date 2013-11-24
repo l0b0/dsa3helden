@@ -32,8 +32,8 @@ import javax.swing.event.EventListenerList;
 public final class ComboBoxCellEditor extends DefaultCellEditor {
 
   public interface EditorClient {
-    List<String> getItems(int row);
-    void itemSelected(int row, int index);
+    List<String> getItems(int row, int column);
+    void itemSelected(int row, int column, int index);
   }
 
   public ComboBoxCellEditor(EditorClient client) {
@@ -44,6 +44,7 @@ public final class ComboBoxCellEditor extends DefaultCellEditor {
   private Object oldObject;
 
   private int mRow;
+  private int mColumn;
 
   private EditorClient mClient;
   
@@ -57,7 +58,7 @@ public final class ComboBoxCellEditor extends DefaultCellEditor {
     JComboBox box = (JComboBox)(this.editorComponent);
     box.removeAllItems();
     int index = -1, i = 0;
-    for (String item : mClient.getItems(row)) {
+    for (String item : mClient.getItems(row, column)) {
       box.addItem(item);
       if (item.equals(value)) index = i;
       ++i;
@@ -70,6 +71,7 @@ public final class ComboBoxCellEditor extends DefaultCellEditor {
     
     listen = true;
     mRow = row;
+    mColumn = column;
     return this.editorComponent;
   }
   
@@ -117,7 +119,7 @@ public final class ComboBoxCellEditor extends DefaultCellEditor {
         ((CellEditorListener) listeners2[i + 1]).editingStopped(event);
       }
     }
-    if (listen) mClient.itemSelected(mRow, getSelectedIndex());
+    if (listen) mClient.itemSelected(mRow, mColumn, getSelectedIndex());
   }
 
   public void addCellEditorListener(CellEditorListener l) {

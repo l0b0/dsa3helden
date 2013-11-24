@@ -26,7 +26,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -199,43 +198,6 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     updateData();
   }
 
-  private boolean isProjectileWeapon(Weapon w) {
-    return Weapons.isFarRangedCategory(w.getType());
-  }
-
-  private ArrayList<String> getProjectileWeapons() {
-    String[] weapons = currentHero.getWeapons();
-    ArrayList<String> result = new ArrayList<String>();
-    for (String s : weapons) {
-      Weapon w = Weapons.getInstance().getWeapon(s);
-      if (isProjectileWeapon(w)) result.add(s);
-    }
-    return result;
-  }
-
-  private ArrayList<String> getCloseRangeWeapons() {
-    String[] weapons = currentHero.getWeapons();
-    ArrayList<String> result = new ArrayList<String>();
-    for (String s : weapons) {
-      Weapon w = Weapons.getInstance().getWeapon(s);
-      if (!isProjectileWeapon(w) && !w.isTwoHanded()) {
-        for (int i = 0; i < currentHero.getWeaponCount(s); ++i)
-          result.add(s);
-      }
-    }
-    return result;
-  }
-
-  private ArrayList<String> getTwoHandedWeapons() {
-    String[] weapons = currentHero.getWeapons();
-    ArrayList<String> result = new ArrayList<String>();
-    for (String s : weapons) {
-      Weapon w = Weapons.getInstance().getWeapon(s);
-      if (!isProjectileWeapon(w) && w.isTwoHanded()) result.add(s);
-    }
-    return result;
-  }
-
   boolean boxContains(JComboBox box, String item) {
     for (int i = 0; i < box.getItemCount(); ++i) {
       if (box.getItemAt(i).equals(item)) return true;
@@ -265,7 +227,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       modeBox.setEnabled(true);
       modeBox.removeAllItems();
       modeBox.addItem("Waffenlos");
-      int nrOfCloseRangeWeapons = getCloseRangeWeapons().size();
+      int nrOfCloseRangeWeapons = Fighting.getCloseRangeWeapons(currentHero).size();
       if (nrOfCloseRangeWeapons > 0) {
         modeBox.addItem("Eine Waffe");
         if (currentHero.getShields().length > 0) {
@@ -279,10 +241,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           modeBox.addItem("Zwei Waffen");
         }
       }
-      if (getTwoHandedWeapons().size() > 0) {
+      if (Fighting.getTwoHandedWeapons(currentHero).size() > 0) {
         modeBox.addItem("Zweihandwaffe");
       }
-      if (getProjectileWeapons().size() > 0) {
+      if (Fighting.getProjectileWeapons(currentHero).size() > 0) {
         modeBox.addItem("Fernkampf");
       }
       if (boxContains(modeBox, currentHero.getFightMode())) {
@@ -662,35 +624,24 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     hand2Box.removeAllItems();
     beLabel.setText("" + currentHero.getBE());
     currentHero.setFightMode(mode.toString());
+    for (String s : Fighting.getPossibleItems(currentHero, mode.toString(), 0)) {
+      hand1Box.addItem(s);
+    }
+    hand1Box.setEnabled(true);
+    hand1Box.setSelectedIndex(0);
+    for (String s : Fighting.getPossibleItems(currentHero, mode.toString(), 1)) {
+      hand2Box.addItem(s);
+    }
     if (mode.equals("Waffenlos")) {
       firstHandLabel.setText("Kampftechnik:");
-      hand1Box.addItem("Raufen");
-      hand1Box.addItem("Boxen");
-      hand1Box.addItem("Ringen");
-      hand1Box.addItem("Hruruzat");
-      hand1Box.setEnabled(true);
-      hand1Box.setSelectedIndex(0);
       disableSecondHand();
     }
     else if (mode.equals("Eine Waffe")) {
       firstHandLabel.setText("Erste Hand:");
-      for (String s : getCloseRangeWeapons()) {
-        hand1Box.addItem(s);
-      }
-      hand1Box.setSelectedIndex(0);
-      hand1Box.setEnabled(true);
       disableSecondHand();
     }
     else if (mode.toString().startsWith("Waffe + Parade")) {
       firstHandLabel.setText("Erste Hand:");
-      for (String s : getCloseRangeWeapons()) {
-        hand1Box.addItem(s);
-      }
-      hand1Box.setSelectedIndex(0);
-      hand1Box.setEnabled(true);
-      for (String s : currentHero.getShields()) {
-        hand2Box.addItem(s);
-      }
       hand2Box.setSelectedIndex(0);
       secondHandLabel.setEnabled(true);
       hand2Box.setEnabled(true);
@@ -700,14 +651,6 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     else if (mode.equals("Zwei Waffen")) {
       firstHandLabel.setText("Erste Hand:");
-      for (String s : getCloseRangeWeapons()) {
-        hand1Box.addItem(s);
-      }
-      hand1Box.setSelectedIndex(0);
-      hand1Box.setEnabled(true);
-      for (String s : getCloseRangeWeapons()) {
-        hand2Box.addItem(s);
-      }
       hand2Box.setSelectedIndex(0);
       secondHandLabel.setEnabled(true);
       hand2Box.setEnabled(true);
@@ -721,19 +664,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     else if (mode.equals("Zweihandwaffe")) {
       firstHandLabel.setText("Waffe:");
-      for (String s : getTwoHandedWeapons()) {
-        hand1Box.addItem(s);
-      }
-      hand1Box.setSelectedIndex(0);
       disableSecondHand();
     }
     else { // "Fernkampf"
       firstHandLabel.setText("Waffe:");
-      for (String s : getProjectileWeapons()) {
-        hand1Box.addItem(s);
-      }
-      hand1Box.setSelectedIndex(0);
-      hand1Box.setEnabled(true);
       disableSecondHand();
       parade1Button.setEnabled(false);
     }
@@ -761,12 +695,18 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void setFirstAT() {
+    int opponentModifier = 0;
+    int ownModifier = 0;
     if (Fighting.canAttack(currentHero)) {
       Optional<Integer> at = currentHero.getAT(0);
       if (at.hasValue()) {
         int modAT = Fighting.getWVModifiedAT(at.getValue(), hand1Box.getSelectedItem().toString(), 
           opponent1Box.getSelectedItem().toString());
         at1Label.setText("" + modAT);
+        opponentModifier = 20 - Fighting.getWVModifiedPA(20, 
+            hand1Box.getSelectedItem().toString(), 
+            opponent1Box.getSelectedItem().toString());
+        ownModifier = at.getValue() - modAT;
       }
       else {
         at1Label.setText("" + at);
@@ -775,27 +715,71 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     else {
       at1Label.setText("-");
     }
+    String text = null;
+    if (Group.getInstance().getOptions().useWV()) {
+      if (ownModifier != 0) {
+        text = "<html>AT wird durch WV um " + ownModifier + " erniedrigt<br />";
+      }
+      else {
+        text = "<html>AT wird durch WV nicht erniedrigt<br />";
+      }
+      if (opponentModifier != 0) {
+        text += "PA des Gegners wird durch WV um " + opponentModifier + " erniedrigt</html>";
+      }
+      else {
+        text += "PA des Gegners wird durch WV nicht erniedrigt</html>";
+      }
+    }
+    at1Label.setToolTipText(text);
   }
 
   private void setFirstPA() {
+    int opponentModifier = 0;
+    int ownModifier = 0;
     Optional<Integer> pa = currentHero.getPA(0);
     if (pa.hasValue()) {
       int modPA = Fighting.getWVModifiedPA(pa.getValue(), opponent1Box.getSelectedItem().toString(), 
           hand1Box.getSelectedItem().toString());
       pa1Label.setText("" + modPA);
+      opponentModifier = 20 - Fighting.getWVModifiedAT(20, 
+          opponent1Box.getSelectedItem().toString(), 
+          hand1Box.getSelectedItem().toString());
+      ownModifier = pa.getValue() - modPA;
     }
     else {
       pa1Label.setText("" + currentHero.getPA(0));
     }
+    String text = null;
+    if (Group.getInstance().getOptions().useWV()) {
+      if (ownModifier != 0) {
+        text = "<html>PA wird durch WV um " + ownModifier + " erniedrigt<br />";
+      }
+      else {
+        text = "<html>PA wird durch WV nicht erniedrigt<br />";
+      }
+      if (opponentModifier != 0) {
+        text += "AT des Gegners wird durch WV um " + opponentModifier + " erniedrigt</html>";
+      }
+      else {
+        text += "AT des Gegners wird durch WV nicht erniedrigt</html>";
+      }
+    }
+    pa1Label.setToolTipText(text);
   }
 
   private void setSecondAT() {
+    int opponentModifier = 0;
+    int ownModifier = 0;
     if (Fighting.canAttack(currentHero)) {
       Optional<Integer> at = currentHero.getAT(1);
       if (at.hasValue()) {
         int modAT = Fighting.getWVModifiedAT(at.getValue(), hand2Box.getSelectedItem().toString(), 
           opponent2Box.getSelectedItem().toString());
         at2Label.setText("" + modAT);
+        opponentModifier = 20 - Fighting.getWVModifiedPA(20, 
+            hand2Box.getSelectedItem().toString(), 
+            opponent2Box.getSelectedItem().toString());
+        ownModifier = at.getValue() - modAT;
       }
       else {
         at2Label.setText("" + at);
@@ -804,18 +788,56 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     else {
       at2Label.setText("-");
     }
+    String text = null;
+    if (Group.getInstance().getOptions().useWV()) {
+      if (ownModifier != 0) {
+        text = "<html>AT wird durch WV um " + ownModifier + " erniedrigt<br />";
+      }
+      else {
+        text = "<html>AT wird durch WV nicht erniedrigt<br />";
+      }
+      if (opponentModifier != 0) {
+        text += "PA des Gegners wird durch WV um " + opponentModifier + " erniedrigt</html>";
+      }
+      else {
+        text += "PA des Gegners wird durch WV nicht erniedrigt</html>";
+      }
+    }
+    at2Label.setToolTipText(text);
   }
 
   private void setSecondPA() {
+    int opponentModifier = 0;
+    int ownModifier = 0;
     Optional<Integer> pa = currentHero.getPA(1);
     if (pa.hasValue()) {
       int modPA = Fighting.getWVModifiedPA(pa.getValue(), opponent2Box.getSelectedItem().toString(), 
           hand2Box.getSelectedItem().toString());
+      ownModifier = pa.getValue() - modPA;
       pa2Label.setText("" + modPA);
+      opponentModifier = 20 - Fighting.getWVModifiedAT(20, 
+          opponent2Box.getSelectedItem().toString(), 
+          hand2Box.getSelectedItem().toString());
     }
     else {
       pa2Label.setText("" + currentHero.getPA(1));
     }
+    String text = null;
+    if (Group.getInstance().getOptions().useWV()) {
+      if (ownModifier != 0) {
+        text = "<html>PA wird durch WV um " + ownModifier + " erniedrigt<br />";
+      }
+      else {
+        text = "<html>PA wird durch WV nicht erniedrigt<br />";
+      }
+      if (opponentModifier != 0) {
+        text += "AT des Gegners wird durch WV um " + opponentModifier + " erniedrigt</html>";
+      }
+      else {
+        text += "AT des Gegners wird durch WV nicht erniedrigt</html>";
+      }
+    }
+    pa2Label.setToolTipText(text);
   }
 
   private void setFirstWeaponData(String s) {
@@ -823,6 +845,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     setFirstPA();
     tp1Label.setText(Fighting.getFirstTP(currentHero).toString());
     bf1Label.setText("" + currentHero.getBF(s, 1));
+    tp1Label.setToolTipText("KK-Bonus: " + Fighting.getFirstKKBonus(currentHero));
   }
 
   protected void hand1Changed() {
@@ -889,12 +912,17 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       int beMod = shield.getBeMod();
       int be = currentHero.getBE() + beMod;
       beLabel.setText("" + be);
+      at2Label.setText("-");
+      pa2Label.setText("-");
+      tp2Label.setText("-");
+      tp2Label.setToolTipText(null);
     }
     else if (mode.equals("Waffe + Parade, separat")) {
       at2Label.setText("-");
       pa2Label.setText("" + currentHero.getPA(1));
       int be = 0;
       tp2Label.setText("-");
+      tp2Label.setToolTipText(null);
       Shield shield = Shields.getInstance().getShield(s);
       bf2Label.setText("" + currentHero.getBF(s));
       int beMod = shield.getBeMod();
@@ -906,6 +934,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       setSecondPA();
       tp2Label.setText("" + Fighting.getSecondTP(currentHero));
       bf2Label.setText("" + currentHero.getBF(s, 1));
+      tp2Label.setToolTipText("KK-Bonus: " + Fighting.getSecondKKBonus(currentHero));
     }
     if (fireActiveWeaponChange) currentHero.fireActiveWeaponsChanged();
   }
@@ -1592,6 +1621,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     
     public void fightingStateChanged() {
+      if (!listen) return;
+      updateData();
+    }
+    
+    public void activeWeaponsChanged() {
+      if (!listen) return;
       updateData();
     }
     

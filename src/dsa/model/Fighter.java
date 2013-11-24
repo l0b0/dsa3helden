@@ -38,6 +38,8 @@ public interface Fighter {
   int getNrOfParades();
   
   List<String> getFightingWeapons();
+  List<String> getPossibleWeapons(int attackNr);
+  void setUsedWeapon(int attack, String weapon);
   
   Optional<Integer> getAT(int nr);
   Optional<Integer> getPA(int nr);

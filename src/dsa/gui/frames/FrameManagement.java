@@ -51,6 +51,7 @@ public class FrameManagement {
   public interface FrameStateChanger {
     void openFrame(String name, Rectangle bounds);
     void closeFrame(SubFrame frame);
+    void frameStateChanged(SubFrame frame);
   }
 
   private final class WindowSnapper extends ComponentAdapter {
@@ -247,6 +248,10 @@ public class FrameManagement {
         if (frames.size() == 0 && isExiting) {
           javax.swing.SwingUtilities.invokeLater(new ApplicationCloser());
         }
+        FrameLayouts.getInstance().findCurrentLayout();
+        if (frameStateChanger != null) {
+          frameStateChanger.frameStateChanged((SubFrame)e.getSource());
+        }
       }
 
       public void windowClosing(WindowEvent e) {
@@ -257,6 +262,10 @@ public class FrameManagement {
         frameClosed(e);
       }
     });
+    FrameLayouts.getInstance().findCurrentLayout();
+    if (frameStateChanger != null) {
+      frameStateChanger.frameStateChanged(frame);
+    }
   }
 
   public void closeAllFrames(SubFrame caller) {

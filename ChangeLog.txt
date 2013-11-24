@@ -1,3 +1,17 @@
+Version 1.6.1
+-------------
+- Tooltips im Fenster Kampf (Spieler), die Änderungen 
+  der AT/PA durch den WV anzeigen
+- Waffen von Gegnern können mit dem Dialog ausgewählt werden
+- Bugfix: bei gescheiterten Zauberproben wurden die ASP 
+  auf- statt abgerundet
+- Tab im Hauptfenster, mit dem schneller zwischen Layouts 
+  hin- und hergeschaltet werden kann
+- Default-Layouts, wenn noch keine eigenen gespeichert wurden
+- Fensterpositionen innerhalb eines Layouts werden auto-
+  matisch gespeichert
+- Im Fenster Kampf (Meister) können Waffen ausgewählt werden
+
 Version 1.6.0
 -------------
 - Zwei Helden können verglichen werden (Extras-Menü)

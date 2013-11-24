@@ -57,6 +57,8 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
   
   private ArrayList<Integer> pas;
   
+  private ArrayList<String> usedWeapons;
+  
   private int nrOfAttacks;
   
   private int nrOfParades;
@@ -88,6 +90,7 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
       newObject.atBoni = new ArrayList<Integer>(atBoni);
       newObject.farRangedFightParams = (FarRangedFightParams) farRangedFightParams.clone();
       newObject.opponentWeapons = new ArrayList<String>(opponentWeapons);
+      newObject.usedWeapons = new ArrayList<String>(usedWeapons);
       newObject.changed = false;
       newObject.userDefined = true;
       return newObject;
@@ -143,6 +146,11 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     for (int i = 0; i < weapons.size(); ++i) {
       targets.add("");
       atBoni.add(0);
+    }
+    usedWeapons = new ArrayList<String>();
+    for (int i = 0; i < nrOfAttacks; ++i) {
+      int index = (i >= weapons.size()) ? 0 : i;
+      usedWeapons.add(weapons.get(index));
     }
     opponentWeapons = new ArrayList<String>();
     userDefined = true;
@@ -291,6 +299,23 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
         }
       }
     }
+    usedWeapons = new ArrayList<String>();
+    if (version > 6 && outerTokens.length > i) {
+      innerTokens = new StringTokenizer(outerTokens[i++], "/");
+      int tokenCount = innerTokens.countTokens();
+      for (int j = 0; j < tokenCount; ++j) {
+        usedWeapons.add(innerTokens.nextToken());
+      }
+      for (int j = tokenCount; j < nrOfAttacks; ++j) {
+        usedWeapons.add(weapons.get(0));
+      }
+    }
+    else {
+      for (int j = 0; j < nrOfAttacks; ++j) {
+        int index2 = (j >= weapons.size()) ? 0 : j;
+        usedWeapons.add(weapons.get(index2));
+      }      
+    }
   }
   
   public String writeToLine(int version) {
@@ -367,6 +392,13 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
         buffer.append(opponentWeapons.get(i));
       }
     }
+    if (version > 6) {
+      buffer.append(';');
+      for (int i = 0; i < usedWeapons.size(); ++i) {
+        if (i > 0) buffer.append('/');
+        buffer.append(usedWeapons.get(i));
+      }
+    }
     return buffer.toString();
   }
 
@@ -430,6 +462,12 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
   public void setNrOfAttacks(int nrOfAttacks) {
     if (this.nrOfAttacks != nrOfAttacks) {
       this.nrOfAttacks = nrOfAttacks;
+      ArrayList<String> newWeapons = new ArrayList<String>();
+      for (int i = 0; i < nrOfAttacks; ++i) {
+        int index = (i >= usedWeapons.size()) ? 0 : i;
+        newWeapons.add(usedWeapons.get(index));
+      }
+      usedWeapons = newWeapons;
       changed = true;
     }
   }
@@ -452,6 +490,17 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     return new ArrayList<String>(weapons);
   }
   
+  public List<String> getPossibleWeapons(int attackNr) {
+    return getWeapons();
+  }
+  
+  public void setUsedWeapon(int attack, String weapon) {
+    if (attack < 0 || attack >= usedWeapons.size()) return;
+    if (usedWeapons.get(attack).equals(weapon)) return;
+    usedWeapons.set(attack, weapon);
+    changed = true;
+  }
+  
   public void replaceWeapon(int index, String newWeapon) {
     if (index >=0 && index < weapons.size()) {
       if (!weapons.get(index).equals(newWeapon)) {
@@ -461,18 +510,42 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     }
   }
   
-  public Optional<Integer> getAT(int nr) {
+  public Optional<Integer> getWeaponAT(int nr) {
     if (nr >= 0 && nr < ats.size()) {
       return new Optional<Integer>(ats.get(nr));
     }
     else return Optional.NULL_INT;
   }
   
-  public Optional<Integer> getPA(int nr) {
+  public Optional<Integer> getAT(int nr) {
+    if (nr >= 0 && nr < usedWeapons.size()) {
+      String weapon = usedWeapons.get(nr);
+      for (int i = 0; i < weapons.size(); ++i) {
+        if (weapons.get(i).equals(weapon)) {
+          return getWeaponAT(i);
+        }
+      }
+    }
+    return Optional.NULL_INT;
+  }
+  
+  public Optional<Integer> getWeaponPA(int nr) {
     if (nr >= 0 && nr < pas.size()) {
       return new Optional<Integer>(pas.get(nr));
     }
     else return Optional.NULL_INT;
+  }
+  
+  public Optional<Integer> getPA(int nr) {
+    if (nr >= 0 && nr < usedWeapons.size()) {
+      String weapon = usedWeapons.get(nr);
+      for (int i = 0; i < weapons.size(); ++i) {
+        if (weapons.get(i).equals(weapon)) {
+          return getWeaponPA(i);
+        }
+      }
+    }
+    return Optional.NULL_INT;    
   }
 
   public int getNrOfParades() {
@@ -486,13 +559,25 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     }
   }
 
-  public DiceSpecification getTP(int nr) {
+  public DiceSpecification getWeaponTP(int nr) {
     if (nr >= 0 && nr < tps.size()) {
       return tps.get(nr);
     }
     else {
       return DiceSpecification.parse("W6");
     }
+  }
+  
+  public DiceSpecification getTP(int nr) {
+    if (nr >= 0 && nr < usedWeapons.size()) {
+      String weapon = usedWeapons.get(nr);
+      for (int i = 0; i < weapons.size(); ++i) {
+        if (weapons.get(i).equals(weapon)) {
+          return getWeaponTP(i);
+        }
+      }
+    }
+    return DiceSpecification.parse("W6");    
   }
 
   public void setTP(int nr, DiceSpecification tp) {
@@ -526,11 +611,17 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
   }
   
   public void removeWeapon(int index) {
+    String weapon = weapons.get(index);
     weapons.remove(index);
     tps.remove(index);
     ats.remove(index);
     pas.remove(index);
     targets.remove(index);
+    for (int i = 0; i < usedWeapons.size(); ++i) {
+      if (usedWeapons.get(i).equals(weapon)) {
+        usedWeapons.set(i, weapons.isEmpty() ? "" : weapons.get(0));
+      }
+    }
     changed = true;
   }
   
@@ -561,7 +652,7 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
   }
 
   public List<String> getFightingWeapons() {
-    return getWeapons();
+    return new ArrayList<String>(usedWeapons);
   }
   
   public void setTarget(int weaponIndex, String target) {

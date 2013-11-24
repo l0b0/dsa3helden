@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.ImageIcon;
@@ -116,6 +117,14 @@ public abstract class SubFrame extends JFrame
       in.close();
     }
     if (!update) loadAllBounds(true);
+    else {
+      try {
+        prefs.sync();
+      }
+      catch (BackingStoreException e) {
+        throw new IOException(e);
+      }
+    }
   }
 
   public static void saveFrameBounds(String title, Rectangle r) {
@@ -125,6 +134,16 @@ public abstract class SubFrame extends JFrame
     prefs.putInt(title + "y", r.y);
     prefs.putInt(title + "w", r.width);
     prefs.putInt(title + "h", r.height);
+  }
+  
+  public static Rectangle getSavedFrameBounds(String title) {
+    Preferences prefs = Preferences
+    .userNodeForPackage(dsa.gui.PackageID.class);
+    int x = prefs.getInt(title + "x", 0);
+    int y = prefs.getInt(title + "y", 0);
+    int w = prefs.getInt(title + "w", 100);
+    int h = prefs.getInt(title + "h", 100);
+    return new Rectangle(x, y, w, h);
   }
 
   public SubFrame() {

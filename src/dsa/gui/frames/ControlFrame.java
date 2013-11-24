@@ -109,9 +109,12 @@ public final class ControlFrame extends SubFrame
   public ControlFrame(boolean loadLastGroup) {
     super("Heldenverwaltung");
     inStart = true;
+    listenForFrames = false;
     initialize(loadLastGroup);
     FrameManagement.getInstance().setFrameOpener(this);
     FrameLayouts.getInstance().restoreLastLayout();
+    listenForFrames = true;
+    rebuildLayoutsPanel();
     inStart = false;
     boolean checkForNewVersion = Preferences.userNodeForPackage(dsa.gui.PackageID.class).getBoolean("VersionCheckAtStart", true);
     if (checkForNewVersion) {
@@ -490,6 +493,7 @@ public final class ControlFrame extends SubFrame
     if (jTabbedPane == null) {
       jTabbedPane = new JTabbedPane();
       jTabbedPane.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
+      jTabbedPane.addTab("Layouts", null, getLayoutsPanel(), null);
       jTabbedPane.addTab("Allgemein", null, getHeroPanel(), null);
       jTabbedPane.addTab("Talente", null, getTalentsPanel(), null);
       jTabbedPane.addTab("Kampf", null, getFightPanel(), null);
@@ -1569,6 +1573,8 @@ public final class ControlFrame extends SubFrame
   private JComboBox heroBox;
 
   private JPanel talentsPanel = null;
+  
+  private JPanel layoutsPanel = null;
 
   private JMenuBar menuBar = null;
 
@@ -1610,8 +1616,68 @@ public final class ControlFrame extends SubFrame
     }
     return talentsPanel;
   }
+  
+  private class LayoutAction implements ActionListener {
+    public LayoutAction(int index) { layout = index; }
+    
+    public void actionPerformed(ActionEvent e) {
+      listenForFrames = false;
+      FrameLayouts.getInstance().restoreLayout(layout);
+      listenForFrames = true;
+      rebuildLayoutsPanel();
+    }
+    
+    private int layout;
+  }
+  
+  private void rebuildLayoutsPanel() {
+    JPanel temp = new JPanel(new GridLayout(0, 2, HGAP, VGAP));
+    
+    String[] layouts = FrameLayouts.getInstance().getStoredLayouts();
+    String currentLayout = FrameLayouts.getInstance().getCurrentLayout();
+    for (int i = 0; i < layouts.length; ++i) {
+      JToggleButton button = new JToggleButton(layouts[i]);
+      button.addActionListener(new LayoutAction(i));
+      temp.add(button);
+      button.setSelected(layouts[i].equals(currentLayout));
+    }
+    
+    JPanel temp2 = new JPanel(new BorderLayout());
+    JPanel temp3 = new JPanel(new BorderLayout());
+    temp3.add(temp, BorderLayout.NORTH);
+    JScrollPane scrollPane = new JScrollPane(temp3);
+    scrollPane.setBorder(null);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    JLabel l3 = new JLabel("");
+    l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
+    temp2.add(l3, BorderLayout.NORTH);
+    temp2.add(scrollPane, BorderLayout.CENTER);
+    JLabel l4 = new JLabel("Im Fenster-Menü können Layouts gespeichert und gelöscht werden.");
+    l4.setPreferredSize(new java.awt.Dimension(10, 15));
+    temp2.add(l4, BorderLayout.SOUTH);
 
-  private static class TalentFrameAction implements ActionListener {
+    layoutsPanel.removeAll();
+    JLabel l1 = new JLabel("");
+    l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
+    layoutsPanel.add(l1, BorderLayout.WEST);
+    JLabel l2 = new JLabel("");
+    l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
+    JLabel l5 = new JLabel("");
+    l5.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
+    layoutsPanel.add(l2, BorderLayout.EAST);
+    layoutsPanel.add(l5, BorderLayout.SOUTH);
+    layoutsPanel.add(temp2, BorderLayout.CENTER);     
+  }
+  
+  private JPanel getLayoutsPanel() {
+    if (layoutsPanel == null) {
+      layoutsPanel = new JPanel(new BorderLayout());
+    }
+    return layoutsPanel;
+  }
+
+  private class TalentFrameAction implements ActionListener {
     public TalentFrameAction(String category, JToggleButton button) {
       this.category = category;
       this.button = button;
@@ -1923,6 +1989,7 @@ public final class ControlFrame extends SubFrame
       FrameLayouts.getInstance().storeLayout(name);
       getLoadWindowsItem().setEnabled(true);
       getDeleteWindowsItem().setEnabled(true);
+      rebuildLayoutsPanel();      
     }
   }
   
@@ -1948,7 +2015,10 @@ public final class ControlFrame extends SubFrame
     if (layout != null) {
       for (int i = 0; i < layouts.length; ++i) {
         if (layouts[i] == layout) {
+          listenForFrames = false;
           FrameLayouts.getInstance().restoreLayout(i);
+          listenForFrames = true;
+          rebuildLayoutsPanel();
           break;
         }
       }
@@ -1980,6 +2050,7 @@ public final class ControlFrame extends SubFrame
           FrameLayouts.getInstance().deleteLayout(i);
           getDeleteWindowsItem().setEnabled(layouts.length > 1);
           getLoadWindowsItem().setEnabled(layouts.length > 1);
+          rebuildLayoutsPanel();
           break;
         }
       }
@@ -2467,6 +2538,14 @@ public final class ControlFrame extends SubFrame
     frame.dispose();
     if (frameButtons.containsKey(title)) {
       frameButtons.get(title).setSelected(false);
+    }
+  }
+  
+  private boolean listenForFrames = true;
+  
+  public void frameStateChanged(SubFrame frame) {
+    if (listenForFrames) {
+      rebuildLayoutsPanel();
     }
   }
 

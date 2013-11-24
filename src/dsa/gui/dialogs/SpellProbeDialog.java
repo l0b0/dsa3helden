@@ -451,8 +451,9 @@ public final class SpellProbeDialog extends BGDialog {
   }
   
   private void removeCosts(boolean success) {
-    int aeCosts = success ? aeSum : (int) Math.round(((double)aeSum) / 2.0);
-    int leCosts = success ? leSum : (int) Math.round(((double)leSum) / 2.0);
+    int aeCosts = success ? aeSum : (int) Math.floor(((double)aeSum) / 2.0);
+    int leCosts = success ? leSum : (int) Math.floor(((double)leSum) / 2.0);
+    if (aeCosts < 1) aeCosts = 1;
     int permanentCosts = success ? permanentSum : 0;
     hero.changeCurrentEnergy(Energy.AE, -aeCosts);
     if (leCosts > 0) hero.changeCurrentEnergy(Energy.LE, -leCosts);

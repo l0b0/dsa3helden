@@ -4147,6 +4147,21 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
   }
 
+  public List<String> getPossibleWeapons(int attackNr) {
+    return Fighting.getPossibleItems(this, this.getFightMode(), attackNr);
+  }
+  
+  public void setUsedWeapon(int attack, String weapon) {
+    if (attack == 0) {
+      setFirstHandWeapon(weapon);
+      fireActiveWeaponsChanged();
+    }
+    else if (attack == 1) {
+      setSecondHandItem(weapon);
+      fireActiveWeaponsChanged();
+    }
+  }
+  
   public int getNrOfParades() {
     if (getFightMode().equals("Zwei Waffen") || getFightMode().equals("Waffe + Parade, separat")) {
       if (getCurrentTalentValue("Linkshändig") >= 9) {

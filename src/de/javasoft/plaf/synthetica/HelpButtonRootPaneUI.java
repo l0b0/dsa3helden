@@ -313,8 +313,6 @@ public class HelpButtonRootPaneUI extends BasicRootPaneUI
             return isFrameResizable() || isDialogResizable();
         }
 
-        private static final int WINDOW_MOVE = 1;
-        private static final int WINDOW_RESIZE = 2;
         private int windowAction;
         private int dragXOffset;
         private int dragYOffset;
@@ -322,9 +320,9 @@ public class HelpButtonRootPaneUI extends BasicRootPaneUI
         private int resizeType;
         private Frame frame;
         private Dialog dialog;
-        private final PrivilegedExceptionAction getLocationAction = new PrivilegedExceptionAction() {
+        private final PrivilegedExceptionAction<Point> getLocationAction = new PrivilegedExceptionAction<Point>() {
 
-            public Object run()
+            public Point run()
                 throws HeadlessException
             {
                 return MouseInfo.getPointerInfo().getLocation();

@@ -82,7 +82,7 @@ public final class OpponentWeaponTable extends AbstractTable
 
     public boolean isCellEditable(int row, int column) {
       if (getColumnClass(column) == NULL_INT.getClass()) {
-        return ((Optional)getValueAt(row, column)).hasValue();
+        return ((Optional<?>)getValueAt(row, column)).hasValue();
       }
       return true;
     }

@@ -345,13 +345,14 @@ public final class ProjectileAttackDialog extends BGDialog {
       atValue = baseAT / 2;
       break;
     case 1:
-      atValue = baseAT;
+      // atValue = baseAT;
       break;
     case 2:
       atValue = baseAT + baseAT / 2;
       break;
     default:
-      atValue = baseAT;
+      // atValue = baseAT;
+      break;
     }
     return atValue;
   }

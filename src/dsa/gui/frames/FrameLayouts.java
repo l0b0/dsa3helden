@@ -40,7 +40,7 @@ public class FrameLayouts {
     return sInstance;
   }
   
-  public static int parseInt(String line) throws IOException {
+  private static int parseInt(String line) throws IOException {
     try {
       return Integer.parseInt(line);
     }
@@ -49,7 +49,7 @@ public class FrameLayouts {
     }
   }
   
-  public static void testEmpty(String line) throws IOException {
+  private static void testEmpty(String line) throws IOException {
     if (line == null || line.length() == 0) throw new IOException();
   }
   
@@ -64,16 +64,53 @@ public class FrameLayouts {
     private FrameLayout() {
     }
     
+    public boolean isEqualTo(FrameLayout other) {
+      // bounds are not relevant here!
+      
+      if (frames.size() != other.frames.size()) return false;
+
+      java.util.HashSet<String> s1 = new java.util.HashSet<String>(frames);
+      java.util.HashSet<String> s2 = new java.util.HashSet<String>(other.frames);
+      
+      for (String entry : s1) {
+        if (!s2.contains(entry)) return false;
+      }
+
+      return true;
+    }
     
-    public static FrameLayout createFromCurrentLayout(String title) {
-      FrameLayout layout = new FrameLayout();
-      layout.title = title;
+    public void updateBounds() {
+      frames.clear();
+      bounds.clear();
       Map<Component, Rectangle> positions = FrameManagement.getInstance().getPositions();
       for (Component c : positions.keySet()) {
         if (!(c instanceof SubFrame)) continue;
         SubFrame frame = (SubFrame) c;
-        layout.frames.add(frame.getTitle());
-        layout.bounds.add(frame.getBounds());
+        frames.add(frame.getTitle());
+        bounds.add(frame.getBounds());
+      }
+    }
+    
+    public void discardBounds() {
+      bounds.clear();
+      for (String frame : frames) {
+        bounds.add(SubFrame.getSavedFrameBounds(frame));
+      }
+    }
+    
+    public static FrameLayout createFromCurrentLayout(String title) {
+      FrameLayout layout = new FrameLayout();
+      layout.title = title;
+      layout.updateBounds();
+      return layout;
+    }
+    
+    public static FrameLayout createFromFrameTitles(String title, ArrayList<String> frames) {
+      FrameLayout layout = new FrameLayout();
+      layout.title = title;
+      for (String frame : frames) {
+        layout.frames.add(frame);
+        layout.bounds.add(SubFrame.getSavedFrameBounds(frame));
       }
       return layout;
     }
@@ -143,10 +180,31 @@ public class FrameLayouts {
   private ArrayList<FrameLayout> layouts = new ArrayList<FrameLayout>();
   
   private FrameLayout lastLayout = null;
+  
+  private String currentLayout = "";
+  
+  public String getCurrentLayout() {
+    return currentLayout;
+  }
 
   public void storeLayout(String name) {
     FrameLayout layout = FrameLayout.createFromCurrentLayout(name);
+    currentLayout = name;
+    for (int i = 0; i < layouts.size(); ++i) {
+      if (layouts.get(i).getTitle().equals(name)) {
+        layouts.set(i, layout);
+        return;
+      }
+    }
     layouts.add(layout);
+  }
+  
+  public void saveCurrentLayout() {
+    for (int i = 0; i < layouts.size(); ++i) {
+      if (layouts.get(i).getTitle().equals(currentLayout)) {
+        layouts.get(i).updateBounds();
+      }
+    }
   }
   
   public String[] getStoredLayouts() {
@@ -161,12 +219,17 @@ public class FrameLayouts {
   
   public void restoreLayout(int index) {
     if (index >= 0 && index < layouts.size()) {
+      saveCurrentLayout();
       layouts.get(index).apply();
+      currentLayout = layouts.get(index).getTitle();
     }
   }
   
   public void deleteLayout(int index) {
     if (index >= 0 && index < layouts.size()) {
+      if (currentLayout.equals(layouts.get(index).getTitle())) {
+        currentLayout = "";
+      }
       layouts.remove(index);
     }
   }
@@ -179,6 +242,17 @@ public class FrameLayouts {
     int h = prefs.getInt(title + "h", 100);
     Rectangle bounds = new Rectangle(x, y, w, h);
     FrameManagement.getInstance().openFrame(title, bounds);
+  }
+  
+  public void findCurrentLayout() {
+    FrameLayout current = FrameLayout.createFromCurrentLayout("Temp");
+    for (int i = 0; i < layouts.size(); ++i) {
+      if (layouts.get(i).isEqualTo(current)) {
+        currentLayout = layouts.get(i).getTitle();
+        return;
+      }
+    }
+    currentLayout = "";
   }
   
   public void restoreLastLayout() {
@@ -195,9 +269,11 @@ public class FrameLayouts {
       }      
       openFrameForBackwardsCompatibility("Heldenverwaltung");
     }
+    findCurrentLayout();
   }
   
   public void storeToFile(String filename) throws IOException {
+    saveCurrentLayout();
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
     try {
       out.println(1); // version
@@ -214,7 +290,34 @@ public class FrameLayouts {
     }
   }
   
-  public void readFromFile(String filename) throws IOException {
+  public void readDefaultLayouts(String fileName) throws IOException {
+    layouts.clear();
+    
+    File file = new File(fileName);
+    if (!file.exists()) return;
+    
+    BufferedReader in = new BufferedReader(new FileReader(file));
+    try {
+      String title = in.readLine();
+      while (title != null && !"".equals(title)) {
+        ArrayList<String> frames = new ArrayList<String>();
+        String line = in.readLine();
+        while (line != null && !"".equals(line)) {
+          frames.add(line);
+          line = in.readLine();
+        }
+        layouts.add(FrameLayout.createFromFrameTitles(title, frames));
+        title = in.readLine();
+      }
+    }
+    finally {
+      if (in != null) in.close();
+    }
+    
+  }
+  
+  public void readFromFile(String filename, boolean secondStart) throws IOException {
+    layouts.clear();
     File file = new File(filename);
     if (!file.exists()) return;
     BufferedReader in = new BufferedReader(new FileReader(file));
@@ -229,6 +332,7 @@ public class FrameLayouts {
         layouts.add(layout);
       }
       lastLayout = FrameLayout.createFromPersistency(in, version);
+      if (!secondStart) lastLayout.discardBounds();
     }
     finally {
       if (in != null) in.close();

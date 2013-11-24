@@ -131,7 +131,7 @@ public final class FightTable
       if (column == getLEColumn()) {
         return (row == 0) || (fighters.get(row - 1) != fighters.get(row));
       }
-      else if (column == getOpponentColumn()) {
+      else if (column == getOpponentColumn() || column == getWeaponColumn()) {
         return true;
       }
       else return false;
@@ -196,6 +196,7 @@ public final class FightTable
     });
     
     ComboBoxCellEditor targetEditor = new ComboBoxCellEditor(this);
+    ComboBoxCellEditor weaponEditor = new ComboBoxCellEditor(this);
 
     DefaultTableCellRenderer greyingRenderer = CellRenderers.createGreyingCellRenderer(
         new MyColourSelector());
@@ -239,7 +240,7 @@ public final class FightTable
     
     TableColumnModel tcm = new DefaultTableColumnModel();
     tcm.addColumn(new TableColumn(getNameColumn(), 100, bgRenderer, dummyEditor));
-    tcm.addColumn(new TableColumn(getWeaponColumn(), 100, bgRenderer, dummyEditor));
+    tcm.addColumn(new TableColumn(getWeaponColumn(), 100, bgRenderer, weaponEditor));
     tcm.addColumn(new TableColumn(getLEColumn(), 45, bgRenderer, leEditor));
     tcm.addColumn(new TableColumn(getATColumn(), 40, bgRenderer, dummyEditor));
     tcm.addColumn(new TableColumn(getPAColumn(), 40, bgRenderer, dummyEditor));
@@ -428,13 +429,22 @@ public final class FightTable
     mModel.setRowCount(0);
   }
   
-  public List<String> getItems(int row) {
-    ArrayList<String> items = new ArrayList<String>();
-    items.add("<keiner>");
-    for (int i = 0; i < opponents.size(); ++i) {
-      items.add(dsa.util.Strings.cutTo(opponents.get(i).getName(), ' '));
+  public List<String> getItems(int row, int column) {
+    if (column == getOpponentColumn()) {
+      ArrayList<String> items = new ArrayList<String>();
+      items.add("<keiner>");
+      for (int i = 0; i < opponents.size(); ++i) {
+        items.add(dsa.util.Strings.cutTo(opponents.get(i).getName(), ' '));
+      }
+      return items;
     }
-    return items;
+    else if (column == getWeaponColumn()) {
+      int weaponIndex = getWeaponIndex(row);
+      return fighters.get(row).getPossibleWeapons(weaponIndex);
+    }
+    else {
+      return new ArrayList<String>();
+    }
   }
   
   private int getWeaponIndex(int row) {
@@ -447,18 +457,29 @@ public final class FightTable
     return index;
   }
 
-  public void itemSelected(int row, int index) {
-    if (index < 0 || index >= opponents.size()) return;
+  public void itemSelected(int row, int column, int index) {
     int weaponIndex = getWeaponIndex(row);
-    if (index == 0) {
-      fighters.get(row).setTarget(weaponIndex, "");
-      mModel.setValueAt("", row, getOpponentColumn());
-      mModel.setValueAt(Boolean.FALSE, row, getAttackColumn());
+    if (column == getOpponentColumn()) {
+      if (index < 0 || index >= opponents.size()) return;
+      if (index == 0) {
+        fighters.get(row).setTarget(weaponIndex, "");
+        mModel.setValueAt("", row, getOpponentColumn());
+        mModel.setValueAt(Boolean.FALSE, row, getAttackColumn());
+      }
+      else {
+        fighters.get(row).setTarget(weaponIndex, opponents.get(index - 1).getName());
+        mModel.setValueAt(Boolean.valueOf(weaponIndex <= fighters.get(row).getFightingWeapons().size()), 
+          row, getAttackColumn());
+      }
     }
-    else {
-      fighters.get(row).setTarget(weaponIndex, opponents.get(index - 1).getName());
-      mModel.setValueAt(Boolean.valueOf(weaponIndex <= fighters.get(row).getFightingWeapons().size()), 
-        row, getAttackColumn());
+    else if (column == getWeaponColumn()) {
+      List<String> items = fighters.get(row).getPossibleWeapons(weaponIndex);
+      if (index < 0 || index >= items.size()) return;
+      String item = items.get(index);
+      fighters.get(row).setUsedWeapon(weaponIndex, item);
+      mModel.setValueAt(fighters.get(row).getAT(weaponIndex), row, getATColumn());
+      mModel.setValueAt(fighters.get(row).getPA(weaponIndex), row, getPAColumn());
+      mModel.setValueAt(fighters.get(row).getTP(weaponIndex), row, getTPColumn());
     }
   }
   

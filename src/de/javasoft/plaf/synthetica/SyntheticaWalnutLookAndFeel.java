@@ -81,7 +81,7 @@ public class SyntheticaWalnutLookAndFeel extends SynthLookAndFeel {
 
   public SyntheticaWalnutLookAndFeel() throws ParseException {
     String fileName = "walnut/synth.xml";
-    Class clazz = de.javasoft.plaf.synthetica.SyntheticaWalnutLookAndFeel.class;
+    Class<?> clazz = de.javasoft.plaf.synthetica.SyntheticaWalnutLookAndFeel.class;
     load(clazz.getResourceAsStream(fileName), clazz);
     try {
       String syntheticaFileName = "Synthetica.xml";
@@ -174,9 +174,9 @@ public class SyntheticaWalnutLookAndFeel extends SynthLookAndFeel {
     ResourceBundle resBundle = getResourceBundle(name);
     String key;
     String value;
-    for (Enumeration enumeration = resBundle.getKeys(); enumeration
+    for (Enumeration<String> enumeration = resBundle.getKeys(); enumeration
         .hasMoreElements(); defaults.put(key, value)) {
-      key = (String) (String) enumeration.nextElement();
+      key = enumeration.nextElement();
       value = resBundle.getString(key);
     }
 
@@ -256,9 +256,9 @@ public class SyntheticaWalnutLookAndFeel extends SynthLookAndFeel {
     useSystemFileIcons = UIManager
         .getBoolean("Synthetica.extendedFileChooser.useSystemFileIcons");
     UIDefaults lafDefaults = UIManager.getLookAndFeelDefaults();
-    for (Iterator iterator = lafDefaults.entrySet().iterator(); iterator
+    for (Iterator<java.util.Map.Entry<Object, Object>> iterator = lafDefaults.entrySet().iterator(); iterator
         .hasNext();) {
-      java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+      java.util.Map.Entry<Object, Object> entry = iterator.next();
       if (!defaults.containsKey(entry.getKey()))
         defaults.put(entry.getKey(), entry.getValue());
     }
@@ -571,10 +571,10 @@ public class SyntheticaWalnutLookAndFeel extends SynthLookAndFeel {
     ((StyleFactory) SynthLookAndFeel.getStyleFactory()).uninitialize();
     UIDefaults defaults = UIManager.getDefaults();
     defaults.clear();
-    java.util.Map.Entry es;
-    for (Iterator iterator = orgDefaults.entrySet().iterator(); iterator
+    java.util.Map.Entry<Object, Object> es;
+    for (Iterator<java.util.Map.Entry<Object, Object>> iterator = orgDefaults.entrySet().iterator(); iterator
         .hasNext(); defaults.put(es.getKey(), es.getValue()))
-      es = (java.util.Map.Entry) iterator.next();
+      es = iterator.next();
 
     UIManager.removePropertyChangeListener(lafChangeListener);
     super.uninitialize();

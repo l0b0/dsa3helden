@@ -45,6 +45,12 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
     fillTable();
   }
 
+  public WeaponsSelectionDialog(javax.swing.JDialog owner, boolean singleSelection) {
+    super(owner, "Waffe hinzufügen", new WeaponsTable(false), "Waffen", singleSelection);
+    initialize();
+    fillTable();
+  }
+
   protected void fillTable() {
     Weapons weapons = Weapons.getInstance();
     WeaponsTable table = (WeaponsTable) mTable;

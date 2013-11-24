@@ -124,6 +124,7 @@ private JCheckBox resultBox = null;
     JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) this.getDifficultySpinner().getEditor();
     editor.getTextField().setText("0");
     editor.getTextField().selectAll();
+    getResultBox().setSelected(true);
   }
 
   /**

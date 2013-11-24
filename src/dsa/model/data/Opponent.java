@@ -469,6 +469,12 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
 	        newWeapons.add(usedWeapons.get(index));
 	      }
       }
+      if (weapons.size() > 0) {
+    	  for (int i = usedWeapons.size(); i < nrOfAttacks; ++i) {
+    		  int index = i >= weapons.size() ? 0 : i;
+    		  newWeapons.add(weapons.get(index));
+    	  }
+      }
       usedWeapons = newWeapons;
       changed = true;
     }
@@ -609,6 +615,11 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     ats.add(at);
     pas.add(pa);
     targets.add("");
+    if (usedWeapons.size() < nrOfAttacks) {
+    	for (int i = usedWeapons.size(); i < nrOfAttacks; ++i) {
+    		usedWeapons.add(name);
+    	}
+    }
     changed = true;
   }
   

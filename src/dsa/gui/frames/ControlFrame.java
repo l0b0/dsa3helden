@@ -63,6 +63,7 @@ import dsa.control.GroupOperations;
 import dsa.control.OnlineOperations;
 import dsa.util.Directories;
 import dsa.gui.dialogs.AnimalSelectionDialog;
+import dsa.gui.dialogs.DiceRollDialog;
 import dsa.gui.dialogs.OptionsDialog;
 import dsa.gui.dialogs.PrintingDialog;
 import dsa.gui.lf.BGList;
@@ -493,6 +494,17 @@ public final class ControlFrame extends SubFrame
       saveAllButton.setToolTipText("Alles speichern");
       saveAllButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
       alwaysPane.add(saveAllButton);
+      
+      diceButton = new JButton(ImageManager.getIcon("probe"));
+      diceButton.addActionListener(new ActionListener() {
+    	  public void actionPerformed(ActionEvent e) {
+    		  DiceRollDialog dialog = new DiceRollDialog(ControlFrame.this);
+    		  dialog.setVisible(true);
+    	  }
+      });
+      diceButton.setToolTipText("Frei Würfeln");
+      diceButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
+      alwaysPane.add(diceButton);
     }
     return alwaysPane;
   }
@@ -506,6 +518,8 @@ public final class ControlFrame extends SubFrame
   private JButton printHeroButton;
   
   private JButton saveAllButton;
+  
+  private JButton diceButton;
 
   /**
    * This method initializes jTabbedPane

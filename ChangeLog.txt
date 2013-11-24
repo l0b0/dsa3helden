@@ -1,3 +1,17 @@
+Version 1.10.0
+--------------
+- Würfeln einer freien Anzahl Würfel
+- Talentstartwerte des Firnelfen korrigiert
+- Bugfix für Fehler beim Anlegen neuer Gegner
+- "Probe im Ergebnis anzeigen" per default ausgewählt
+- Zip-Archiv für MacOS hinzugefügt
+
+Version 1.9.2
+-------------
+- Nach Zaubern wird restliche AE im Ergebnisdialog angezeigt
+- Hausregel zum Auswürfeln von Trefferzonen wie bei DSA4
+- Unterstützung von 64bit-Java unter Windows (neue Version von launch4j)
+
 Version 1.9.1
 -------------
 - Es kann in PDF-Formulare neueren Formats gedruckt werden

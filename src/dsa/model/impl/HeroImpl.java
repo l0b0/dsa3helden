@@ -42,6 +42,7 @@ import dsa.model.characters.Property;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
 import dsa.model.data.Talents;
@@ -92,7 +93,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = false;
     overallTalentIncreaseTries = 0;
     talentIncreasesPerStep = 30;
-    mHasLEIncreaseTry = false;
+    mLEIncreaseTries = 0;
+    mAEIncreaseTries = 0;
     mHasExtraAEIncrease = false;
     fixedLEIncrease = 0;
     fixedAEIncrease = 0;
@@ -212,6 +214,10 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.bfs.putAll(bfs);
     hero.shieldBFs = new HashMap<String, Integer>();
     hero.shieldBFs.putAll(shieldBFs);
+    hero.extraThingData = new HashMap<String, ExtraThingData>();
+    hero.extraThingData.putAll(extraThingData);
+    hero.extraWarehouseData = new HashMap<String, ExtraThingData>();
+    hero.extraWarehouseData.putAll(extraWarehouseData);
     return hero;
   }
 
@@ -542,15 +548,16 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     boolean fullStep = dsa.model.characters.Group.getInstance().getOptions()
         .hasFullFirstStep();
     if (fullStep) {
-      hasGoodPropertyChangeTry = true;
-      hasBadPropertyChangeTry = true;
-      mHasLEIncreaseTry = true;
-      mHasAEIncreaseTry = true;
+      goodPropertyChangeTries++;
+      badPropertyChangeTries++;
+      mLEIncreaseTries++;
+      mAEIncreaseTries++;
       canMeditate = mHasGreatMeditation;
     }
     overallSpellIncreaseTries += spellIncreasesPerStep;
     overallSpellOrTalentIncreaseTries += spellToTalentMoves;
     overallSpellIncreaseTries -= spellToTalentMoves;
+    remainingStepIncreases++;
     checkForMirakel();
   }
 
@@ -563,22 +570,11 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     int oldStep = getStep();
     ap += mod;
     if (getStep() != oldStep) {
-      overallTalentIncreaseTries += talentIncreasesPerStep;
-      for (TalentData data : talents.values()) {
-        data.remainingIncreases = data.increasesPerStep;
-        data.remainingTries = 3;
+      if (remainingStepIncreases == 0) {
+        enableStepIncreases();
       }
-      hasGoodPropertyChangeTry = true;
-      hasBadPropertyChangeTry = true;
-      mHasLEIncreaseTry = true;
-      mHasAEIncreaseTry = true;
-      overallSpellIncreaseTries += spellIncreasesPerStep;
-      overallSpellOrTalentIncreaseTries += spellToTalentMoves;
-      overallSpellIncreaseTries -= spellToTalentMoves;
-      canMeditate = mHasGreatMeditation;
+      remainingStepIncreases += (getStep() - oldStep);
       checkForMirakel();
-      for (CharacterObserver o : observers)
-        o.stepIncreased();
     }
     changed = true;
   }
@@ -592,9 +588,43 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       data.remainingTries = 0;
     }
     canMeditate = false;
+    checkForNextStepIncrease();
     for (CharacterObserver o : observers)
       o.increaseTriesChanged();
     changed = true;
+  }
+  
+  private void checkForNextStepIncrease() {
+    if (overallSpellIncreaseTries > 0 || overallSpellOrTalentIncreaseTries > 0 
+        || overallTalentIncreaseTries > 0 || mLEIncreaseTries > 0 
+        || mAEIncreaseTries > 0 || goodPropertyChangeTries > 0
+        || badPropertyChangeTries > 0) return;
+    if (remainingStepIncreases > 0) {
+      --remainingStepIncreases;
+    }
+    if (remainingStepIncreases > 0) {
+      enableStepIncreases();
+    }
+  }
+  
+  private void enableStepIncreases() {
+    overallTalentIncreaseTries += talentIncreasesPerStep;
+    for (TalentData data : talents.values()) {
+      data.remainingIncreases = data.increasesPerStep;
+      data.remainingTries = 3;
+    }
+    goodPropertyChangeTries++;
+    badPropertyChangeTries++;
+    mLEIncreaseTries++;
+    if (hasEnergy(Energy.AE)) {
+      mAEIncreaseTries++;
+    }
+    overallSpellIncreaseTries += spellIncreasesPerStep;
+    overallSpellOrTalentIncreaseTries += spellToTalentMoves;
+    overallSpellIncreaseTries -= spellToTalentMoves;
+    canMeditate = mHasGreatMeditation;          
+    for (CharacterObserver o : observers)
+      o.stepIncreased();
   }
 
   /*
@@ -829,9 +859,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   private Map<Property, CurrentAndDefaultData> properties;
 
-  private boolean hasGoodPropertyChangeTry = false;
+  private int goodPropertyChangeTries = 0;
 
-  private boolean hasBadPropertyChangeTry = false;
+  private int badPropertyChangeTries = 0;
 
   private int ap;
 
@@ -883,16 +913,17 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   public boolean hasPropertyChangeTry(Property property) {
     if (property.ordinal() > Property.KK.ordinal())
-      return hasBadPropertyChangeTry;
+      return badPropertyChangeTries > 0;
     else
-      return hasGoodPropertyChangeTry;
+      return goodPropertyChangeTries > 0;
   }
 
-  public void setHasPropertyChangeTry(boolean goodProperty, boolean hasTry) {
+  public void removePropertyChangeTry(boolean goodProperty) {
     if (goodProperty)
-      hasGoodPropertyChangeTry = hasTry;
+      goodPropertyChangeTries--;
     else
-      hasBadPropertyChangeTry = hasTry;
+      badPropertyChangeTries--;
+    checkForNextStepIncrease();
   }
 
   /*
@@ -941,6 +972,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         }
       }
     }
+    checkForNextStepIncrease();
     for (CharacterObserver observer : observers) {
       observer.increaseTriesChanged();
     }
@@ -1028,7 +1060,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     return path;
   }
 
-  static final int FILE_VERSION = 33;
+  static final int FILE_VERSION = 35;
 
   private static String getAbsolutePath(String relativePath, File f)
       throws IOException {
@@ -1098,20 +1130,20 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       // version 4
       file.println(overallTalentIncreaseTries);
       file.println(talentIncreasesPerStep);
-      file.println(mHasLEIncreaseTry ? 1 : 0);
+      file.println(mLEIncreaseTries);
       file.println(mHasExtraAEIncrease ? 1 : 0);
       file.println(fixedLEIncrease);
       file.println(fixedAEIncrease);
       file.println(mrBonus);
-      file.println(mHasAEIncreaseTry ? 1 : 0);
+      file.println(mAEIncreaseTries);
       // version 5
       file.println(overallSpellIncreaseTries);
       file.println(spellIncreasesPerStep);
       file.println(spellToTalentMoves);
       file.println(mHasGreatMeditation ? 1 : 0);
       // version 6
-      file.println(hasGoodPropertyChangeTry ? 1 : 0);
-      file.println(hasBadPropertyChangeTry ? 1 : 0);
+      file.println(goodPropertyChangeTries);
+      file.println(badPropertyChangeTries);
       // version 8
       file.println(money.size());
       for (int i = 0; i < money.size(); ++i) {
@@ -1128,7 +1160,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       for (String armourName : armours) {
         Armour armour = Armours.getInstance().getArmour(armourName);
         file.println(armourName + ";" + armour.getRS() + ";" + armour.getBE()
-            + ";" + armour.getWeight());
+            + ";" + armour.getWeight() + ";" + armour.getWorth());
       }
       // version 11
       int nrOfWeapons = 0;
@@ -1139,7 +1171,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
         if (weapon == null) {
           weapon = new Weapon(1, 0, 5, weaponName, 1,
-              new dsa.util.Optional<Integer>(14), 50, true, false, false);
+              new dsa.util.Optional<Integer>(14), 50, true, false, false, 
+              dsa.util.Optional.NULL_INT);
         }
         for (int i = 0; i < weapons.get(weaponName); ++i) {
           weapon.writeToStream(file);
@@ -1255,6 +1288,19 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       // version 33
       file.println(useAUForFight ? "1" : "0");
       file.println(auDifference);
+      // version 34
+      file.println(remainingStepIncreases);
+      // version 35
+      file.println(extraThingData.size());
+      for (Map.Entry<String, ExtraThingData> entry : extraThingData.entrySet()) {
+        file.println(entry.getKey());
+        entry.getValue().store(file);
+      }
+      file.println(extraWarehouseData.size());
+      for (Map.Entry<String, ExtraThingData> entry : extraWarehouseData.entrySet()) {
+        file.println(entry.getKey());
+        entry.getValue().store(file);
+      }
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1439,6 +1485,20 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       useAUForFight = false;
       auDifference = 0;
     }
+    if (version > 33) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      remainingStepIncreases = parseInt(line, lineNr);
+    }
+    else {
+      remainingStepIncreases = (overallSpellIncreaseTries > 0 
+        || overallSpellOrTalentIncreaseTries > 0
+        || overallTalentIncreaseTries > 0) ? 1 : 0;
+    }
+    if (version > 34) {
+      lineNr = readExtraThingData(file, lineNr);
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -1452,6 +1512,26 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     checkForMirakel();
     calcKO();
     changed = false;
+  }
+  
+  private int readExtraThingData(BufferedReader file, int lineNr) throws IOException {
+    String line = file.readLine(); lineNr++; testEmpty(line);
+    int count = parseInt(line, lineNr);
+    for (int i = 0; i < count; ++i) {
+      String key = file.readLine(); lineNr++; testEmpty(line);
+      ExtraThingData extraData = new ExtraThingData();
+      lineNr = extraData.read(file, lineNr);
+      extraThingData.put(key, extraData);
+    }
+    line = file.readLine(); lineNr++; testEmpty(line);
+    count = parseInt(line, lineNr);
+    for (int i = 0; i < count; ++i) {
+      String key = file.readLine(); lineNr++; testEmpty(line);
+      ExtraThingData extraData = new ExtraThingData();
+      lineNr = extraData.read(file, lineNr);
+      extraWarehouseData.put(key, extraData);
+    }    
+    return lineNr;
   }
 
   private int readShieldBFs(BufferedReader file, int lineNr, int version)
@@ -1799,7 +1879,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     for (int i = 0; i < nrOfThings; ++i) {
       Thing thing = new Thing();
       lineNr = thing.readFromStream(file, lineNr);
-      this.internalAddThing(thing.getName());
+      this.internalAddThing(thing.getName(), new ExtraThingData(ExtraThingData.Type.Thing));
     }
     return lineNr;
   }
@@ -1850,14 +1930,19 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
           int be = 1;
           int rs = 1;
           int armourWeight = 100;
+          int armourWorth = 0;
           String temp = tokenizer.nextToken();
           rs = parseInt(temp, lineNr);
           temp = tokenizer.nextToken();
           be = parseInt(temp, lineNr);
           temp = tokenizer.nextToken();
           armourWeight = parseInt(temp, lineNr);
+          if (tokenizer.hasMoreTokens()) {
+            temp = tokenizer.nextToken();
+            armourWorth = parseInt(temp, lineNr);
+          }
           Armours.getInstance().addArmour(
-              new dsa.model.data.Armour(armourName, rs, be, armourWeight));
+              new dsa.model.data.Armour(armourName, rs, be, armourWeight, armourWorth));
         }
       }
       armours.add(armourName);
@@ -1894,11 +1979,11 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    hasGoodPropertyChangeTry = (parseInt(line, lineNr) > 0);
+    goodPropertyChangeTries = parseInt(line, lineNr);
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    hasBadPropertyChangeTry = (parseInt(line, lineNr) > 0);
+    badPropertyChangeTries = parseInt(line, lineNr);
     return lineNr;
   }
 
@@ -1938,7 +2023,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    mHasLEIncreaseTry = (parseInt(line, lineNr) > 0);
+    mLEIncreaseTries = parseInt(line, lineNr);
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -1958,7 +2043,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    mHasAEIncreaseTry = (parseInt(line, lineNr) > 0);
+    mAEIncreaseTries = parseInt(line, lineNr);
     return lineNr;
   }
 
@@ -2395,9 +2480,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       return "legendär";
   }
 
-  boolean mHasLEIncreaseTry;
+  int mLEIncreaseTries;
 
-  boolean mHasAEIncreaseTry;
+  int mAEIncreaseTries;
 
   boolean mHasExtraAEIncrease;
 
@@ -2406,7 +2491,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   int fixedAEIncrease;
 
   public boolean hasLEIncreaseTry() {
-    return mHasLEIncreaseTry;
+    return mLEIncreaseTries > 0;
   }
 
   public boolean hasExtraAEIncrease() {
@@ -2550,24 +2635,27 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
             "Eine Sharizad darf nicht mehr als 30 ASP haben.");
       }
     }
-    mHasLEIncreaseTry = false;
-    mHasAEIncreaseTry = false;
+    mLEIncreaseTries--;
+    mAEIncreaseTries--;
     changeDefaultEnergy(Energy.LE, lePlus);
     changeDefaultEnergy(Energy.AE, aePlus);
+    checkForNextStepIncrease();
   }
 
   public boolean hasAEIncreaseTry() {
-    return mHasAEIncreaseTry;
+    return mAEIncreaseTries > 0;
   }
 
   public void increaseLE(int lePlus) {
-    mHasLEIncreaseTry = false;
+    mLEIncreaseTries--;
     changeDefaultEnergy(Energy.LE, lePlus);
+    checkForNextStepIncrease();
   }
 
   public void increaseAE(int aePlus) {
-    mHasAEIncreaseTry = false;
+    mAEIncreaseTries--;
     changeDefaultEnergy(Energy.AE, aePlus);
+    checkForNextStepIncrease();
   }
 
   public int getOverallSpellIncreaseTries() {
@@ -2607,6 +2695,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     int change = dsa.control.Dice.roll(6) + 2;
     this.changeDefaultEnergy(Energy.AE, change);
     canMeditate = false;
+    checkForNextStepIncrease();
     for (CharacterObserver o : observers) {
       o.defaultEnergyChanged(Energy.AE);
       o.increaseTriesChanged();
@@ -2905,24 +2994,41 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   }
 
   public void addThing(String thingName) {
-    internalAddThing(thingName);
+    addThing(thingName, new ExtraThingData(ExtraThingData.Type.Thing));
+  }
+  
+  public void addThing(String thingName, ExtraThingData extraData) {
+    internalAddThing(thingName, extraData);
     changed = true;
     for (CharacterObserver observer : observers)
       observer.weightChanged();
   }
 
-  void internalAddThing(String thingName) {
+  void internalAddThing(String thingName, ExtraThingData extraData) {
     if (!things.containsKey(thingName)) {
       things.put(thingName, 1);
     }
     else {
       things.put(thingName, things.get(thingName) + 1);
     }
+    extraThingData.put(thingName + things.get(thingName), extraData);
   }
+  
+  public ExtraThingData getExtraThingData(String thing, boolean inWarehouse, int thingNumber) {
+    if (!inWarehouse) {
+      return extraThingData.get(thing + thingNumber);
+    }
+    else {
+      return extraWarehouseData.get(thing + thingNumber);
+    }
+  }
+  
+  private HashMap<String, ExtraThingData> extraThingData = new HashMap<String, ExtraThingData>();
 
   public void removeThing(String thingName) {
     if (!things.containsKey(thingName)) return;
     int count = things.get(thingName);
+    extraThingData.remove(thingName + count);
     if (count == 1) {
       things.remove(thingName);
       for (CharacterObserver o : observers)
@@ -3176,6 +3282,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   HashMap<String, Integer> thingsInWarehouse = new HashMap<String, Integer>();
 
   public void addThingToWarehouse(String item) {
+    addThingToWarehouse(item, new ExtraThingData(ExtraThingData.Type.Thing));
+  }
+  
+  HashMap<String, ExtraThingData> extraWarehouseData = new HashMap<String, ExtraThingData>();
+  
+  public void addThingToWarehouse(String item, ExtraThingData extraData) {
     if (thingsInWarehouse.containsKey(item)) {
       int count = thingsInWarehouse.get(item);
       thingsInWarehouse.put(item, count + 1);
@@ -3183,6 +3295,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     else {
       thingsInWarehouse.put(item, 1);
     }
+    extraWarehouseData.put(item + thingsInWarehouse.get(item), extraData);
     changed = true;
   }
 
@@ -3197,6 +3310,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   public void removeThingFromWarehouse(String thingName) {
     if (thingsInWarehouse.containsKey(thingName)) {
       int count = thingsInWarehouse.get(thingName);
+      extraWarehouseData.remove(thingName + count);
       if (count > 1) {
         thingsInWarehouse.put(thingName, count - 1);
       }
@@ -3479,6 +3593,18 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       }
       changed = true;
     }
+  }
+
+  public void fireWeightChanged() {
+    for (CharacterObserver o : observers) {
+      o.weightChanged();
+    }
+  }
+  
+  int remainingStepIncreases = 0;
+  
+  public int getRemainingStepIncreases() {
+    return remainingStepIncreases;
   }
 
 }

@@ -63,6 +63,12 @@ public class ArmourDialog extends BGDialog {
 
   private Armour armour = null;
 
+  private JLabel jLabel4 = null;
+
+  private JSpinner worthSpinner = null;
+
+  private JComboBox worthCombo = null;
+
   /**
    * This method initializes
    * 
@@ -77,25 +83,51 @@ public class ArmourDialog extends BGDialog {
     initialize();
     setLocationRelativeTo(owner);
   }
+  
+  public ArmourDialog(JDialog owner, Armour armour) {
+    super(owner, true);
+    initialize();
+    setLocationRelativeTo(owner);
+    nameField.setText(armour.getName());
+    nameField.setEnabled(false);
+    rsSpinner.setValue(armour.getRS());
+    beSpinner.setValue(armour.getBE());
+    int weight = armour.getWeight();
+    if (weight != 0 && weight % 40 == 0) {
+      unitCombo.setSelectedIndex(1);
+      weight /= 40;
+    }
+    weightSpinner.setValue(weight);
+    int worth = armour.getWorth();
+    if (worth != 0 && worth % 10 == 0) {
+      worthCombo.setSelectedIndex(1);
+      worth /= 10;
+    }
+    worthSpinner.setValue(worth);
+    this.armour = armour;
+  }
 
   public Armour getArmour() {
     return armour;
   }
 
   private boolean createArmour() {
-    armour = null;
+    boolean newArmour = nameField.isEnabled();
     String name = nameField.getText();
-    if (name == null || name.equals("")) {
-      JOptionPane.showMessageDialog(this,
-          "Die Rüstung muss einen Namen haben.", "Rüstung hinzufügen",
-          JOptionPane.ERROR_MESSAGE);
-      return false;
-    }
-    if (Armours.getInstance().getArmour(name) != null) {
-      JOptionPane.showMessageDialog(this,
-          "Eine Rüstung mit diesem Namen existiert bereits.",
-          "Rüstung hinzufügen", JOptionPane.ERROR_MESSAGE);
-      return false;
+    if (newArmour) {
+      armour = null;
+      if (name == null || name.equals("")) {
+        JOptionPane.showMessageDialog(this,
+            "Die Rüstung muss einen Namen haben.", "Rüstung hinzufügen",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+      if (Armours.getInstance().getArmour(name) != null) {
+        JOptionPane.showMessageDialog(this,
+            "Eine Rüstung mit diesem Namen existiert bereits.",
+            "Rüstung hinzufügen", JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
     }
     int rs = ((Number) rsSpinner.getValue()).intValue();
     int be = ((Number) beSpinner.getValue()).intValue();
@@ -103,7 +135,19 @@ public class ArmourDialog extends BGDialog {
     if (unitCombo.getSelectedIndex() == 1) {
       weight *= 40;
     }
-    armour = new Armour(name, rs, be, weight);
+    int worth = ((Number) worthSpinner.getValue()).intValue();
+    if (worthCombo.getSelectedIndex() == 1) {
+      worth *= 10;
+    }
+    if (newArmour) {
+      armour = new Armour(name, rs, be, weight, worth);
+    }
+    else {
+      armour.setBE(be);
+      armour.setRS(rs);
+      armour.setWorth(worth);
+      armour.setWeight(weight);
+    }
     return true;
   }
 
@@ -112,7 +156,7 @@ public class ArmourDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new java.awt.Dimension(352, 191));
+    this.setSize(new java.awt.Dimension(335,215));
     this.setContentPane(getJContentPane());
     this.setTitle("Rüstung hinzufügen");
 
@@ -141,6 +185,9 @@ public class ArmourDialog extends BGDialog {
    */
   private JPanel getJPanel() {
     if (jPanel == null) {
+      jLabel4 = new JLabel();
+      jLabel4.setBounds(new java.awt.Rectangle(10,100,71,21));
+      jLabel4.setText("Wert:");
       jLabel3 = new JLabel();
       jLabel3.setBounds(new java.awt.Rectangle(160, 40, 61, 21));
       jLabel3.setText("BE:");
@@ -155,7 +202,7 @@ public class ArmourDialog extends BGDialog {
       jLabel.setText("Name:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
-      jPanel.setBounds(new java.awt.Rectangle(10, 10, 321, 111));
+      jPanel.setBounds(new java.awt.Rectangle(10,10,301,131));
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
       jPanel.add(jLabel, null);
@@ -167,6 +214,9 @@ public class ArmourDialog extends BGDialog {
       jPanel.add(getBESpinner(), null);
       jPanel.add(getWeightSpinner(), null);
       jPanel.add(getUnitCombo(), null);
+      jPanel.add(jLabel4, null);
+      jPanel.add(getWorthSpinner(), null);
+      jPanel.add(getWorthCombo(), null);
     }
     return jPanel;
   }
@@ -250,7 +300,7 @@ public class ArmourDialog extends BGDialog {
   private JButton getOKButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new java.awt.Rectangle(50, 130, 101, 21));
+      okButton.setBounds(new java.awt.Rectangle(50,150,101,21));
       okButton.setText("OK");
       okButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -271,7 +321,7 @@ public class ArmourDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new java.awt.Rectangle(190, 130, 101, 21));
+      cancelButton.setBounds(new java.awt.Rectangle(170,150,101,21));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -281,6 +331,35 @@ public class ArmourDialog extends BGDialog {
       });
     }
     return cancelButton;
+  }
+
+  /**
+   * This method initializes jTextField	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JSpinner getWorthSpinner() {
+    if (worthSpinner == null) {
+      worthSpinner = new JSpinner();
+      worthSpinner.setBounds(new java.awt.Rectangle(91,102,50,19));
+      worthSpinner.setModel(new SpinnerNumberModel(100, 0, 5000, 1));
+    }
+    return worthSpinner;
+  }
+
+  /**
+   * This method initializes jComboBox	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getWorthCombo() {
+    if (worthCombo == null) {
+      worthCombo = new JComboBox();
+      worthCombo.setBounds(new java.awt.Rectangle(160,100,121,21));
+      worthCombo.addItem("Silbertaler");
+      worthCombo.addItem("Dukaten");
+    }
+    return worthCombo;
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

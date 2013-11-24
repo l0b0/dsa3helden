@@ -591,7 +591,7 @@ public class WiegeImporter {
         throw new IOException("Zeile " + lineNr + ": Gewicht ist keine Zahl!");
       }
       if (armours.getArmour(name) == null) {
-        Armour armour = new Armour(name, rs, be, weight);
+        Armour armour = new Armour(name, rs, be, weight, 0);
         armours.addArmour(armour);
       }
       tempArmours.add(name);
@@ -676,7 +676,8 @@ public class WiegeImporter {
       lineNr++; // WV oder Reichweite
       if (weapons.getWeapon(name) == null) {
         weapons.addWeapon(new dsa.model.data.Weapon(w6d, constd, category,
-            name, bf, kkzuschlag, weight, true, false, false));
+            name, bf, kkzuschlag, weight, true, false, false, 
+            dsa.util.Optional.NULL_INT));
       }
       tempWeapons.add(name);
     }

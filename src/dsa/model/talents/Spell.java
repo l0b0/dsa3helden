@@ -27,7 +27,7 @@ public interface Spell extends NormalTalent {
   String getCategory();
 
   String getOrigin();
-
+  
   boolean isUserDefined();
 
 }

@@ -72,6 +72,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
     lowerPanel.add(getDeleteButton());
+    lowerPanel.add(getEditButton());
     mTable.addSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent e) {
         if (!listen) return;
@@ -83,6 +84,8 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
   private JButton newButton;
 
   private JButton deleteButton;
+  
+  private JButton editButton;
 
   private JButton getNewButton() {
     if (newButton == null) {
@@ -99,6 +102,30 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
       });
     }
     return newButton;
+  }
+
+  private JButton getEditButton() {
+    if (editButton == null) {
+      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton.setToolTipText("Gegenstand bearbeiten");
+      editButton.setBounds(405, 5, 40, 25);
+      editButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Thing thing = Things.getInstance().getThing(mTable.getSelectedItem());
+          if (thing == null) return;
+          ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this, thing);
+          dialog.setVisible(true);
+          if (dialog.getThing() != null) {
+            ((ThingsTable) mTable).removeThing(thing.getName());
+            ((ThingsTable) mTable).addThing(thing, true);
+            if (getCallback() != null) {
+              getCallback().itemChanged(thing.getName());
+            }
+          }
+        }
+      });
+    }
+    return editButton;
   }
 
   private JButton getDeleteButton() {
@@ -141,9 +168,10 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
 
   private void updateDeleteButton() {
     String thing = mTable.getSelectedItem();
-    getDeleteButton().setEnabled(
-        thing != null && thing.length() > 0
-            && Things.getInstance().getThing(thing).isUserDefined());
+    boolean enabled = thing != null && thing.length() > 0
+                    && Things.getInstance().getThing(thing).isUserDefined();
+    getDeleteButton().setEnabled(enabled);
+    getEditButton().setEnabled(enabled);
   }
 
 }

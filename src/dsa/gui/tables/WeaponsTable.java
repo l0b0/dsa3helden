@@ -61,9 +61,13 @@ public class WeaponsTable extends AbstractTable {
   int getWeightColumn() {
     return 5;
   }
+  
+  int getWorthColumn() {
+    return 6;
+  }
 
   int getCountColumn() {
-    return 6;
+    return 7;
   }
 
   static final Optional<Integer> NULL_INT = Optional.NULL_INT;
@@ -96,6 +100,7 @@ public class WeaponsTable extends AbstractTable {
     mModel.addColumn("BF");
     mModel.addColumn("KK");
     mModel.addColumn("Gewicht");
+    mModel.addColumn("Wert (S)");
     if (hasCount) {
       mModel.addColumn("Anzahl");
     }
@@ -107,8 +112,9 @@ public class WeaponsTable extends AbstractTable {
     tcm.addColumn(new TableColumn(3, 35));
     tcm.addColumn(new TableColumn(4, 35));
     tcm.addColumn(new TableColumn(5, 80));
+    tcm.addColumn(new TableColumn(6, 80));
     if (hasCount) {
-      tcm.addColumn(new TableColumn(6, 55));
+      tcm.addColumn(new TableColumn(7, 55));
     }
 
     mSorter = new TableSorter(mModel);
@@ -161,7 +167,7 @@ public class WeaponsTable extends AbstractTable {
   }
 
   public void addWeapon(Weapon weapon, String name, int bf, int count) {
-    Object[] rowData = new Object[hasCount ? 7 : 6];
+    Object[] rowData = new Object[hasCount ? 8 : 7];
     rowData[getNameColumn()] = name;
     rowData[getBFColumn()] = bf;
     rowData[getKKColumn()] = weapon.getKKBonus();
@@ -175,6 +181,7 @@ public class WeaponsTable extends AbstractTable {
       rowData[getDamageColumn()] = weapon.getW6damage() + "W+"
           + weapon.getConstDamage();
     }
+    rowData[getWorthColumn()] = weapon.getWorth();
     if (hasCount) {
       rowData[getCountColumn()] = count;
     }

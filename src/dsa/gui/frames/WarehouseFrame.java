@@ -39,10 +39,12 @@ import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.util.Optional;
 
-public final class WarehouseFrame extends AbstractDnDFrame implements CharactersObserver {
+public final class WarehouseFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
     public void thingRemoved(String thing, boolean fromWarehouse) {
@@ -58,6 +60,7 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
     super(ThingTransfer.Flavors.Thing, "Lager");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
+    Things.getInstance().addObserver(this);
     if (currentHero != null) currentHero.addHeroObserver(myHeroObserver);
     addWindowListener(new WindowAdapter() {
       boolean done = false;
@@ -65,6 +68,7 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
       public void windowClosing(WindowEvent e) {
         mTable.saveSortingState("Lager");
         Group.getInstance().removeObserver(WarehouseFrame.this);
+        Things.getInstance().removeObserver(WarehouseFrame.this);
         if (currentHero != null)
           currentHero.removeHeroObserver(myHeroObserver);
         done = true;
@@ -74,6 +78,9 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
         if (!done) {
           mTable.saveSortingState("Lager");
           Group.getInstance().removeObserver(WarehouseFrame.this);
+          Things.getInstance().removeObserver(WarehouseFrame.this);
+          if (currentHero != null)
+            currentHero.removeHeroObserver(myHeroObserver);
           done = true;
         }
       }
@@ -140,7 +147,10 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
-        addItem(item);
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing));
+      }
+      public void itemChanged(String item) {
+        Things.getInstance().thingChanged(item);
       }
     });
     dialog.setVisible(true);
@@ -242,12 +252,28 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
   public void globalLockChanged() {
   }
 
-  protected boolean addItem(String item) {
-    currentHero.addThingToWarehouse(item);
-    if (currentHero.getThingInWarehouseCount(item) == 1) {
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    if (extraData.getType() == ExtraThingData.Type.Weapon) {
+      dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
+      item = w.getName();
+    }
+    if (currentHero.getThingInWarehouseCount(item) == 0) {
       Thing thing = Things.getInstance().getThing(item);
       if (thing != null) {
         mTable.addThing(thing);
+      }
+      else if (extraData.getType() != ExtraThingData.Type.Thing) {
+        try {
+          String category = extraData.getProperty("Category");
+          int value = extraData.getPropertyInt("Worth");
+          int weight = extraData.getPropertyInt("Weight");
+          thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
+          Things.getInstance().addThing(thing);
+        }
+        catch (ExtraThingData.PropertyException e) {
+          e.printStackTrace();
+          return false;
+        }
       }
       else {
         JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
@@ -256,10 +282,16 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
       }
     }
     else
-      mTable.setCount(item, currentHero.getThingInWarehouseCount(item));
+      mTable.setCount(item, currentHero.getThingInWarehouseCount(item) + 1);
+    currentHero.addThingToWarehouse(item, extraData);
     removeButton.setEnabled(true);
     calcSums();
     return true;
+  }
+  
+  protected ExtraThingData getExtraDnDData(String item) {
+    return currentHero.getExtraThingData(item, true, 
+        currentHero.getThingInWarehouseCount(item));
   }
 
   protected void removeItem(String name) {
@@ -273,5 +305,14 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
     removeButton
         .setEnabled(currentHero.getThingsInWarehouse().length > 0);
     calcSums();
+  }
+
+  public void thingChanged(String thing) {
+    if (mTable.containsItem(thing)) {
+      mTable.removeThing(thing);
+      mTable.addThing(Things.getInstance().getThing(thing));
+      mTable.setCount(thing, currentHero.getThingInWarehouseCount(thing));
+      calcSums();
+    }
   }
 }

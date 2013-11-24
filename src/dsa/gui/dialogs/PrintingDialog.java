@@ -46,9 +46,9 @@ public final class PrintingDialog extends BGDialog {
 
   private JLabel jLabel = null;
 
-  private JTextField jTextField = null;
+  private JTextField templateField = null;
 
-  private JButton jButton = null;
+  private JButton templateButton = null;
 
   private JLabel jLabel1 = null;
 
@@ -78,7 +78,7 @@ public final class PrintingDialog extends BGDialog {
     super(parent);
     hero = character;
     initialize();
-    getJTextField().setText(hero.getPrintingTemplateFile());
+    getTemplateField().setText(hero.getPrintingTemplateFile());
     getOutputField().setText(hero.getPrintFile());
     this.setLocationRelativeTo(parent);
     this.setTitle("Drucken: " + hero.getName());
@@ -113,8 +113,8 @@ public final class PrintingDialog extends BGDialog {
       jLabel1.setBounds(14, 76, 83, 17);
       jLabel1.setText("Zieldatei:");
       jContentPane.add(jLabel, null);
-      jContentPane.add(getJTextField(), null);
-      jContentPane.add(getJButton(), null);
+      jContentPane.add(getTemplateField(), null);
+      jContentPane.add(getTemplateButton(), null);
       jContentPane.add(jLabel1, null);
       jContentPane.add(getOutputField(), null);
       jContentPane.add(getOutputButton(), null);
@@ -142,7 +142,7 @@ public final class PrintingDialog extends BGDialog {
   }
 
   private void updateButtons() {
-    boolean hasTemplate = getJTextField().getDocument().getLength() > 0;
+    boolean hasTemplate = getTemplateField().getDocument().getLength() > 0;
     boolean hasOutput = getOutputField().getDocument().getLength() > 0;
     getCreateButton().setEnabled(hasTemplate && hasOutput);
     getDisplayButton().setEnabled(hasOutput);
@@ -153,14 +153,14 @@ public final class PrintingDialog extends BGDialog {
    * 
    * @return javax.swing.JTextField
    */
-  private JTextField getJTextField() {
-    if (jTextField == null) {
-      jTextField = new JTextField();
-      jTextField.setBounds(14, 48, 331, 20);
-      jTextField.setName("templateFiled");
-      jTextField.getDocument().addDocumentListener(new MyTextFieldListener());
+  private JTextField getTemplateField() {
+    if (templateField == null) {
+      templateField = new JTextField();
+      templateField.setBounds(14, 48, 331, 20);
+      templateField.setName("templateFiled");
+      templateField.getDocument().addDocumentListener(new MyTextFieldListener());
     }
-    return jTextField;
+    return templateField;
   }
 
   /**
@@ -168,19 +168,19 @@ public final class PrintingDialog extends BGDialog {
    * 
    * @return javax.swing.JButton
    */
-  private JButton getJButton() {
-    if (jButton == null) {
-      jButton = new JButton();
-      jButton.setBounds(357, 47, 31, 22);
-      jButton.setText("...");
-      jButton.setName("templateButton");
-      jButton.addActionListener(new java.awt.event.ActionListener() {
+  private JButton getTemplateButton() {
+    if (templateButton == null) {
+      templateButton = new JButton();
+      templateButton.setBounds(357, 47, 31, 22);
+      templateButton.setText("...");
+      templateButton.setName("templateButton");
+      templateButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           selectTemplate();
         }
       });
     }
-    return jButton;
+    return templateButton;
   }
 
   /**
@@ -189,8 +189,8 @@ public final class PrintingDialog extends BGDialog {
    */
   protected void selectTemplate() {
     JFileChooser chooser = null;
-    if (getJTextField().getDocument().getLength() > 0) {
-      chooser = new JFileChooser(new File(getJTextField().getText()));
+    if (getTemplateField().getDocument().getLength() > 0) {
+      chooser = new JFileChooser(new File(getTemplateField().getText()));
     }
     else {
       File f = Directories.getLastUsedDirectory(this, "PrintingTemplates");
@@ -202,12 +202,20 @@ public final class PrintingDialog extends BGDialog {
     }
     chooser.setAcceptAllFileFilterUsed(true);
     chooser.setMultiSelectionEnabled(false);
-    dsa.gui.util.ExampleFileFilter filter = new dsa.gui.util.ExampleFileFilter();
-    filter.addExtension("rtf");
-    filter.setDescription("RTF-Dateien");
-    chooser.setFileFilter(filter);
+    ExampleFileFilter xmlFilter = new ExampleFileFilter();
+    xmlFilter.addExtension("xml");
+    xmlFilter.setDescription("XML-Dateien");
+    chooser.addChoosableFileFilter(xmlFilter);
+    ExampleFileFilter odtFilter = new ExampleFileFilter();
+    odtFilter.addExtension("odt");
+    odtFilter.setDescription("OpenDocument-Dateien");
+    chooser.addChoosableFileFilter(odtFilter);
+    dsa.gui.util.ExampleFileFilter rtfFilter = new dsa.gui.util.ExampleFileFilter();
+    rtfFilter.addExtension("rtf");
+    rtfFilter.setDescription("RTF-Dateien");
+    chooser.addChoosableFileFilter(rtfFilter);
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-      getJTextField().setText(chooser.getSelectedFile().getAbsolutePath());
+      getTemplateField().setText(chooser.getSelectedFile().getAbsolutePath());
       Directories.setLastUsedDirectory(this, "PrintingTemplates", chooser
           .getSelectedFile());
     }
@@ -266,8 +274,18 @@ public final class PrintingDialog extends BGDialog {
     }
     chooser.setAcceptAllFileFilterUsed(true);
     dsa.gui.util.ExampleFileFilter filter = new ExampleFileFilter();
-    filter.addExtension("rtf");
-    filter.setDescription("RTF-Dateien");
+    if (getTemplateField().getText().toLowerCase(java.util.Locale.GERMAN).trim().endsWith("xml")) {
+      filter.addExtension("xml");
+      filter.setDescription("XML-Dateien");
+    }
+    else if (getTemplateField().getText().toLowerCase(java.util.Locale.GERMAN).trim().endsWith("odt")) {
+      filter.addExtension("odt");
+      filter.setDescription("OpenDocument-Dateien");
+    }
+    else {
+      filter.addExtension("rtf");
+      filter.setDescription("RTF-Dateien");
+    }
     chooser.setFileFilter(filter);
     chooser.setMultiSelectionEnabled(false);
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -349,7 +367,7 @@ public final class PrintingDialog extends BGDialog {
    * 
    */
   protected void transform() {
-    File input = new File(getJTextField().getText());
+    File input = new File(getTemplateField().getText());
     File output = new File(getOutputField().getText());
     if (output.exists()) {
       if (JOptionPane.showConfirmDialog(PrintingDialog.this,

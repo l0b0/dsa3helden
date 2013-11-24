@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.List;
 
 import dsa.model.data.Animal;
+import dsa.model.data.ExtraThingData;
 
 /**
  * 
@@ -70,6 +71,8 @@ public interface Hero {
   void setAP(int ap);
 
   void changeAP(int mod);
+  
+  int getRemainingStepIncreases();
 
   boolean hasTalent(String talent);
 
@@ -103,7 +106,7 @@ public interface Hero {
 
   boolean hasPropertyChangeTry(Property property);
 
-  void setHasPropertyChangeTry(boolean goodProperty, boolean hasTry);
+  void removePropertyChangeTry(boolean goodProperty);
 
   boolean hasLEIncreaseTry();
 
@@ -259,6 +262,10 @@ public interface Hero {
   String[] getThings();
 
   void addThing(String name);
+  
+  void addThing(String name, ExtraThingData extraData);
+
+  ExtraThingData getExtraThingData(String thing, boolean inWarehouse, int thingNumber);
 
   void removeThing(String name);
 
@@ -331,6 +338,8 @@ public interface Hero {
   void setSoulAnimal(String animal);
 
   void addThingToWarehouse(String item);
+  
+  void addThingToWarehouse(String item, ExtraThingData extraData);
 
   int getThingInWarehouseCount(String item);
 
@@ -421,4 +430,6 @@ public interface Hero {
   void setFightUsesAU(boolean useAU);
 
   void changeAU(int difference);
+  
+  void fireWeightChanged();
 }

@@ -73,7 +73,7 @@ import dsa.util.Optional;
 /**
  * 
  */
-public class TalentFrame extends SubFrame implements CharactersObserver {
+class TalentFrame extends SubFrame implements CharactersObserver {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -82,7 +82,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
   /**
    * This is the default constructor
    */
-  public TalentFrame(String title, boolean enableTests) {
+  protected TalentFrame(String title, boolean enableTests) {
     super(title);
     setTitle(title);
     this.enableTests = enableTests;
@@ -113,7 +113,6 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
         }
       }
     });
-    initialize();
     // pack();
   }
 
@@ -777,7 +776,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
    * 
    * @return void
    */
-  private void initialize() {
+  protected void initialize() {
     this.setContentPane(getJContentPane());
     createUI();
   }

@@ -152,6 +152,16 @@ public class ShieldsTable extends AbstractTable {
       }
     }
   }
+  
+  public void removeShield(String shield) {
+    for (int i = 0; i < mModel.getRowCount(); ++i) {
+      if (mModel.getValueAt(i, getNameColumn()).equals(shield)) {
+        mModel.removeRow(i);
+        setSelectedRow((i > 0) ? i - 1 : 0);
+        return;
+      }
+    }    
+  }
 
   public void addShield(Shield shield) {
     addShield(shield, shield.getBF());

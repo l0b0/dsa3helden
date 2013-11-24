@@ -22,7 +22,12 @@ package dsa.gui.tables;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import dsa.model.data.ExtraThingData;
 
 public class ThingTransfer implements Transferable {
 
@@ -30,14 +35,17 @@ public class ThingTransfer implements Transferable {
     Thing, Weapon, Armour, Shield
   }
 
-  public ThingTransfer(Flavors flavor, String value) {
+  public ThingTransfer(Flavors flavor, String value, ExtraThingData extraData) {
     this.flavor = flavor;
     this.value = value;
+    this.extraData = extraData;
   }
 
   private final Flavors flavor;
 
   private final String value;
+  
+  private final ExtraThingData extraData;
 
   public static class ThingFlavor extends DataFlavor {
     public ThingFlavor(String mimeType, Flavors flavor)
@@ -113,7 +121,12 @@ public class ThingTransfer implements Transferable {
   public Object getTransferData(DataFlavor aFlavor)
       throws UnsupportedFlavorException, IOException {
     if (!isDataFlavorSupported(aFlavor)) return null;
-    return value;
+    StringWriter s = new StringWriter();
+    PrintWriter out = new PrintWriter(new BufferedWriter(s));
+    out.println(value);
+    extraData.store(out);
+    out.flush();
+    return s.toString();
   }
 
 }

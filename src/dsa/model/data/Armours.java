@@ -56,12 +56,15 @@ public class Armours {
 
   public void saveUserDefinedArmours(String filename) throws IOException {
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
+    out.println("*** User-Defined Armours ***");
+    out.println(2); // version    
     for (Armour armour : theArmours.values()) {
       if (armour.isUserDefined()) {
         out.println(armour.getName());
         out.println(armour.getRS());
         out.println(armour.getBE());
         out.println(armour.getWeight());
+        out.println(armour.getWorth());
       }
     }
     out.flush();
@@ -83,12 +86,29 @@ public class Armours {
       int lineNr = 0;
       String line = in.readLine();
       lineNr++;
+      if (line == null) return;
+      boolean hasVersion = line.equals("*** User-Defined Armours ***");
+      int version = 1;
+      if (hasVersion) {
+        line = in.readLine();
+        lineNr++;
+        try {
+          version = Integer.parseInt(line);
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Falsches Dateiformat in " + filename);
+        }
+        line = in.readLine();
+        lineNr++;
+      }
       while (line != null) {
         String name = line;
         line = in.readLine();
         lineNr++; // rs
         int rs = 1, be = 1;
-        if (line == null) throw new IOException("EOF statt RS!");
+        if (line == null) {
+          throw new IOException("EOF statt RS!");
+        }
         try {
           rs = Integer.parseInt(line);
         }
@@ -120,7 +140,19 @@ public class Armours {
         catch (NumberFormatException e) {
           throw new IOException("Zeile " + lineNr + ": Gewicht keine Zahl!");
         }
-        Armour armour = new Armour(name, rs, be, weight, userDefined);
+        int worth = 0;
+        if (!hasVersion || version > 1) {
+          line = in.readLine();
+          lineNr++;
+          if (line == null) throw new IOException("EOF statt Wert!");
+          try {
+            worth = Integer.parseInt(line);
+          }
+          catch (NumberFormatException e) {
+            throw new IOException("Zeile " + lineNr + ": Wert keine Zahl!");
+          }
+        }
+        Armour armour = new Armour(name, rs, be, weight, worth, userDefined);
         theArmours.put(name, armour);
         line = in.readLine();
         lineNr++;

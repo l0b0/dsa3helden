@@ -38,6 +38,7 @@ public abstract class AbstractSelectionDialog extends BGDialog {
 
   public interface SelectionDialogCallback {
     void itemSelected(String item);
+    void itemChanged(String item);
   }
 
   public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
@@ -90,6 +91,10 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   JButton closeButton;
 
   private SelectionDialogCallback callback = null;
+  
+  protected final SelectionDialogCallback getCallback() {
+    return callback;
+  }
 
   protected AbstractTable mTable;
 

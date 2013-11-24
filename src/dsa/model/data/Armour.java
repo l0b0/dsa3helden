@@ -28,18 +28,21 @@ public class Armour {
   int rs, be;
 
   int weight;
+  
+  int worth;
 
   boolean userDefined;
 
-  public Armour(String aName, int aRS, int aBE, int aWeight) {
-    this(aName, aRS, aBE, aWeight, true);
+  public Armour(String aName, int aRS, int aBE, int aWeight, int aWorth) {
+    this(aName, aRS, aBE, aWeight, aWorth, true);
   }
 
-  Armour(String aName, int aRS, int aBE, int aWeight, boolean ud) {
+  Armour(String aName, int aRS, int aBE, int aWeight, int aWorth, boolean ud) {
     name = aName;
     rs = aRS;
     be = aBE;
     weight = aWeight;
+    worth = aWorth;
     userDefined = ud;
   }
 
@@ -71,6 +74,10 @@ public class Armour {
   public int getWeight() {
     return weight;
   }
+  
+  public int getWorth() {
+    return worth;
+  }
 
   /**
    * @param i
@@ -91,6 +98,14 @@ public class Armour {
    */
   public void setRS(int i) {
     rs = i;
+  }
+  
+  public void setWorth(int i) {
+    worth = i;
+  }
+  
+  public void setWeight(int i) {
+    weight = i;
   }
 
 }

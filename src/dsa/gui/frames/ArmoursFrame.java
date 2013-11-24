@@ -35,6 +35,7 @@ import javax.swing.JPanel;
 import dsa.gui.dialogs.ArmourSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.ArmoursTable;
+import dsa.gui.tables.ThingTransfer;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
 import dsa.gui.util.OptionsChange.OptionsListener;
@@ -43,9 +44,40 @@ import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
+import dsa.model.data.ExtraThingData;
 
-public final class ArmoursFrame extends SubFrame implements CharactersObserver,
+public final class ArmoursFrame extends AbstractDnDFrame implements CharactersObserver,
     OptionsListener {
+
+  private final class ArmourSelectionCallback implements SelectionDialogCallback {
+    public void itemSelected(String item) {
+      if (Arrays.asList(currentHero.getArmours()).contains(item)) {
+        JOptionPane
+            .showMessageDialog(
+                ArmoursFrame.this,
+                "Ein Held kann jede Rüstung nur einfach tragen.\nDu kannst die Rüstung statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+                "Fehler", JOptionPane.WARNING_MESSAGE);
+        return;
+      }
+      currentHero.addArmour(item);
+      Armour armour = Armours.getInstance().getArmour(item);
+      if (armour != null)
+        mTable.addArmour(armour);
+      else
+        mTable.addUnknownArmour(item);
+      removeButton.setEnabled(true);
+      calcSums();
+    }
+
+    public void itemChanged(String item) {
+      if (mTable.containsItem(item)) {
+        mTable.removeArmour(item);
+        mTable.addArmour(Armours.getInstance().getArmour(item));
+        calcSums();
+        currentHero.fireWeightChanged();
+      }
+    }
+  }
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
     public void armourRemoved(String armour) {
@@ -56,7 +88,7 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public ArmoursFrame() {
-    super("Rüstungen");
+    super(ThingTransfer.Flavors.Armour, "Rüstungen");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     OptionsChange.addListener(ArmoursFrame.this);
@@ -101,6 +133,8 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
     panel.add(rightPanel, BorderLayout.EAST);
 
     this.setContentPane(panel);
+    
+    registerForDnD(mTable);
 
     updateData();
     mTable.restoreSortingState("Rüstungen");
@@ -117,7 +151,7 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
     if (sumLabel == null) {
       sumLabel = new JLabel("");
       sumLabel.setForeground(java.awt.Color.BLUE);
-      sumLabel.setBounds(5, 5, 280, 25);
+      sumLabel.setBounds(5, 5, 350, 25);
     }
     return sumLabel;
   }
@@ -143,26 +177,7 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
 
   protected void addArmour() {
     ArmourSelectionDialog dialog = new ArmourSelectionDialog(this);
-    dialog.setCallback(new SelectionDialogCallback() {
-      public void itemSelected(String item) {
-        if (Arrays.asList(currentHero.getArmours()).contains(item)) {
-          JOptionPane
-              .showMessageDialog(
-                  ArmoursFrame.this,
-                  "Ein Held kann jede Rüstung nur einfach tragen.\nDu kannst die Rüstung statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-                  "Fehler", JOptionPane.WARNING_MESSAGE);
-          return;
-        }
-        currentHero.addArmour(item);
-        Armour armour = Armours.getInstance().getArmour(item);
-        if (armour != null)
-          mTable.addArmour(armour);
-        else
-          mTable.addUnknownArmour(item);
-        removeButton.setEnabled(true);
-        calcSums();
-      }
-    });
+    dialog.setCallback(new ArmourSelectionCallback());
     dialog.setVisible(true);
   }
 
@@ -176,7 +191,7 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
           currentHero.removeArmour(name);
-          mTable.removeSelectedArmour();
+          //mTable.removeSelectedArmour();
           removeButton.setEnabled(currentHero.getArmours().length > 0);
           calcSums();
         }
@@ -187,14 +202,17 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
 
   private void calcSums() {
     int weight = 0;
+    int worth = 0;
     Armours armours = Armours.getInstance();
     for (String name : currentHero.getArmours()) {
       Armour armour = armours.getArmour(name);
       if (armour != null) {
         weight += armour.getWeight();
+        worth += armour.getWorth();
       }
     }
     float weightStones = weight / 40.0f;
+    float worthD = worth / 10.0f;
     NumberFormat format = NumberFormat.getNumberInstance();
     format.setGroupingUsed(true);
     format.setMaximumFractionDigits(3);
@@ -202,7 +220,8 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
     format.setMinimumIntegerDigits(1);
     sumLabel.setText("Gesamt:  RS " + currentHero.getRS() + "  BE "
         + currentHero.getBE() + "  Gewicht " + format.format(weightStones)
-        + " Stein");
+        + " Stein"
+        + "  Wert " + format.format(worthD) + " Dukaten");
   }
 
   private void updateData() {
@@ -252,5 +271,45 @@ public final class ArmoursFrame extends SubFrame implements CharactersObserver,
 
   public void optionsChanged() {
     updateData();
+  }
+
+  @Override
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    if (Arrays.asList(currentHero.getArmours()).contains(item)) {
+      JOptionPane
+          .showMessageDialog(
+              ArmoursFrame.this,
+              "Ein Held kann jede Rüstung nur einfach tragen.\nDu kannst die Rüstung statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+              "Fehler", JOptionPane.WARNING_MESSAGE);
+      return false;
+    }
+    Armour armour = Armours.getInstance().getArmour(item);
+    if (armour != null)
+      mTable.addArmour(armour);
+    else
+      return false;
+    currentHero.addArmour(item);
+    removeButton.setEnabled(true);
+    calcSums();
+    return true;
+  }
+
+  @Override
+  protected void removeItem(String item) {
+    currentHero.removeArmour(item);
+    removeButton.setEnabled(currentHero.getArmours().length > 0);
+    calcSums();
+  }
+
+  @Override
+  protected ExtraThingData getExtraDnDData(String item) {
+    ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Armour);
+    Armour armour = Armours.getInstance().getArmour(item);
+    if (armour != null) {
+      data.setProperty("Worth", armour.getWorth());
+      data.setProperty("Weight", armour.getWeight());
+      data.setProperty("Category", "Rüstung");
+    }
+    return data;
   }
 }

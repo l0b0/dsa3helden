@@ -45,6 +45,7 @@ public final class LanguageFrame extends TalentFrame {
   public LanguageFrame(String title) {
     super(title, false);
     loadSubclassState();
+    initialize();
   }
 
   private JCheckBox mCheckbox;

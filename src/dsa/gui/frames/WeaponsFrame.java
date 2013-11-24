@@ -31,6 +31,7 @@ import javax.swing.JPanel;
 
 import dsa.gui.dialogs.WeaponsSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.WeaponsTable;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
@@ -39,10 +40,11 @@ import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 
-public final class WeaponsFrame extends SubFrame implements CharactersObserver,
+public final class WeaponsFrame extends AbstractDnDFrame implements CharactersObserver,
     OptionsListener {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
@@ -58,7 +60,7 @@ public final class WeaponsFrame extends SubFrame implements CharactersObserver,
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public WeaponsFrame() {
-    super("Waffen");
+    super(ThingTransfer.Flavors.Weapon, "Waffen");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     OptionsChange.addListener(this);
@@ -98,6 +100,8 @@ public final class WeaponsFrame extends SubFrame implements CharactersObserver,
 
     this.setContentPane(panel);
 
+    registerForDnD(mTable);
+    
     updateData();
     mTable.restoreSortingState("Waffen");
     mTable.setFirstSelectedRow();
@@ -131,6 +135,9 @@ public final class WeaponsFrame extends SubFrame implements CharactersObserver,
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
         weaponSelected(item);
+      }
+      public void itemChanged(String item) {
+        weaponChanged(item);
       }
     });
     dialog.setVisible(true);
@@ -217,13 +224,63 @@ public final class WeaponsFrame extends SubFrame implements CharactersObserver,
     }
     String name = currentHero.addWeapon(item);
     if (weapon != null && currentHero.getWeaponCount(item) == 1) {
-      mTable.addWeapon(weapon, name, currentHero.getWeaponCount(name),
-          currentHero.getBF(name, 1));
+      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero.getWeaponCount(name));
     }
     else if (weapon != null)
       mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
     else
       mTable.addUnknownWeapon(item);
     removeButton.setEnabled(true);
+  }
+  
+  private void weaponChanged(String item) {
+    // for now, take the easy way ...
+    updateData();
+    currentHero.fireWeightChanged();
+  }
+
+  @Override
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    Weapon weapon = Weapons.getInstance().getWeapon(item);
+    if (weapon == null) {
+      return false;
+    }
+    String name = currentHero.addWeapon(item);
+    if (currentHero.getWeaponCount(item) == 1) {
+      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero.getWeaponCount(name));
+    }
+    else {
+      mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
+    }
+    if (extraData.getType() == ExtraThingData.Type.Weapon) {
+      try {
+        currentHero.setBF(name, 0, extraData.getPropertyInt("BF"));
+      }
+      catch (ExtraThingData.PropertyException e) {
+        e.printStackTrace();
+      }
+    }
+    removeButton.setEnabled(true);
+    return true;
+  }
+
+  @Override
+  protected void removeItem(String item) {
+    currentHero.removeWeapon(item);
+    removeButton.setEnabled(currentHero.getWeapons().length > 0);
+    updateData();
+  }
+
+  @Override
+  protected ExtraThingData getExtraDnDData(String item) {
+    ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Weapon);
+    data.setProperty("BF", currentHero.getBF(item, 1));
+    Weapon weapon = Weapons.getInstance().getWeapon(item);
+    if (weapon != null) {
+      data.setProperty("Worth", weapon.getWorth().hasValue() ? weapon.getWorth().getValue() : 0);
+      data.setProperty("Weight", weapon.getWeight());
+      data.setProperty("Category", "Waffe");
+    }
+    return data;
   }
 }

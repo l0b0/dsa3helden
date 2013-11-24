@@ -19,6 +19,12 @@
  */
 package dsa.gui.dialogs;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+
 import dsa.gui.lf.BGDialog;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
@@ -41,6 +47,8 @@ public final class ErrorHandlingDialog extends BGDialog {
   private JButton quitButton = null;
 
   private Exception error;
+
+  private JButton copyButton = null;
 
   /**
    * This method initializes
@@ -89,6 +97,7 @@ public final class ErrorHandlingDialog extends BGDialog {
       jContentPane.add(getMailButton(), null);
       jContentPane.add(getContinueButton(), null);
       jContentPane.add(getQuitButton(), null);
+      jContentPane.add(getJButton(), null);
     }
     return jContentPane;
   }
@@ -117,7 +126,7 @@ public final class ErrorHandlingDialog extends BGDialog {
   private JButton getMailButton() {
     if (mailButton == null) {
       mailButton = new JButton();
-      mailButton.setBounds(new java.awt.Rectangle(121, 195, 151, 26));
+      mailButton.setBounds(new java.awt.Rectangle(50,195,150,25));
       mailButton.setText("E-Mail senden");
       mailButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -163,7 +172,7 @@ public final class ErrorHandlingDialog extends BGDialog {
   private JButton getContinueButton() {
     if (continueButton == null) {
       continueButton = new JButton();
-      continueButton.setBounds(new java.awt.Rectangle(11, 235, 191, 26));
+      continueButton.setBounds(new java.awt.Rectangle(10, 235, 190, 25));
       continueButton.setText("Versuchen, fortzusetzen");
       continueButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -182,7 +191,7 @@ public final class ErrorHandlingDialog extends BGDialog {
   private JButton getQuitButton() {
     if (quitButton == null) {
       quitButton = new JButton();
-      quitButton.setBounds(new java.awt.Rectangle(220, 235, 191, 26));
+      quitButton.setBounds(new java.awt.Rectangle(220, 235, 190, 25));
       quitButton.setText("Programm beenden");
       quitButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -192,6 +201,52 @@ public final class ErrorHandlingDialog extends BGDialog {
       });
     }
     return quitButton;
+  }
+
+  /**
+   * This method initializes jButton	
+   * 	
+   * @return javax.swing.JButton	
+   */
+  private JButton getJButton() {
+    if (copyButton == null) {
+      copyButton = new JButton();
+      copyButton.setBounds(new java.awt.Rectangle(220,195,175,25));
+      copyButton.setText("In Zw.Ablage kopieren");
+      copyButton.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+          copyToClipboard();
+        }
+      });
+    }
+    return copyButton;
+  }
+  
+  private static final class TextTransfer implements ClipboardOwner {
+
+    public void lostOwnership(Clipboard clipboard, Transferable contents) {
+    }
+    
+    public void setClipboardContents(String aString) {
+      StringSelection stringSelection = new StringSelection(aString);
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(stringSelection, this);
+    }
+    
+  }
+
+  private void copyToClipboard() {
+    String text = "Fehler aufgetreten in Heldenverwaltung "
+      + dsa.control.Version.getCurrentVersionString()
+      + "\nFehlermeldung: "
+      + error.getLocalizedMessage()
+      + "\nStack trace:\n";
+    StackTraceElement[] stackTrace = error.getStackTrace();
+    for (StackTraceElement ste : stackTrace) {
+      text += ste.toString() + "\n";
+    }
+    TextTransfer tt = new TextTransfer();
+    tt.setClipboardContents(text);
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

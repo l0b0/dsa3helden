@@ -42,6 +42,7 @@ public class SpecialTalentsFrame extends TalentFrame {
 
   public SpecialTalentsFrame(String title) {
     super(title, true);
+    initialize();
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {

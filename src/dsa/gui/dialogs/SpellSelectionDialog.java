@@ -71,6 +71,7 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
     lowerPanel.add(getDeleteButton());
+    lowerPanel.add(getEditButton());
     mTable.addSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent e) {
         if (!listen) return;
@@ -82,6 +83,8 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
   private JButton newButton;
 
   private JButton deleteButton;
+  
+  private JButton editButton;
 
   private JButton getNewButton() {
     if (newButton == null) {
@@ -100,6 +103,28 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
       });
     }
     return newButton;
+  }
+
+  private JButton getEditButton() {
+    if (editButton == null) {
+      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton.setToolTipText("Zauber bearbeiten");
+      editButton.setBounds(405, 5, 40, 25);
+      editButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Spell spell = (Spell) Talents.getInstance().getTalent(mTable.getSelectedItem());
+          if (spell == null) return;
+          SpellDialog dialog = new SpellDialog(SpellSelectionDialog.this, spell);
+          dialog.setVisible(true);
+          if (dialog.getCreatedSpell() != null) {
+            ((SpellTable) mTable).removeSelectedSpell();
+            Talents.getInstance().addUserSpell(dialog.getCreatedSpell());
+            ((SpellTable) mTable).addSpell(dialog.getCreatedSpell());
+          }
+        }
+      });
+    }
+    return editButton;
   }
 
   private JButton getDeleteButton() {
@@ -136,9 +161,11 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
       Talent t = Talents.getInstance().getTalent(spell);
       if (t instanceof Spell) {
         getDeleteButton().setEnabled(((Spell)t).isUserDefined());
+        getEditButton().setEnabled(((Spell) t).isUserDefined());
         return;
       }
     }
     getDeleteButton().setEnabled(false);
+    getEditButton().setEnabled(false);
   }
 }

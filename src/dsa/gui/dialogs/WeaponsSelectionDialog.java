@@ -57,6 +57,7 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
     lowerPanel.add(getDeleteButton());
+    lowerPanel.add(getEditButton());
     mTable.addSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent e) {
         if (!listen) return;
@@ -68,6 +69,8 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
   private JButton newButton;
 
   private JButton deleteButton;
+  
+  private JButton editButton;
 
   private JButton getNewButton() {
     if (newButton == null) {
@@ -86,6 +89,30 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
       });
     }
     return newButton;
+  }
+
+  private JButton getEditButton() {
+    if (editButton == null) {
+      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton.setToolTipText("Waffe bearbeiten");
+      editButton.setBounds(405, 5, 40, 25);
+      editButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Weapon weapon = Weapons.getInstance().getWeapon(mTable.getSelectedItem());
+          if (weapon == null) return;
+          WeaponDialog dialog = new WeaponDialog(WeaponsSelectionDialog.this, weapon);
+          dialog.setVisible(true);
+          if (dialog.getCreatedWeapon() != null) {
+            ((WeaponsTable) mTable).removeWeapon(weapon.getName());
+            ((WeaponsTable) mTable).addWeapon(weapon, 1);
+            if (getCallback() != null) {
+              getCallback().itemChanged(weapon.getName());
+            }
+          }
+        }
+      });
+    }
+    return editButton;
   }
 
   private JButton getDeleteButton() {
@@ -120,9 +147,10 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
 
   private void updateDeleteButton() {
     String weapon = mTable.getSelectedItem();
-    getDeleteButton().setEnabled(
-        weapon != null && weapon.length() > 0
-            && Weapons.getInstance().getWeapon(weapon).isUserDefined());
+    boolean enabled = weapon != null && weapon.length() > 0
+                    && Weapons.getInstance().getWeapon(weapon).isUserDefined();
+    getDeleteButton().setEnabled(enabled);
+    getEditButton().setEnabled(enabled);
   }
 
 }

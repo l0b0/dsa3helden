@@ -267,8 +267,17 @@ public class Weapons {
             distMods[i] = parseInt(st.nextToken(), lineNr);
           }
         }
+        line = in.readLine();
+        lineNr++;
+        if (line == null) 
+          throw new IOException("Unerwartetes Dateiende in " + filename);
+        Optional<Integer> worth = Optional.NULL_INT;
+        if (!("-".equals(line.trim()))) {
+          int w = parseInt(line, lineNr);
+          worth = new Optional<Integer>(w);
+        }
         Weapon weapon = new Weapon(w6d, constd, category, name, bf, kkzuschlag,
-            weight, false, twoHanded, projectile);
+            weight, false, twoHanded, projectile, worth);
         if (projectile) {
           weapon.setDistanceMods(distMods);
           weapon.setDistances(distances);

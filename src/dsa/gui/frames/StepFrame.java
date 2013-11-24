@@ -69,6 +69,8 @@ public final class StepFrame extends SubFrame implements CharactersObserver {
   private JTextField rufField = null;
 
   private JLabel missingLabel = null;
+  
+  private JLabel remainingStepsLabel = null;
 
   /**
    * This method initializes
@@ -157,6 +159,8 @@ public final class StepFrame extends SubFrame implements CharactersObserver {
       jLabel.setText("AbenteuerPunkte:");
       missingLabel = new JLabel("");
       missingLabel.setBounds(new java.awt.Rectangle(218, 71, 110, 22));
+      remainingStepsLabel = new JLabel("");
+      remainingStepsLabel.setBounds(new java.awt.Rectangle(218, 40, 110, 22));
       jContentPane = new JPanel();
       jContentPane.setLayout(null);
       jContentPane.add(jLabel, null);
@@ -177,6 +181,7 @@ public final class StepFrame extends SubFrame implements CharactersObserver {
       jContentPane.add(freeTriesLabel, null);
       jContentPane.add(getClearButton(), null);
       jContentPane.add(missingLabel, null);
+      jContentPane.add(remainingStepsLabel, null);
     }
     return jContentPane;
   }
@@ -271,25 +276,11 @@ public final class StepFrame extends SubFrame implements CharactersObserver {
       return;
     }
     int currentStep = currentHero.getStep();
-    int currentAP = currentHero.getAP();
-    if (currentAP + ap >= (currentStep + 1) * (currentStep + 2) * 50) {
-      JOptionPane
-          .showMessageDialog(
-              this,
-              "Mit so vielen AP auf einmal steigt der Held gleich mindestens 2 Stufen!\n"
-                  + "Das wird leider nicht unterstützt. Teile die AP bitte auf und steigere die Stufen separat.",
-              "Fehler", JOptionPane.WARNING_MESSAGE);
-      return;
-    }
     currentHero.changeAP(ap);
-    apField.setText("" + currentHero.getAP());
-    missingLabel
-        .setText("("
-            + (currentHero.getStep() * (currentHero.getStep() + 1) * 50 - currentHero
-                .getAP()) + " AP fehlen)");
+    updateData();
     if (currentHero.getStep() > currentStep) {
       JOptionPane.showMessageDialog(this, currentHero.getName()
-          + " ist gerade auf Stufe " + (currentStep + 1) + " gestiegen!",
+          + " ist gerade auf Stufe " + currentHero.getStep() + " gestiegen!",
           "Stufenanstieg", JOptionPane.INFORMATION_MESSAGE);
     }
   }
@@ -408,6 +399,12 @@ public final class StepFrame extends SubFrame implements CharactersObserver {
           .setText("("
               + (currentHero.getStep() * (currentHero.getStep() + 1) * 50 - currentHero
                   .getAP()) + " AP fehlen)");
+      if (currentHero.getRemainingStepIncreases() > 0) {
+        remainingStepsLabel.setText("(" + currentHero.getRemainingStepIncreases() + " zu steigern)");
+      }
+      else {
+        remainingStepsLabel.setText("");
+      }
     }
     else {
       apField.setText("");

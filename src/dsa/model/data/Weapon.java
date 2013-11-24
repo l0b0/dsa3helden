@@ -50,13 +50,15 @@ public class Weapon implements Cloneable {
   private boolean userDefined;
 
   private boolean projectile;
+  
+  private Optional<Integer> worth;
 
   /**
    * 
    */
   public Weapon() {
     this(1, 0, 0, "unbenannt", 0, new Optional<Integer>(20), 0, false, false,
-        false);
+        false, Optional.NULL_INT);
   }
 
   public boolean isProjectileWeapon() {
@@ -106,8 +108,12 @@ public class Weapon implements Cloneable {
     this.distances = new int[distances.length];
     System.arraycopy(distances, 0, this.distances, 0, distances.length);
   }
+  
+  public Optional<Integer> getWorth() {
+    return worth;
+  }
 
-  private static final int FILE_VERSION = 4;
+  private static final int FILE_VERSION = 5;
 
   public void writeToStream(PrintWriter out) throws IOException {
     out.println(FILE_VERSION);
@@ -132,6 +138,7 @@ public class Weapon implements Cloneable {
         out.println(distanceMods[i]);
       }
     }
+    out.println(worth.hasValue() ? worth.getValue() : "-");
     out.println("-- End of Weapon --");
   }
 
@@ -231,6 +238,20 @@ public class Weapon implements Cloneable {
     }
     else
       projectile = false;
+    if (version >= 5) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      if ("-".equals(line)) {
+        worth = Optional.NULL_INT;
+      }
+      else {
+        int w = parseInt(line, lineNr);
+        worth = new Optional<Integer>(w);
+      }
+    }
+    else
+      worth = Optional.NULL_INT;
     if (version < 3) {
       Weapon w = Weapons.getInstance().getWeapon(name);
       if (w != null) {
@@ -260,7 +281,7 @@ public class Weapon implements Cloneable {
 
   public Weapon(int w6d, int constD, int t, String n, int aBF,
       Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
-      boolean projectile) {
+      boolean projectile, Optional<Integer> worth) {
     w6damage = w6d;
     constDamage = constD;
     type = t;
@@ -271,6 +292,7 @@ public class Weapon implements Cloneable {
     this.userDefined = userDefined;
     this.twoHanded = twoHanded;
     this.projectile = projectile;
+    this.worth = worth;
   }
 
   public Object clone() throws CloneNotSupportedException {
@@ -320,7 +342,7 @@ public class Weapon implements Cloneable {
   }
 
   static final Weapon FIST = new Weapon(1, 0, 0, "Faust", 0,
-      new Optional<Integer>(17), 0, false, false, false);
+      new Optional<Integer>(17), 0, false, false, false, Optional.NULL_INT);
 
   /**
    * @return
@@ -364,6 +386,10 @@ public class Weapon implements Cloneable {
     type = i;
   }
 
+  public void setProjectile(boolean projectile) {
+    this.projectile = projectile;
+  }
+
   public int getWeight() {
     return weight;
   }
@@ -380,6 +406,18 @@ public class Weapon implements Cloneable {
 
   public boolean isTwoHanded() {
     return twoHanded;
+  }
+  
+  public void setWorth(Optional<Integer> w) {
+    worth = w;
+  }
+
+  public void setTwoHanded(boolean twoHanded) {
+    this.twoHanded = twoHanded;
+  }
+
+  public void setWeight(int weight) {
+    this.weight = weight;
   }
 
 }

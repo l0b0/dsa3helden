@@ -34,15 +34,46 @@ import javax.swing.JPanel;
 import dsa.gui.dialogs.ShieldSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.ShieldsTable;
+import dsa.gui.tables.ThingTransfer;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
 
-public final class ShieldsFrame extends SubFrame implements CharactersObserver {
+public final class ShieldsFrame extends AbstractDnDFrame implements CharactersObserver {
+
+  private final class ShieldSelectionCallback implements SelectionDialogCallback {
+    public void itemSelected(String item) {
+      if (Arrays.asList(currentHero.getShields()).contains(item)) {
+        JOptionPane
+            .showMessageDialog(
+                ShieldsFrame.this,
+                "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+                "Fehler", JOptionPane.WARNING_MESSAGE);
+        return;
+      }
+      currentHero.addShield(item);
+      Shield shield = Shields.getInstance().getShield(item);
+      if (shield != null)
+        mTable.addShield(shield);
+      else
+        mTable.addUnknownShield(item);
+      removeButton.setEnabled(true);
+      calcSums();
+    }
+
+    public void itemChanged(String item) {
+      if (mTable.containsItem(item)) {
+        mTable.removeShield(item);
+        mTable.addShield(Shields.getInstance().getShield(item));
+        currentHero.fireWeightChanged();
+      }
+    }
+  }
 
   private class MyObserver extends CharacterAdapter {
     public void bfChanged(String item) {
@@ -57,7 +88,7 @@ public final class ShieldsFrame extends SubFrame implements CharactersObserver {
   private final MyObserver myObserver = new MyObserver();
 
   public ShieldsFrame() {
-    super("Parade");
+    super(ThingTransfer.Flavors.Shield, "Parade");
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) currentHero.addHeroObserver(myObserver);
     Group.getInstance().addObserver(this);
@@ -97,6 +128,8 @@ public final class ShieldsFrame extends SubFrame implements CharactersObserver {
     panel.add(rightPanel, BorderLayout.EAST);
 
     this.setContentPane(panel);
+    
+    registerForDnD(mTable);
 
     updateData();
     mTable.restoreSortingState("Parade");
@@ -139,26 +172,7 @@ public final class ShieldsFrame extends SubFrame implements CharactersObserver {
 
   protected void addShield() {
     ShieldSelectionDialog dialog = new ShieldSelectionDialog(this);
-    dialog.setCallback(new SelectionDialogCallback() {
-      public void itemSelected(String item) {
-        if (Arrays.asList(currentHero.getShields()).contains(item)) {
-          JOptionPane
-              .showMessageDialog(
-                  ShieldsFrame.this,
-                  "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-                  "Fehler", JOptionPane.WARNING_MESSAGE);
-          return;
-        }
-        currentHero.addShield(item);
-        Shield shield = Shields.getInstance().getShield(item);
-        if (shield != null)
-          mTable.addShield(shield);
-        else
-          mTable.addUnknownShield(item);
-        removeButton.setEnabled(true);
-        calcSums();
-      }
-    });
+    dialog.setCallback(new ShieldSelectionCallback());
     dialog.setVisible(true);
   }
 
@@ -236,5 +250,43 @@ public final class ShieldsFrame extends SubFrame implements CharactersObserver {
   }
 
   public void globalLockChanged() {
+  }
+
+  @Override
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    if (Arrays.asList(currentHero.getShields()).contains(item)) {
+      JOptionPane
+          .showMessageDialog(
+              ShieldsFrame.this,
+              "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+              "Fehler", JOptionPane.WARNING_MESSAGE);
+      return false;
+    }
+    Shield shield = Shields.getInstance().getShield(item);
+    if (shield != null)
+      mTable.addShield(shield);
+    else
+      return false;
+    currentHero.addShield(item);
+    removeButton.setEnabled(true);
+    calcSums();
+    return true;
+  }
+
+  @Override
+  protected void removeItem(String item) {
+    currentHero.removeShield(item);
+  }
+
+  @Override
+  protected ExtraThingData getExtraDnDData(String item) {
+    ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Shield);
+    Shield shield = Shields.getInstance().getShield(item);
+    if (shield != null) {
+      data.setProperty("Worth", shield.getWorth());
+      data.setProperty("Weight", shield.getWeight());
+      data.setProperty("Category", shield.getFkMod() > 0 ? "Rüstung" : "Waffe");
+    }
+    return data;
   }
 }

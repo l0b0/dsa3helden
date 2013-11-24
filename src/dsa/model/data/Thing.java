@@ -166,4 +166,20 @@ public class Thing {
   public String getCategory() {
     return category;
   }
+
+  public void setCategory(String category) {
+    this.category = category;
+  }
+
+  public void setCurrency(Currency currency) {
+    this.currency = currency;
+  }
+
+  public void setValue(Optional<Integer> value) {
+    this.value = value;
+  }
+
+  public void setWeight(int weight) {
+    this.weight = weight;
+  }
 }

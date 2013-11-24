@@ -52,6 +52,10 @@ public class ArmoursTable extends AbstractTable {
   int getWeightColumn() {
     return 3;
   }
+  
+  int getWorthColumn() {
+    return 4;
+  }
 
   static final Optional<Integer> NULL_INT = Optional.NULL_INT;
 
@@ -77,12 +81,14 @@ public class ArmoursTable extends AbstractTable {
     mModel.addColumn("RS");
     mModel.addColumn("BE");
     mModel.addColumn("Gewicht");
+    mModel.addColumn("Wert (S)");
 
     DefaultTableColumnModel tcm = new DefaultTableColumnModel();
     tcm.addColumn(new TableColumn(0, 140));
     tcm.addColumn(new TableColumn(1, 25));
     tcm.addColumn(new TableColumn(2, 25));
     tcm.addColumn(new TableColumn(3, 40));
+    tcm.addColumn(new TableColumn(4, 40));
 
     mSorter = new TableSorter(mModel);
     mTable = new JTable(mSorter, tcm);
@@ -140,21 +146,23 @@ public class ArmoursTable extends AbstractTable {
   }
 
   public void addArmour(Armour armour) {
-    Object[] rowData = new Object[4];
+    Object[] rowData = new Object[5];
     rowData[getNameColumn()] = armour.getName();
     rowData[getRSColumn()] = armour.getRS();
     rowData[getBEColumn()] = armour.getBE();
     rowData[getWeightColumn()] = armour.getWeight();
+    rowData[getWorthColumn()] = new Optional<Integer>(armour.getWorth());
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
   }
 
   public void addUnknownArmour(String name) {
-    Object[] rowData = new Object[4];
+    Object[] rowData = new Object[5];
     rowData[getNameColumn()] = name;
     rowData[getRSColumn()] = NULL_INT;
     rowData[getBEColumn()] = NULL_INT;
     rowData[getWeightColumn()] = NULL_INT;
+    rowData[getWorthColumn()] = NULL_INT;
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
   }

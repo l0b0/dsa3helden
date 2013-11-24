@@ -429,7 +429,7 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
         }
       }
       if (!lock.isSelected() && !Group.getInstance().getGlobalUnlock()) {
-        hero.setHasPropertyChangeTry(goodProperty, false);
+        hero.removePropertyChangeTry(goodProperty);
       }
       updateData();
     }

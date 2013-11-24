@@ -99,4 +99,36 @@ public class Shield {
   public boolean isUserDefined() {
     return userDefined;
   }
+
+  public void setAtMod(int atMod) {
+    this.atMod = atMod;
+  }
+
+  public void setBeMod(int beMod) {
+    this.beMod = beMod;
+  }
+
+  public void setBF(int abf) {
+    this.bf = abf;
+  }
+
+  public void setFkMod(int fkMod) {
+    this.fkMod = fkMod;
+  }
+
+  public void setPaMod(int paMod) {
+    this.paMod = paMod;
+  }
+
+  public void setPaMod2(int paMod2) {
+    this.paMod2 = paMod2;
+  }
+
+  public void setWeight(int weight) {
+    this.weight = weight;
+  }
+
+  public void setWorth(int worth) {
+    this.worth = worth;
+  }
 }

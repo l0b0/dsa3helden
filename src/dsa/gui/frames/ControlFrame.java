@@ -1649,7 +1649,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         else if (category.startsWith("Kampf"))
           frame = new FightingTalentsFrame(category);
         else
-          frame = new TalentFrame(category, true);
+          frame = new NormalTalentFrame(category);
         frame.addWindowListener(new WindowAdapter() {
           public void windowClosing(java.awt.event.WindowEvent e) {
             button.setSelected(false);

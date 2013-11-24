@@ -99,6 +99,15 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
     if (mTable.getRowCount() == 0) return null;
     return (String) mSorter.getValueAt(row, getNameColumn());
   }
+  
+  public boolean containsItem(String item) {
+    for (int row = 0; row < mTable.getRowCount(); ++row) {
+      if (mSorter.getValueAt(row, getNameColumn()).equals(item)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   protected abstract int getNameColumn();
 

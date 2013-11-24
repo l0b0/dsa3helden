@@ -88,6 +88,20 @@ public final class SpellDialog extends BGDialog {
     initialize();
     setLocationRelativeTo(owner);
   }
+  
+  public SpellDialog(JDialog owner, Spell spell) {
+    super(owner, true);
+    initialize();
+    setLocationRelativeTo(owner);
+    this.spell = spell;
+    nameField.setText(spell.getName());
+    nameField.setEnabled(false);
+    originCombo.setSelectedItem(spell.getOrigin());
+    property1Combo.setSelectedIndex(spell.getFirstProperty().ordinal());
+    property2Combo.setSelectedIndex(spell.getSecondProperty().ordinal());
+    property3Combo.setSelectedIndex(spell.getThirdProperty().ordinal());
+    categoryCombo.setSelectedItem(spell.getCategory());
+  }
 
   public Spell getCreatedSpell() {
     return spell;
@@ -290,24 +304,30 @@ public final class SpellDialog extends BGDialog {
   }
 
   protected boolean createSpell() {
-    spell = null;
     String name = nameField.getText();
-    if (name == null || name.length() == 0) {
-      JOptionPane.showMessageDialog(this, "Der Zauber muss einen Namen haben.",
-          "Fehler", JOptionPane.ERROR_MESSAGE);
-      return false;
-    }
-    if (Talents.getInstance().getTalent(name) != null) {
-      JOptionPane.showMessageDialog(this,
-          "Ein Talent oder Zauber mit diesem Namen existiert bereits.",
-          "Fehler", JOptionPane.ERROR_MESSAGE);
-      return false;
+    boolean createSpell = nameField.isEnabled();
+    if (createSpell) {
+      spell = null;
+      if (name == null || name.length() == 0) {
+        JOptionPane.showMessageDialog(this, "Der Zauber muss einen Namen haben.",
+            "Fehler", JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+      if (Talents.getInstance().getTalent(name) != null) {
+        JOptionPane.showMessageDialog(this,
+            "Ein Talent oder Zauber mit diesem Namen existiert bereits.",
+            "Fehler", JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
     }
     Property p1 = (Property) property1Combo.getSelectedItem();
     Property p2 = (Property) property2Combo.getSelectedItem();
     Property p3 = (Property) property3Combo.getSelectedItem();
     String category = (String) categoryCombo.getSelectedItem();
     String origin = (String) originCombo.getSelectedItem();
+    if (!createSpell) {
+      Talents.getInstance().removeUserSpell(spell.getName());
+    }
     spell = DataFactory.getInstance().createUserDefinedSpell(name, p1, p2, p3,
         category, origin);
     return true;

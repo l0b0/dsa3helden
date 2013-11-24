@@ -23,8 +23,6 @@ import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
 
-// import net.sourceforge.napkinlaf.NapkinLookAndFeel;
-
 import dsa.gui.frames.ControlFrame;
 import dsa.gui.frames.SubFrame;
 import dsa.gui.lf.LookAndFeels;
@@ -41,8 +39,7 @@ import dsa.model.data.Shields;
 import dsa.model.data.Talents;
 import dsa.model.data.Things;
 import dsa.model.data.Weapons;
-
-// import dsa.data.Armours;
+import dsa.model.data.Armours;
 
 /**
  * 
@@ -98,7 +95,8 @@ public class Main {
       Talents.getInstance().loadUserSpells(dirPath + "Eigene_Zauber.dat");
       Currencies.getInstance().readCurrencies(dirPath + "Waehrungen.dat");
       // Armours.getInstance().loadFile(dirPath + "Ruestungen.dat");
-      Weapons.getInstance().loadFile(dirPath + "Waffen.dat");
+      Armours.getInstance().loadUserDefinedArmours(dirPath + "Eigene_Ruestungen.dat");
+      //Weapons.getInstance().loadFile(dirPath + "Waffen.dat");
       Weapons.getInstance().loadUserDefinedWeapons(
           dirPath + "Eigene_Waffen.dat");
       Things.getInstance().loadFile(dirPath + "Ausruestung.dat");

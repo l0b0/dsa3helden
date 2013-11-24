@@ -58,6 +58,7 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
     lowerPanel.add(getDeleteButton());
+    lowerPanel.add(getEditButton());
     mTable.addSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent e) {
         if (!listen) return;
@@ -69,6 +70,8 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
   private JButton newButton;
 
   private JButton deleteButton;
+  
+  private JButton editButton;
 
   private JButton getNewButton() {
     if (newButton == null) {
@@ -87,6 +90,30 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
       });
     }
     return newButton;
+  }
+
+  private JButton getEditButton() {
+    if (editButton == null) {
+      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton.setToolTipText("Schild / Parierwaffe bearbeiten");
+      editButton.setBounds(405, 5, 40, 25);
+      editButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Shield shield = Shields.getInstance().getShield(mTable.getSelectedItem());
+          if (shield == null) return;
+          ShieldDialog dialog = new ShieldDialog(ShieldSelectionDialog.this, shield);
+          dialog.setVisible(true);
+          if (dialog.getCreatedShield() != null) {
+            ((ShieldsTable) mTable).removeShield(shield.getName());
+            ((ShieldsTable) mTable).addShield(shield);
+            if (getCallback() != null) {
+              getCallback().itemChanged(shield.getName());
+            }
+          }
+        }
+      });
+    }
+    return editButton;
   }
 
   private JButton getDeleteButton() {
@@ -121,9 +148,10 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
 
   private void updateDeleteButton() {
     String shield = mTable.getSelectedItem();
-    getDeleteButton().setEnabled(
-        shield != null && shield.length() > 0
-            && Shields.getInstance().getShield(shield).isUserDefined());
+    boolean enabled = shield != null && shield.length() > 0
+                    && Shields.getInstance().getShield(shield).isUserDefined();
+    getDeleteButton().setEnabled(enabled);
+    getEditButton().setEnabled(enabled);
   }
 
 }

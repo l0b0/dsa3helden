@@ -278,6 +278,7 @@ public class CharacterPrinter {
 
     FileTransformer transformer = new FileTransformer(template, output);
     transformer.setLookupTable(table);
+    transformer.setXMLAwareness(template.getName().toLowerCase(java.util.Locale.GERMAN).trim().endsWith(".xml"));
     transformer.transform(parent, message);
   }
 
@@ -582,7 +583,7 @@ public class CharacterPrinter {
         pa -= Math.round(actualBE / 2.0f);
         at -= (int) Math.floor(actualBE / 2.0f);
         if (!weapon.isTwoHanded()
-            && !character.getFightMode().equals("Zwei Waffen")) {
+            && !"Zwei Waffen".equals(character.getFightMode())) {
           at += shieldATMod;
           pa += shieldPAMod;
         }

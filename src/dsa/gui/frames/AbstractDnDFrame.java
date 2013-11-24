@@ -24,13 +24,16 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 
 import dsa.gui.tables.AbstractTable;
 import dsa.gui.tables.ThingTransfer;
+import dsa.model.data.ExtraThingData;
 
 abstract class AbstractDnDFrame extends SubFrame {
 
@@ -39,9 +42,11 @@ abstract class AbstractDnDFrame extends SubFrame {
     mFlavor = flavor;
   }
 
-  protected abstract boolean addItem(String item);
+  protected abstract boolean addItem(String item, ExtraThingData extraData);
 
   protected abstract void removeItem(String item);
+  
+  protected abstract ExtraThingData getExtraDnDData(String item);
 
   protected final void registerForDnD(AbstractTable table) {
     table.setTransferHandler(new ThingTransferHandler(table));
@@ -61,18 +66,24 @@ abstract class AbstractDnDFrame extends SubFrame {
     private String targetValue;
 
     private AbstractTable mTable;
+    
+    private boolean dragStartedHere;
 
     public ThingTransferHandler(AbstractTable table) {
       mTable = table;
+      dragStartedHere = false;
     }
 
     protected Transferable createTransferable(JComponent c) {
       if (mTable.getSelectedItem() == null) return null;
       targetValue = mTable.getSelectedItem();
-      return new ThingTransfer(mFlavor, mTable.getSelectedItem());
+      ExtraThingData data = getExtraDnDData(targetValue);
+      dragStartedHere = true;
+      return new ThingTransfer(mFlavor, mTable.getSelectedItem(), data);
     }
 
     protected void exportDone(JComponent source, Transferable data, int action) {
+      dragStartedHere = false;
       if (action != MOVE) return;
       if (targetValue == null) throw new InternalError();
       removeItem(targetValue);
@@ -101,11 +112,19 @@ abstract class AbstractDnDFrame extends SubFrame {
     }
 
     public boolean importData(JComponent comp, Transferable t) {
+      if (dragStartedHere) {
+        return false;
+      }
       try {
         Object o = t.getTransferData(ThingTransfer.THING_FLAVOR);
         if (o == null) return false;
-        targetValue = o.toString();
-        return addItem(targetValue);
+        String data = o.toString();
+        StringReader r = new StringReader(data);
+        BufferedReader in = new BufferedReader(r);
+        targetValue = in.readLine();
+        ExtraThingData extraData = new ExtraThingData();
+        extraData.read(in, 0);
+        return addItem(targetValue, extraData);
       }
       catch (UnsupportedFlavorException e) {
         return false;

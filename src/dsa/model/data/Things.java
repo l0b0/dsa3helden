@@ -29,8 +29,18 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-public class Things {
+import dsa.util.AbstractObservable;
+import dsa.util.Observer;
 
+interface ThingsListenerBase extends Observer {
+  void thingChanged(String thing);
+}
+
+public class Things extends AbstractObservable<ThingsListenerBase> {
+  
+  public static interface ThingsListener extends ThingsListenerBase {
+  }
+  
   private static Things instance = new Things();
 
   private final java.util.HashMap<String, Thing> theThings;
@@ -79,6 +89,12 @@ public class Things {
       if (t.getCategory() != null) categories.add(t.getCategory());
     }
     return categories;
+  }
+  
+  public void thingChanged(String thing) {
+    for (ThingsListenerBase listener : observers) {
+      listener.thingChanged(thing);
+    }
   }
 
   public void loadFile(String fileName) throws IOException {

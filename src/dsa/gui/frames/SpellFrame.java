@@ -51,6 +51,7 @@ public final class SpellFrame extends TalentFrame {
   public SpellFrame(String title) {
     super(title, true);
     loadSubclassState();
+    initialize();
   }
 
   protected boolean isColumnEditable(int column) {
@@ -244,6 +245,11 @@ public final class SpellFrame extends TalentFrame {
       currentHero.setDefaultTalentValue(item, -6);
       currentHero.setCurrentTalentValue(item, -6);
       dialog.updateTable();
+    }
+    
+    public void itemChanged(String item) {
+      // not possible to edit a spell which the hero currently contains
+      // because it is not in the list of spells-to-be-added
     }
 
     private final SpellSelectionDialog dialog;

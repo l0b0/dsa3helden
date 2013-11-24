@@ -53,10 +53,12 @@ import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.DiceSpecification;
 import dsa.model.data.Animal;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.util.Optional;
 
-public class AnimalFrame extends AbstractDnDFrame {
+public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListener {
 
   private static final int GAP = 10;
 
@@ -119,13 +121,20 @@ public class AnimalFrame extends AbstractDnDFrame {
       }
     };
     animal.addListener(listener);
+    Things.getInstance().addObserver(this);
     this.addWindowListener(new WindowAdapter() {
+      boolean done = false;
       public void windowClosing(WindowEvent e) {
         animal.removeListener(listener);
+        Things.getInstance().removeObserver(AnimalFrame.this);
+        done = true;
       }
 
       public void windowClosed(WindowEvent e) {
-        animal.removeListener(listener);
+        if (!done) {
+          animal.removeListener(listener);
+          Things.getInstance().removeObserver(AnimalFrame.this);
+        }
       }
     });
   }
@@ -165,7 +174,10 @@ public class AnimalFrame extends AbstractDnDFrame {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
-        addItem(item);
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing));
+      }
+      public void itemChanged(String item) {
+        Things.getInstance().thingChanged(item);
       }
     });
     dialog.setVisible(true);
@@ -436,12 +448,28 @@ public class AnimalFrame extends AbstractDnDFrame {
     return grid;
   }
 
-  protected boolean addItem(String item) {
-    animal.addThing(item);
-    if (animal.getThingCount(item) == 1) {
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    if (extraData.getType() == ExtraThingData.Type.Weapon) {
+      dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
+      item = w.getName();
+    }
+    if (animal.getThingCount(item) == 0) {
       Thing thing = Things.getInstance().getThing(item);
       if (thing != null) {
         mTable.addThing(thing);
+      }
+      else if (extraData.getType() != ExtraThingData.Type.Thing) {
+        try {
+          String category = extraData.getProperty("Category");
+          int value = extraData.getPropertyInt("Worth");
+          int weight = extraData.getPropertyInt("Weight");
+          thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
+          Things.getInstance().addThing(thing);
+        }
+        catch (ExtraThingData.PropertyException e) {
+          e.printStackTrace();
+          return false;
+        }
       }
       else {
         JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
@@ -450,10 +478,15 @@ public class AnimalFrame extends AbstractDnDFrame {
       }
     }
     else
-      mTable.setCount(item, animal.getThingCount(item));
+      mTable.setCount(item, animal.getThingCount(item) + 1);
+    animal.addThing(item, extraData);
     removeButton.setEnabled(true);
     calcSums();
     return true;
+  }
+  
+  protected ExtraThingData getExtraDnDData(String item) {
+    return animal.getExtraThingData(item, animal.getThingCount(item));
   }
 
   protected void removeItem(String name) {
@@ -585,6 +618,15 @@ public class AnimalFrame extends AbstractDnDFrame {
         JOptionPane.showMessageDialog(AnimalFrame.this, e.getMessage(),
             "Fehler", JOptionPane.ERROR_MESSAGE);
       }
+    }
+  }
+
+  public void thingChanged(String thing) {
+    if (mTable.containsItem(thing)) {
+      mTable.removeThing(thing);
+      mTable.addThing(Things.getInstance().getThing(thing));
+      mTable.setCount(thing, animal.getThingCount(thing));
+      calcSums();
     }
   }
 }

@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import dsa.model.DiceSpecification;
@@ -148,7 +149,7 @@ public class Animal implements Cloneable {
     changed = false;
   }
 
-  private static final int VERSION = 2;
+  private static final int VERSION = 3;
 
   public void writeToFile(PrintWriter out) throws IOException {
     printSubclassSpecificData(out);
@@ -170,6 +171,12 @@ public class Animal implements Cloneable {
     for (java.util.Map.Entry<String, Integer> entry : things.entrySet()) {
       out.println(entry.getKey());
       out.println(entry.getValue());
+    }
+    // version 3
+    out.println(extraThingData.size());
+    for (java.util.Map.Entry<String, ExtraThingData> entry : extraThingData.entrySet()) {
+      out.println(entry.getKey());
+      entry.getValue().store(out);
     }
     out.println("-- End of Animal --");
     changed = false;
@@ -265,6 +272,29 @@ public class Animal implements Cloneable {
         testEmpty(line);
         int thingNr = parseInt(line, lineNr);
         things.put(thing, thingNr);
+      }
+    }
+    extraThingData.clear();
+    if (version > 2) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      int extraDataCount = parseInt(line, lineNr);
+      for (int i = 0; i < extraDataCount; ++i) {
+        line = in.readLine();
+        lineNr++;
+        testEmpty(line);
+        String key = line;
+        ExtraThingData value = new ExtraThingData();
+        lineNr = value.read(in, lineNr);
+        extraThingData.put(key, value);
+      }
+    }
+    for (String thing : things.keySet()) {
+      for (int i = 1; i <= things.get(thing); ++i) {
+        if (!extraThingData.containsKey(thing + i)) {
+          extraThingData.put(thing + i, new ExtraThingData(ExtraThingData.Type.Thing));
+        }
       }
     }
     do {
@@ -377,14 +407,16 @@ public class Animal implements Cloneable {
       clone.attributeInfos.add((AttributeMetaInfo) attributeInfos.get(i)
           .clone());
     }
-    clone.things = new java.util.HashMap<String, Integer>();
+    clone.things = new HashMap<String, Integer>();
     clone.things.putAll(things);
+    clone.extraThingData = new HashMap<String, ExtraThingData>();
+    clone.extraThingData.putAll(extraThingData);
     clone.changed = false;
     return clone;
   }
   
   private java.util.Map<String, Integer> things 
-    = new java.util.HashMap<String, Integer>();
+    = new HashMap<String, Integer>();
   
   public String[] getThings() {
     String[] thingArray = new String[things.size()];
@@ -402,18 +434,24 @@ public class Animal implements Cloneable {
   }
   
   public void addThing(String thing) {
+    addThing(thing, new ExtraThingData(ExtraThingData.Type.Thing));
+  }
+  
+  public void addThing(String thing, ExtraThingData extraData) {
     if (things.containsKey(thing)) {
       things.put(thing, things.get(thing).intValue() + 1);
     }
     else {
       things.put(thing, 1);
     }
+    extraThingData.put(thing + things.get(thing), extraData);
     changed = true;
   }
   
   public void removeThing(String thing) {
     if (!things.containsKey(thing)) return;
     int count = things.get(thing);
+    extraThingData.remove(thing + count);
     if (count == 1) {
       things.remove(thing);
     }
@@ -425,5 +463,11 @@ public class Animal implements Cloneable {
     }
     changed = true;
   }
+  
+  public ExtraThingData getExtraThingData(String thing, int number) {
+    return extraThingData.get(thing + number);
+  }
+  
+  private java.util.Map<String, ExtraThingData> extraThingData = new HashMap<String, ExtraThingData>();
 
 }

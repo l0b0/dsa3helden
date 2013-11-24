@@ -1,3 +1,17 @@
+Version 1.2.0
+-------------
+- Drucken in XML-Dateien (MS Word) und ODT-Dateien (OpenDocument) ermöglicht
+- Wert von Waffen wird verwaltet
+- Fehlerdialog mit Button um Fehlerinfo in die Zwischenablage zu kopieren
+- Bugfix: in seltenen Fällen gab es einen Absturz beim Steigern von Zaubern
+- Wert von Rüstungen wird verwaltet
+- Selbstdefinierte Gegenstände, Waffen, Rüstungen, Paradehilfen und Zauber
+  können bearbeitet werden
+- Man muss eine Steigerung nicht mehr voll durchführen, bevor man weitere 
+  AP eingibt, die eine Stufensteigerung auslösen
+- Bugfix: Bruchfaktor wurde auch erhöht, wenn der BF-Probewurf >= 10 war
+- Drag & Drop für Waffen, Rüstungen und Paradehilfen ermöglicht
+
 Version 1.1.0
 -------------
 - Bugfix: Mirakel konnte als Berufstalent hinzugefügt werden

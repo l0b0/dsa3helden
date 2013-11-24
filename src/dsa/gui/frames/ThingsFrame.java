@@ -39,10 +39,12 @@ import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.util.Optional;
 
-public final class ThingsFrame extends AbstractDnDFrame implements CharactersObserver {
+public final class ThingsFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
     public void thingRemoved(String thing, boolean fromWarehouse) {
@@ -64,6 +66,7 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
     super(ThingTransfer.Flavors.Thing, "Ausrüstung");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
+    Things.getInstance().addObserver(this);
     if (currentHero != null) currentHero.addHeroObserver(myHeroObserver);
     addWindowListener(new WindowAdapter() {
       boolean done = false;
@@ -71,6 +74,7 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
       public void windowClosing(WindowEvent e) {
         mTable.saveSortingState("Ausrüstung");
         Group.getInstance().removeObserver(ThingsFrame.this);
+        Things.getInstance().removeObserver(ThingsFrame.this);
         if (currentHero != null)
           currentHero.removeHeroObserver(myHeroObserver);
         done = true;
@@ -80,6 +84,9 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
         if (!done) {
           mTable.saveSortingState("Ausrüstung");
           Group.getInstance().removeObserver(ThingsFrame.this);
+          Things.getInstance().removeObserver(ThingsFrame.this);
+          if (currentHero != null)
+            currentHero.removeHeroObserver(myHeroObserver);
           done = true;
         }
       }
@@ -146,7 +153,10 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
-        addItem(item);
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing));
+      }
+      public void itemChanged(String item) {
+        Things.getInstance().thingChanged(item);
       }
     });
     dialog.setVisible(true);
@@ -251,12 +261,28 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
   public void globalLockChanged() {
   }
 
-  protected boolean addItem(String item) {
-    currentHero.addThing(item);
-    if (currentHero.getThingCount(item) == 1) {
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    if (extraData.getType() == ExtraThingData.Type.Weapon) {
+      dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
+      item = w.getName();
+    }
+    if (currentHero.getThingCount(item) == 0) {
       Thing thing = Things.getInstance().getThing(item);
       if (thing != null) {
         mTable.addThing(thing);
+      }
+      else if (extraData.getType() != ExtraThingData.Type.Thing) {
+        try {
+          String category = extraData.getProperty("Category");
+          int value = extraData.getPropertyInt("Worth");
+          int weight = extraData.getPropertyInt("Weight");
+          thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
+          Things.getInstance().addThing(thing);
+        }
+        catch (ExtraThingData.PropertyException e) {
+          e.printStackTrace();
+          return false;
+        }
       }
       else {
         JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
@@ -265,10 +291,15 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
       }
     }
     else
-      mTable.setCount(item, currentHero.getThingCount(item));
+      mTable.setCount(item, currentHero.getThingCount(item) + 1);
+    currentHero.addThing(item, extraData);
     removeButton.setEnabled(true);
     calcSums();
     return true;
+  }
+  
+  protected ExtraThingData getExtraDnDData(String item) {
+    return currentHero.getExtraThingData(item, false, currentHero.getThingCount(item));
   }
 
   protected void removeItem(String name) {
@@ -281,5 +312,15 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
       // mTable.RemoveSelectedThing();
     removeButton.setEnabled(currentHero.getThings().length > 0);
     calcSums();
+  }
+
+  public void thingChanged(String thing) {
+    if (mTable.containsItem(thing)) {
+      mTable.removeThing(thing);
+      mTable.addThing(Things.getInstance().getThing(thing));
+      mTable.setCount(thing, currentHero.getThingCount(thing));
+      calcSums();
+      currentHero.fireWeightChanged();
+    }
   }
 }

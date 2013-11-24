@@ -1334,13 +1334,13 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           breakWeapon(weapon1);
         }
         else {
-          ++bf;
+          if (bfRoll < 10) ++bf;
           bfRoll = Dice.roll(6) + Dice.roll(6);
           if (bfRoll <= bf) {
             breakWeapon(weapon1);
           }
           else {
-            ++bf;
+            if (bfRoll < 10) ++bf;
             if (weapon1 || !mode.equals("Waffe + Parade, separat")) {
               currentHero.setBF(weapon, 1, bf);
             }
@@ -1391,7 +1391,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         breakWeapon(weapon1);
       }
       else {
-        ++bf;
+        if (bfRoll < 10) ++bf;
         if (weapon1 || !mode.equals("Waffe + Parade, separat")) {
           currentHero.setBF(weapon, 1, bf);
         }

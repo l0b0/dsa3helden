@@ -39,6 +39,7 @@ public class FightingTalentsFrame extends TalentFrame {
 
   public FightingTalentsFrame(String title) {
     super(title, false);
+    initialize();
   }
 
   protected boolean isColumnEditable(int column) {

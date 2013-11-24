@@ -122,6 +122,12 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
           mTable.addUnknownThing(item);
         removeButton.setEnabled(true);
       }
+      public void itemChanged(String item) {
+        if (mTable.containsItem(item)) {
+          mTable.removeThing(item);
+          mTable.addThing(Things.getInstance().getThing(item));
+        }
+      }
     });
     dialog.setVisible(true);
   }

@@ -107,25 +107,58 @@ public class ShieldDialog extends BGDialog {
     initialize();
     setLocationRelativeTo(owner);
   }
+  
+  public ShieldDialog(JDialog owner, Shield shield) {
+    super(owner, true);
+    initialize();
+    setLocationRelativeTo(owner);
+    this.shield = shield;
+    nameField.setText(shield.getName());
+    nameField.setEnabled(false);
+    int weight = shield.getWeight();
+    if (weight > 0 && weight % 40 == 0) {
+      weightCombo.setSelectedIndex(1);
+      weight /= 40;
+    }
+    weightSpinner.setValue(weight);
+    int worth = shield.getWorth();
+    if (worth > 0 && worth % 10 == 0) {
+      valueCombo.setSelectedIndex(1);
+      worth /= 10;
+    }
+    valueSpinner.setValue(worth);
+    beSpinner.setValue(shield.getBeMod());
+    atSpinner.setValue(shield.getAtMod());
+    paSpinner.setValue(shield.getPaMod());
+    pa2Spinner.setValue(shield.getPaMod2());
+    daggerBox.setSelected(shield.getFkMod() == 0);
+    fkSpinner.setValue(-shield.getFkMod());
+    fkSpinner.setEnabled(shield.getFkMod() != 0);
+    pa2Spinner.setEnabled(shield.getFkMod() == 0);
+    bfSpinner.setValue(shield.getBF());
+  }
 
   public Shield getCreatedShield() {
     return shield;
   }
 
   private boolean createShield() {
-    shield = null;
     String name = getNameField().getText();
-    if (name == null || name.length() == 0) {
-      JOptionPane.showMessageDialog(this,
-          "Die Parierhilfe muss einen Namen haben.", "Fehler",
-          JOptionPane.ERROR_MESSAGE);
-      return false;
-    }
-    if (Shields.getInstance().getShield(name) != null) {
-      JOptionPane.showMessageDialog(this,
-          "Eine Parierhilfe mit diesem Namen exisitiert bereits.", "Fehler",
-          JOptionPane.ERROR_MESSAGE);
-      return false;
+    boolean createShield = getNameField().isEnabled();
+    if (createShield) {
+      shield = null;
+      if (name == null || name.length() == 0) {
+        JOptionPane.showMessageDialog(this,
+            "Die Parierhilfe muss einen Namen haben.", "Fehler",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+      if (Shields.getInstance().getShield(name) != null) {
+        JOptionPane.showMessageDialog(this,
+            "Eine Parierhilfe mit diesem Namen exisitiert bereits.", "Fehler",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
     }
     int pa = ((Number) getPASpinner().getValue()).intValue();
     int at = ((Number) getATSpinner().getValue()).intValue();
@@ -148,7 +181,19 @@ public class ShieldDialog extends BGDialog {
     if (getValueCombo().getSelectedIndex() == 1) {
       value *= 10;
     }
-    shield = new Shield(name, at, pa, pa2, be, fk, bf, weight, value);
+    if (createShield) {
+      shield = new Shield(name, at, pa, pa2, be, fk, bf, weight, value);
+    }
+    else {
+      shield.setAtMod(at);
+      shield.setPaMod(pa);
+      shield.setPaMod2(pa2);
+      shield.setBeMod(be);
+      shield.setFkMod(fk);
+      shield.setBF(bf);
+      shield.setWeight(weight);
+      shield.setWorth(value);
+    }
     return true;
   }
 

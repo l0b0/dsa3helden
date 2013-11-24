@@ -35,6 +35,7 @@ import javax.swing.SpinnerNumberModel;
 import dsa.gui.lf.BGDialog;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.util.Optional;
 
 public final class ThingDialog extends BGDialog {
 
@@ -75,6 +76,26 @@ public final class ThingDialog extends BGDialog {
     setModal(true);
     setLocationRelativeTo(parent);
     preFillComboBoxes();
+  }
+  
+  public ThingDialog(JDialog parent, Thing thing) {
+    super(parent);
+    initialize();
+    setModal(true);
+    setLocationRelativeTo(parent);
+    preFillComboBoxes();
+    this.thing = thing;
+    nameField.setText(thing.getName());
+    nameField.setEnabled(false);
+    categoryCombo.setSelectedItem(thing.getCategory());
+    int weight = thing.getWeight();
+    if (weight != 0 && weight % 40 == 0) {
+      weightCombo.setSelectedIndex(1);
+      weight /= 40;
+    }
+    weightSpinner.setValue(weight);
+    currencyCombo.setSelectedIndex(thing.getCurrency().ordinal());
+    valueSpinner.setValue(thing.getValue().hasValue() ? thing.getValue().getValue() : 0);
   }
 
   private void preFillComboBoxes() {
@@ -249,16 +270,19 @@ public final class ThingDialog extends BGDialog {
 
   protected void okClicked() {
     String name = nameField.getText();
-    if (name.length() == 0) {
-      JOptionPane.showMessageDialog(this, "Bitte einen Namen angeben!",
-          "Fehler", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-    if (Things.getInstance().getThing(name) != null) {
-      JOptionPane.showMessageDialog(this,
-          "Ein Gegenstand dieses Namens existiert bereits.", "Fehler",
-          JOptionPane.ERROR_MESSAGE);
-      return;
+    boolean newThing = nameField.isEnabled();
+    if (newThing) {
+      if (name.length() == 0) {
+        JOptionPane.showMessageDialog(this, "Bitte einen Namen angeben!",
+            "Fehler", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
+      if (Things.getInstance().getThing(name) != null) {
+        JOptionPane.showMessageDialog(this,
+            "Ein Gegenstand dieses Namens existiert bereits.", "Fehler",
+            JOptionPane.ERROR_MESSAGE);
+        return;
+      }
     }
     String category = categoryCombo.getEditor().getItem().toString();
     int value = ((Number) valueSpinner.getValue()).intValue();
@@ -268,9 +292,17 @@ public final class ThingDialog extends BGDialog {
     if (weightCombo.getSelectedIndex() == 1) {
       weight *= 40;
     }
-    thing = new Thing(name, new dsa.util.Optional<Integer>(value), currency,
-        weight, category, true);
-    Things.getInstance().addThing(thing);
+    if (newThing) {
+      thing = new Thing(name, new Optional<Integer>(value), currency,
+          weight, category, true);
+      Things.getInstance().addThing(thing);
+    }
+    else {
+      thing.setCategory(category);
+      thing.setValue(new Optional<Integer>(value));
+      thing.setCurrency(currency);
+      thing.setWeight(weight);
+    }
     dispose();
   }
 

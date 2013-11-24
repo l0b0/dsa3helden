@@ -57,6 +57,7 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
     lowerPanel.add(getDeleteButton());
+    lowerPanel.add(getEditButton());
     mTable.addSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent e) {
         if (!listen) return;
@@ -68,6 +69,8 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
   private JButton newButton;
 
   private JButton deleteButton;
+  
+  private JButton editButton;
 
   private JButton getNewButton() {
     if (newButton == null) {
@@ -86,6 +89,30 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
       });
     }
     return newButton;
+  }
+  
+  private JButton getEditButton() {
+    if (editButton == null) {
+      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton.setToolTipText("Rüstung bearbeiten");
+      editButton.setBounds(405, 5, 40, 25);
+      editButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Armour armour = Armours.getInstance().getArmour(mTable.getSelectedItem());
+          if (armour == null) return;
+          ArmourDialog dialog = new ArmourDialog(ArmourSelectionDialog.this, armour);
+          dialog.setVisible(true);
+          if (dialog.getArmour() != null) {
+            ((ArmoursTable) mTable).removeArmour(armour.getName());
+            ((ArmoursTable) mTable).addArmour(armour);
+            if (getCallback() != null) {
+              getCallback().itemChanged(armour.getName());
+            }
+          }
+        }
+      });
+    }
+    return editButton;
   }
 
   private JButton getDeleteButton() {
@@ -118,9 +145,10 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
 
   private void updateDeleteButton() {
     String armour = mTable.getSelectedItem();
-    getDeleteButton().setEnabled(
-        armour != null && armour.length() > 0
-            && Armours.getInstance().getArmour(armour).isUserDefined());
+    boolean enabled = armour != null && armour.length() > 0
+                    && Armours.getInstance().getArmour(armour).isUserDefined();
+    getDeleteButton().setEnabled(enabled);
+    getEditButton().setEnabled(enabled);
   }
 
 }

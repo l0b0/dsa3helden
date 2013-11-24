@@ -38,7 +38,7 @@ import dsa.util.Strings;
 /**
  * 
  */
-public class AnimalProbeDialog extends BGDialog {
+public final class AnimalProbeDialog extends BGDialog {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -53,8 +53,6 @@ public class AnimalProbeDialog extends BGDialog {
   private JLabel jLabel = null;
 
   private Animal animal;
-
-  private String talentName;
 
   private int property;
 
@@ -153,7 +151,7 @@ public class AnimalProbeDialog extends BGDialog {
             JOptionPane.INFORMATION_MESSAGE);
   }
 
-  private String doProbe(Animal animal, int property, int mod) {
+  private static String doProbe(Animal animal, int property, int mod) {
     int hurdle = ((Number) animal.getAttributeValue(property)).intValue() - mod;
     int diceThrow = Dice.roll(20);
     if (diceThrow == 1) {

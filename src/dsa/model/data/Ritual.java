@@ -24,48 +24,84 @@ import dsa.model.characters.Property;
 
 public class Ritual {
 
-  private String name;
+  private final String name;
 
-  private boolean isKnownAtStart;
+  private final boolean mIsKnownAtStart;
 
-  private String requirement;
+  private final String requirement;
 
   public static class TestData {
-    public Property p1;
+    Property p1;
 
-    public Property p2;
+    Property p2;
 
-    public Property p3;
+    Property p3;
 
-    public int defaultModifier;
+    int defaultModifier;
 
-    public boolean hasHalfStepLess;
+    boolean mHasHalfStepLess;
+
+    public int getDefaultModifier() {
+      return defaultModifier;
+    }
+
+    public boolean hasHalfStepLess() {
+      return mHasHalfStepLess;
+    }
+
+    public Property getP1() {
+      return p1;
+    }
+
+    public Property getP2() {
+      return p2;
+    }
+
+    public Property getP3() {
+      return p3;
+    }
   }
 
   public static class LearningTestData extends TestData {
-    public DiceSpecification ap;
+    DiceSpecification ap;
 
-    public DiceSpecification permanentAP;
+    DiceSpecification permanentAP;
 
-    public DiceSpecification le;
+    DiceSpecification le;
 
-    public DiceSpecification permanentLE;
+    DiceSpecification permanentLE;
+
+    public DiceSpecification getAp() {
+      return ap;
+    }
+
+    public DiceSpecification getLe() {
+      return le;
+    }
+
+    public DiceSpecification getPermanentAP() {
+      return permanentAP;
+    }
+
+    public DiceSpecification getPermanentLE() {
+      return permanentLE;
+    }
   }
 
-  private TestData testData;
+  private final TestData testData;
 
-  private LearningTestData learningTestData;
+  private final LearningTestData learningTestData;
 
   Ritual(String n, boolean kas, String r, TestData td, LearningTestData ltd) {
     name = n;
-    isKnownAtStart = kas;
+    mIsKnownAtStart = kas;
     requirement = r;
     testData = td;
     learningTestData = ltd;
   }
 
   public boolean isKnownAtStart() {
-    return isKnownAtStart;
+    return mIsKnownAtStart;
   }
 
   public String getName() {

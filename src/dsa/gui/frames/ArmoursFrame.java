@@ -33,7 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ArmourSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.ArmoursTable;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
@@ -44,20 +44,31 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
 
-public class ArmoursFrame extends SubFrame implements CharactersObserver,
+public final class ArmoursFrame extends SubFrame implements CharactersObserver,
     OptionsListener {
+
+  private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
+    public void armourRemoved(String armour) {
+      mTable.removeArmour(armour);
+    }
+  }
+
+  private final MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public ArmoursFrame() {
     super("Rüstungen");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     OptionsChange.addListener(ArmoursFrame.this);
+    if (currentHero != null) currentHero.addHeroObserver(myHeroObserver);
     addWindowListener(new WindowAdapter() {
       boolean done = false;
 
       public void windowClosing(WindowEvent e) {
         mTable.saveSortingState("Rüstungen");
         Group.getInstance().removeObserver(ArmoursFrame.this);
+        if (currentHero != null)
+          currentHero.removeHeroObserver(myHeroObserver);
         OptionsChange.removeListener(ArmoursFrame.this);
         done = true;
       }
@@ -66,6 +77,8 @@ public class ArmoursFrame extends SubFrame implements CharactersObserver,
         if (!done) {
           mTable.saveSortingState("Rüstungen");
           Group.getInstance().removeObserver(ArmoursFrame.this);
+          if (currentHero != null)
+            currentHero.removeHeroObserver(myHeroObserver);
           OptionsChange.removeListener(ArmoursFrame.this);
           done = true;
         }
@@ -131,7 +144,7 @@ public class ArmoursFrame extends SubFrame implements CharactersObserver,
   protected void addArmour() {
     ArmourSelectionDialog dialog = new ArmourSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
-      public void ItemSelected(String item) {
+      public void itemSelected(String item) {
         if (Arrays.asList(currentHero.getArmours()).contains(item)) {
           JOptionPane
               .showMessageDialog(
@@ -218,11 +231,14 @@ public class ArmoursFrame extends SubFrame implements CharactersObserver,
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
     currentHero = newCharacter;
+    if (oldCharacter != null) oldCharacter.removeHeroObserver(myHeroObserver);
+    if (newCharacter != null) newCharacter.addHeroObserver(myHeroObserver);
     updateData();
   }
 
   public void characterRemoved(Hero character) {
     if (character == currentHero) {
+      if (currentHero != null) currentHero.removeHeroObserver(myHeroObserver);
       currentHero = null;
       updateData();
     }

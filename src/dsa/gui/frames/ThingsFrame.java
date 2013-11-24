@@ -28,10 +28,12 @@ import java.text.NumberFormat;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ThingSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
@@ -40,18 +42,26 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public class ThingsFrame extends SubFrame implements CharactersObserver {
+public final class ThingsFrame extends AbstractDnDFrame implements CharactersObserver {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
-    public void thingRemoved(String thing) {
-      mTable.removeThing(thing);
+    public void thingRemoved(String thing, boolean fromWarehouse) {
+      if (fromWarehouse) return;
+      int count = currentHero.getThingCount(thing);
+      if (count == 0) {
+        mTable.removeThing(thing);
+      }
+      else {
+        mTable.setCount(thing, count);
+      }
+      calcSums();
     }
   }
 
-  private MyHeroObserver myHeroObserver = new MyHeroObserver();
+  private final MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public ThingsFrame() {
-    super("Ausrüstung");
+    super(ThingTransfer.Flavors.Thing, "Ausrüstung");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     if (currentHero != null) currentHero.addHeroObserver(myHeroObserver);
@@ -75,12 +85,13 @@ public class ThingsFrame extends SubFrame implements CharactersObserver {
       }
     });
     mTable = new ThingsTable(true);
-    JPanel panel = mTable.getPanelWithTable();
+    registerForDnD(mTable);
 
     JPanel lowerPanel = new JPanel();
     lowerPanel.setLayout(null);
     lowerPanel.setPreferredSize(new java.awt.Dimension(150, 40));
     lowerPanel.add(getSumLabel(), null);
+    JPanel panel = mTable.getPanelWithTable();
     panel.add(lowerPanel, BorderLayout.SOUTH);
 
     JPanel rightPanel = new JPanel();
@@ -130,23 +141,12 @@ public class ThingsFrame extends SubFrame implements CharactersObserver {
     }
     return addButton;
   }
-
+  
   protected void addThing() {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
-      public void ItemSelected(String item) {
-        currentHero.addThing(item);
-        if (currentHero.getThingCount(item) == 1) {
-          Thing thing = Things.getInstance().getThing(item);
-          if (thing != null)
-            mTable.addThing(thing);
-          else
-            mTable.addUnknownThing(item);
-        }
-        else
-          mTable.setCount(item, currentHero.getThingCount(item));
-        removeButton.setEnabled(true);
-        calcSums();
+      public void itemSelected(String item) {
+        addItem(item);
       }
     });
     dialog.setVisible(true);
@@ -161,15 +161,7 @@ public class ThingsFrame extends SubFrame implements CharactersObserver {
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
-          int oldCount = currentHero.getThingCount(name);
-          currentHero.removeThing(name);
-          if (oldCount == 1) {
-            // mTable.RemoveSelectedThing();
-          }
-          else
-            mTable.setCount(name, oldCount - 1);
-          removeButton.setEnabled(currentHero.getThings().length > 0);
-          calcSums();
+          removeItem(name);
         }
       });
     }
@@ -187,11 +179,11 @@ public class ThingsFrame extends SubFrame implements CharactersObserver {
         weight += count * (long) thing.getWeight();
         if (thing.getValue().hasValue()) {
           if (thing.getCurrency() == Thing.Currency.D)
-            value += count * (long) thing.getValue().getValue() * 1000l;
+            value += count * (long) thing.getValue().getValue() * 1000L;
           else if (thing.getCurrency() == Thing.Currency.S)
-            value += count * (long) thing.getValue().getValue() * 100l;
+            value += count * (long) thing.getValue().getValue() * 100L;
           else if (thing.getCurrency() == Thing.Currency.K)
-            value += count * (long) thing.getValue().getValue() * 10l;
+            value += count * (long) thing.getValue().getValue() * 10L;
           else if (thing.getCurrency() == Thing.Currency.H)
             value += count * (long) thing.getValue().getValue();
         }
@@ -232,7 +224,7 @@ public class ThingsFrame extends SubFrame implements CharactersObserver {
     }
     else {
       sumLabel
-          .setText("Ausrüstung: 0 Stein,  Waffen: 0 Stein,  Rüstung: 0 Stein");
+          .setText("Gesamt: Wert 0 Dukaten, Gewicht 0 Stein");
       addButton.setEnabled(false);
       removeButton.setEnabled(false);
     }
@@ -257,5 +249,37 @@ public class ThingsFrame extends SubFrame implements CharactersObserver {
   }
 
   public void globalLockChanged() {
+  }
+
+  protected boolean addItem(String item) {
+    currentHero.addThing(item);
+    if (currentHero.getThingCount(item) == 1) {
+      Thing thing = Things.getInstance().getThing(item);
+      if (thing != null) {
+        mTable.addThing(thing);
+      }
+      else {
+        JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
+            "Gegenstand hinzufügen", JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+    }
+    else
+      mTable.setCount(item, currentHero.getThingCount(item));
+    removeButton.setEnabled(true);
+    calcSums();
+    return true;
+  }
+
+  protected void removeItem(String name) {
+    int oldCount = currentHero.getThingCount(name);
+    currentHero.removeThing(name);
+    if (oldCount != 1) {
+      mTable.setCount(name, oldCount - 1);
+    }
+    // else
+      // mTable.RemoveSelectedThing();
+    removeButton.setEnabled(currentHero.getThings().length > 0);
+    calcSums();
   }
 }

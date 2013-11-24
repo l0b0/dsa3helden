@@ -1,44 +1,60 @@
+Version 1.1.0
+-------------
+- Bugfix: Mirakel konnte als Berufstalent hinzugefügt werden
+- Bugfix: unter Windows wurden temporäre Dateien u.U. nicht gelöscht
+- Eigene Rüstungen können definiert werden
+- Eigene Zauber können definiert werden
+- Eigene Schilde / Parierwaffen können definiert werden
+- Tiere können Ausrüstungsgegenstände tragen
+- Bugfix: Im Ausdruck wurde für die Waffen und Schilde der Standard-BF verwendet
+- Drag & Drop zwischen Ausrüstung, Lager und Tieren
+- Bugfix: beim Löschen selbstdefinierter Gegenstände wurden sie nicht aus dem 
+  Lager entfernt
+- Bugfix: spezielle Regel für Sprachen Kennen > 10 wurde nicht beachtet
+- Internes Refactoring / Codeverbesserung durch Einsatz von checkstyle, PMD und
+  FindBugs
+
 Version 1.0.0
 -------------
 - Bugfix: Eigene Waffen funktionierten nicht mehr
-- Fehlerdialog eingefÃ¼hrt
+- Fehlerdialog eingeführt
 - Bugfix: Kampffenster benutzte Standard-BF statt spezifischem BF
-- Bugfix: KE erhÃ¶hen war falsch implementiert
-- Bugfix: Anzeige fehlender AP wurde bei HinzufÃ¼gen von AP nicht aktualisiert
-- Bugfix: UnnÃ¶tige Fehlermeldung, wenn man beim HinzufÃ¼gen von AP "Abbrechen" wÃ¤hlte
+- Bugfix: KE erhöhen war falsch implementiert
+- Bugfix: Anzeige fehlender AP wurde bei Hinzufügen von AP nicht aktualisiert
+- Bugfix: Unnötige Fehlermeldung, wenn man beim Hinzufügen von AP "Abbrechen" wählte
 - Bugfix: Gruppe->Speichern war direkt nach dem Start nicht aktiv
-- Talent fÃ¼r Mirakelprobe eingefÃ¼hrt
-- Start-Liturgien zu den Geweihten-Prototypen hinzugefÃ¼gt
+- Talent für Mirakelprobe eingeführt
+- Start-Liturgien zu den Geweihten-Prototypen hinzugefügt
 - Prototypen von .dsa auf .dsahero umbenannt
-- Fenster docken nicht mehr beim VerÃ¤ndern ihrer GrÃ¶ÃŸe
+- Fenster docken nicht mehr beim Verändern ihrer Größe
 
 Version 0.10.0
 --------------
 - Einige kleine L&F-Fehler mit Walnut behoben
-- Optionen fÃ¼r alle Hausregeln
-- Probe fÃ¼r's Aufstehen im Kampf
-- HilfemenÃ¼
-- Automatischer Start verknÃ¼pfter Anwendungen
+- Optionen für alle Hausregeln
+- Probe für's Aufstehen im Kampf
+- Hilfemenü
+- Automatischer Start verknüpfter Anwendungen
 - "Alles Speichern" an anderer Position
-- Danksagungen im Ãœber-Dialog
-- Bugfix: Bonus durch Parade nicht fÃ¼r alle Waffen beim Drucken
-- Icon fÃ¼r Frames hinzugefÃ¼gt
+- Danksagungen im Über-Dialog
+- Bugfix: Bonus durch Parade nicht für alle Waffen beim Drucken
+- Icon für Frames hinzugefügt
 - Setup-Programm
 - Unbekannte Sprachen werden als Wert '-' gedruckt
-- Bugfix: Kampffenster wurde nicht aktualisiert, wenn sich BE-Bonus Ã¤nderte
+- Bugfix: Kampffenster wurde nicht aktualisiert, wenn sich BE-Bonus änderte
 - Bugfix: durch BE-Bonus konnte der Held eine negative BE bekommen
-- Bugfix: Drucken war bei leerer Gruppe aktiv und fÃ¼hrte zu Fehler
-- Default-Dateierweiterungen geÃ¤ndert um Konflikte zu vermeiden
-- Dateien kÃ¶nnen als Kommandozeilenparameter Ã¼bergeben werden
-- Bugfix: Heilkunde / Seele wurde nicht fÃ¼r MR-Berechnung berÃ¼cksichtigt
-- Fehlende AP zur nÃ¤chsten Stufe werden angezeigt / gedruckt
+- Bugfix: Drucken war bei leerer Gruppe aktiv und führte zu Fehler
+- Default-Dateierweiterungen geändert um Konflikte zu vermeiden
+- Dateien können als Kommandozeilenparameter übergeben werden
+- Bugfix: Heilkunde / Seele wurde nicht für MR-Berechnung berücksichtigt
+- Fehlende AP zur nächsten Stufe werden angezeigt / gedruckt
 - '(*)' durch '*' bei Waffen ersetzt (kann zu alten Helden inkompatibel sein!)
-- Bugfix: Benutzerdefinierte GegenstÃ¤nde konnten seltsame Kategorien haben
+- Bugfix: Benutzerdefinierte Gegenstände konnten seltsame Kategorien haben
 - Bugfix: 'Snap' an das Hauptfenster hat nicht funktioniert
-- Drag & Drop von Dateien aufs Hauptfenster ermÃ¶glicht
+- Drag & Drop von Dateien aufs Hauptfenster ermöglicht
 - Gewichtsanzeige besser formatiert
-- Bugfix: beim LÃ¶schen von GegenstÃ¤nden wurde in der Anzeige zu viel gelÃ¶scht
-- Standard-Zauber fÃ¼r Auelf korrigiert
+- Bugfix: beim Löschen von Gegenständen wurde in der Anzeige zu viel gelöscht
+- Standard-Zauber für Auelf korrigiert
 
 Version 0.9.1
 -------------
@@ -47,42 +63,42 @@ Version 0.9.1
 Version 0.9.0
 -------------
 - Button zum Erstellen von Helden
-- Weniger Talentsteigerungen nach Erstellung fÃ¼r manche Kriegerakademien
+- Weniger Talentsteigerungen nach Erstellung für manche Kriegerakademien
 - Namenswahl als dritte Seite im Heldenerstellungsdialog
-- Meta-Daten kÃ¶nnen editiert werden
-- Neues Look & Feel, Look & Feel Ã¤nderbar
-- Buttons und Dialog zum HinzufÃ¼gen / Entfernen von Zaubern
-- Reihenfolge der Talentkategorien geÃ¤ndert
+- Meta-Daten können editiert werden
+- Neues Look & Feel, Look & Feel änderbar
+- Buttons und Dialog zum Hinzufügen / Entfernen von Zaubern
+- Reihenfolge der Talentkategorien geändert
 - Ein Held kann mehr als eine Waffe haben
-- Benutzerdefinierte Waffen mÃ¶glich
+- Benutzerdefinierte Waffen möglich
 - Projektilwaffen mit Distanzklassen
 - Bruchfaktor wird pro konkreter Waffe / Schild gespeichert
-- Kampf (Spieler) hinzugefÃ¼gt
+- Kampf (Spieler) hinzugefügt
 
 Version 0.8.0
 -------------
-- Verwaltung von Magieattributen (Akademie, Element, ...) hinzugefÃ¼gt
-- Verwaltung von Kleidung und Lager hinzugefÃ¼gt
-- Kleidung als RÃ¼stung ohne Gewicht und BE (Hausregel)
-- Erstellen von neuen Helden hinzugefÃ¼gt
-- 'Alle Speichern' hinzugefÃ¼gt
-- Namensregionen Darpatien, Weiden, Liebliches Feld hinzugefÃ¼gt
+- Verwaltung von Magieattributen (Akademie, Element, ...) hinzugefügt
+- Verwaltung von Kleidung und Lager hinzugefügt
+- Kleidung als Rüstung ohne Gewicht und BE (Hausregel)
+- Erstellen von neuen Helden hinzugefügt
+- 'Alle Speichern' hinzugefügt
+- Namensregionen Darpatien, Weiden, Liebliches Feld hinzugefügt
 - Nach Entfernen von Sonderfertigkeit wird letzte SF selektiert
-- Bugfix fÃ¼r Sharisad-Import aus der Wiege
+- Bugfix für Sharisad-Import aus der Wiege
 - Bugfix: leere Pfade wurden beim Laden durchs Verzeichnis ersetzt
-- Stand der Eltern kann ausgewÃ¤hlt werden
+- Stand der Eltern kann ausgewählt werden
 - Bugfix: automatisches Speichern einer neuen Gruppe war falsch
-- Passende Augenfarben kÃ¶nnen ausgewÃ¤hlt werden
+- Passende Augenfarben können ausgewählt werden
 - Registry Key statt .firstStart / .firstUpdate
 - Sicherheitsabfrage, sodass Fenster immer auf dem Schirm sind
 
 Version 0.7.2
 -------------
-- Bugfix: FÃ¼r fixe Tierwerte wurde ein W6 zusÃ¤tzlich addiert
-- ZauberbÃ¼cher zur AusrÃ¼stung hinzugefÃ¼gt
+- Bugfix: Für fixe Tierwerte wurde ein W6 zusätzlich addiert
+- Zauberbücher zur Ausrüstung hinzugefügt
 - Button, um restliche Steigerungsversuche zu streichen
-- Bugfix: Button fÃ¼r GroÃŸe Meditation wurde nicht sofort inaktiv
-- Neu hinzugefÃ¼gte Zauber werden in den sichtbaren Bereich gescrollt
+- Bugfix: Button für Große Meditation wurde nicht sofort inaktiv
+- Neu hinzugefügte Zauber werden in den sichtbaren Bereich gescrollt
 
 Version 0.7.1
 -------------
@@ -90,85 +106,85 @@ Version 0.7.1
 - Bugfix: Programm konnte nicht mit java -jar heldenverwaltung.jar 
   gestartet werden (nur mit explizitem Pfad, etwa .\heldenverwaltung.jar)
 - Bugfix: Es wurde unter Windows nicht registriert, dass Frames geschlossen wurden,
-  wenn man sie Ã¼ber das Icon in der Titelleiste schloss
+  wenn man sie über das Icon in der Titelleiste schloss
 
 Version 0.7.0
 -------------
-- Eigene AusrÃ¼stungsgegenstÃ¤nde ermÃ¶glicht
-- Leichte Ã„nderung beim Druck von Sprachen
-- Filter zur Auswahl von GegenstÃ¤nden, Waffen, etc.
-- Tiere aus Auswahlliste von GegenstÃ¤nden entfernt
-- Geburtstag und -ort, Haar- und Augenfarbe Ã¤nderbar
-- Bankkonto hinzugefÃ¼gt
-- Liturgien hinzugefÃ¼gt
-- Name Ã¤nderbar / generierbar
-- Regelupdates fÃ¼r neue Hausregeln
+- Eigene Ausrüstungsgegenstände ermöglicht
+- Leichte Änderung beim Druck von Sprachen
+- Filter zur Auswahl von Gegenständen, Waffen, etc.
+- Tiere aus Auswahlliste von Gegenständen entfernt
+- Geburtstag und -ort, Haar- und Augenfarbe änderbar
+- Bankkonto hinzugefügt
+- Liturgien hinzugefügt
+- Name änderbar / generierbar
+- Regelupdates für neue Hausregeln
 - Verwaltung von Schilden / Parierwaffen
-- Layout der Buttons im Hauptfenster leicht geÃ¤ndert
+- Layout der Buttons im Hauptfenster leicht geändert
 - Bugfix: wenn kein Fenster offen war, wurde trotzem nach dem Start
-  eines geÃ¶ffnet
+  eines geöffnet
 - Bugfix: wenn kein Fenster offen war, wurde u.U. die Sicherheits-
-  abfrage vor dem Beenden Ã¼bergangen
-- Verwaltung von Tieren hinzugefÃ¼gt
+  abfrage vor dem Beenden übergangen
+- Verwaltung von Tieren hinzugefügt
 
 Version 0.6.2
 -------------
-- Start-Skript fÃ¼r Linux korrigiert
+- Start-Skript für Linux korrigiert
 - Druckfehler (falls keine Waffen vorhanden) korrigiert
 - Laden von neueren Dateiversionen aktiviert
-- Bugfix: neu hinzugefÃ¼gte Sprachen hatten Akt. Wert 0
+- Bugfix: neu hinzugefügte Sprachen hatten Akt. Wert 0
 - Bugfix: Anzeige der verbleibenden ZF-Steigerungen nach 
-  groÃŸer Meditation wurde nicht aktualisiert
+  großer Meditation wurde nicht aktualisiert
 - Alle Dateiauswahldialoge merken sich das letzte Verzeichnis
-- Einige Dateiauswahlfilter hinzugefÃ¼gt
+- Einige Dateiauswahlfilter hinzugefügt
 - Klonen korrigiert (aliasing-Problem)
-- Es ist nicht mehr nÃ¶tig, dass das Arbeitsverzeichnis das 
+- Es ist nicht mehr nötig, dass das Arbeitsverzeichnis das 
   Programmverzeichnis ist
 - Hintergrund, Bild und Ausdruckdatei werden mit relativen Pfaden gespeichert
-- Auswahl der Muttersprache mÃ¶glich
+- Auswahl der Muttersprache möglich
 - Speichern transaktionaler gemacht
-- Button fÃ¼r "alles entsperren"
-- Ã„ndern von Std Ã¤ndert automatisch auch Akt mit
+- Button für "alles entsperren"
+- Ändern von Std ändert automatisch auch Akt mit
 - Anzeige der gedruckten Datei nicht aktiviert, wenn kein Viewer angegeben ist
-- Bugfix: Sortierung ging kaputt, wenn ein Wert geÃ¤ndert wurde, nach dem sortiert wurde.
+- Bugfix: Sortierung ging kaputt, wenn ein Wert geändert wurde, nach dem sortiert wurde.
 
 Version 0.6.1
 -------------
 - Einige Fehler beim Drucken behoben
-- Fehler in Zauber.dat korrigiert (SturmgebrÃ¼ll)
+- Fehler in Zauber.dat korrigiert (Sturmgebrüll)
 
 Version 0.6.0
 -------------
 - Geld mit Gewicht, Geld-Frame mit Scrollbars
-- GewichtsÃ¼bersicht im Hauptframe
-- Wertsumme im AusrÃ¼stungs-Frame
+- Gewichtsübersicht im Hauptframe
+- Wertsumme im Ausrüstungs-Frame
 - Fehler behoben, nachdem beim Stufenanstieg unmagische Helden AE bekommen konnten
-- "HinzufÃ¼gen" / "SchlieÃŸen" statt "OK" / "Abbrechen" bei GegenstÃ¤nden
+- "Hinzufügen" / "Schließen" statt "OK" / "Abbrechen" bei Gegenständen
 - Mehrere Instanzen eines Gegenstands beim Helden erlaubt
-- Berechnete Werte kÃ¶nnen editiert werden
-- Reihenfolge der schlechten Eigenschaften geÃ¤ndert
+- Berechnete Werte können editiert werden
+- Reihenfolge der schlechten Eigenschaften geändert
 - "Kampftalente im Dokument"
-- Titel und Hautfarbe hinzugefÃ¼gt
+- Titel und Hautfarbe hinzugefügt
 - GUI der "Grunddaten" verbessert
-- Einige Ausdruck-Keys hinzugefÃ¼gt (KE, GS, ...)
+- Einige Ausdruck-Keys hinzugefügt (KE, GS, ...)
 - Zuletzt aktiver Held wird gemerkt
 - Fehler in Waffen.dat behoben (Orknase)
-- Rituale / Sonderfertigkeiten hinzugefÃ¼gt
+- Rituale / Sonderfertigkeiten hinzugefügt
 - Zauber werden beim Drucken sortiert
 
 Version 0.5.1
 -------------
 - Fehler behoben, der jede 2. Zeile der Ausruestung.dat ignoriert hat
-- Filter zu Dateiauswahldialogen beim Drucken hinzugefÃ¼gt
+- Filter zu Dateiauswahldialogen beim Drucken hinzugefügt
 - Ausdruck von Berufen und Eigenen Talenten
-- Ausdruck von GegenstÃ¤nden in Suite-Vorlagen
-- Fehler behoben, der falsche EintrÃ¤ge ins Gruppen-MenÃ¼ erzeugte
-- Fehler behoben, der Ã–ffnen von Gruppen per Dialog verhinderte
-- In Waffen-, RÃ¼stungs- und Gegenstandstabellen ist immer eine Zeile markiert
+- Ausdruck von Gegenständen in Suite-Vorlagen
+- Fehler behoben, der falsche Einträge ins Gruppen-Menü erzeugte
+- Fehler behoben, der Öffnen von Gruppen per Dialog verhinderte
+- In Waffen-, Rüstungs- und Gegenstandstabellen ist immer eine Zeile markiert
 - Buttons im Hauptframe teilweise anders angeordnet
 - Aktivieren des Hauptframes bringt alle Frames in den Vordergrund (unter Windows)
 - Dokumentenvorlage der Suite wird nicht mit importiert
 
 Version 0.5.0
 -------------
-Erste 'verÃ¶ffentlichte' Version.
+Erste 'veröffentlichte' Version.

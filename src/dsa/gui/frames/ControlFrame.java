@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
 
@@ -36,6 +36,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
@@ -45,7 +47,14 @@ import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 
 import javax.swing.DefaultListModel;
@@ -97,15 +106,13 @@ import org.jdesktop.jdic.desktop.Message;
 /**
  * 
  */
-public class ControlFrame extends SubFrame implements DropTargetListener {
+public final class ControlFrame extends SubFrame implements DropTargetListener {
 
   private javax.swing.JPanel jContentPane = null;
 
   private JTabbedPane jTabbedPane = null;
 
   private JPanel heroPanel = null;
-
-  private JToggleButton heroMgmtButton = null;
 
   /**
    * This is the default constructor
@@ -117,7 +124,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
 
   private String currentGroupFileName = "";
 
-  private DropTarget dropTarget;
+  private DropTarget dropTarget = null;
 
   /**
    * This method initializes this
@@ -128,34 +135,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     this.setJMenuBar(getJJMenuBar());
     // this.setSize(582, 138);
     this.setContentPane(getJContentPane());
-    this.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        saveAndExit();
-      }
-
-      public void windowClosed(WindowEvent e) {
-        // saveAndExit();
-      }
-
-      public void windowIconified(WindowEvent e) {
-        FrameManagement.getInstance().iconifyAllFrames(ControlFrame.this);
-      }
-
-      public void windowDeiconified(WindowEvent e) {
-        FrameManagement.getInstance().deiconifyAllFrames(ControlFrame.this);
-      }
-
-      boolean update = false;
-
-      public void windowActivated(WindowEvent e) {
-        if (update) {
-          update = false;
-          return;
-        }
-        update = true;
-        FrameManagement.getInstance().activateAllFrames(ControlFrame.this);
-      }
-    });
+    this.addWindowListener(new MyWindowListener());
     this.setDefaultCloseOperation(javax.swing.JFrame.DO_NOTHING_ON_CLOSE);
     if (loadLastGroup) {
       String fileName = Preferences.userNodeForPackage(dsa.gui.PackageID.class)
@@ -173,7 +153,9 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       OptionsChange.fireOptionsChanged();
       getGroupSaveItem().setEnabled(!fileName.equals(""));
     }
-    dropTarget = new DropTarget(this, this);
+    if (dropTarget == null) {
+      dropTarget = new DropTarget(this, this);
+    }
   }
 
   /**
@@ -208,6 +190,14 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
               + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
     }
     try {
+      Talents.getInstance().saveUserSpells(baseDir + "Eigene_Zauber.dat");
+    }
+    catch (java.io.IOException e) {
+      JOptionPane.showMessageDialog(this,
+          "Benutzerdefinierte Zauber konnten nicht gespeichert werden. Grund:\n"
+              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+    try {
       Things.getInstance().writeUserDefinedThings(
           baseDir + "Eigene_Ausruestung.dat");
     }
@@ -226,6 +216,23 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
               + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
     }
     try {
+      Armours.getInstance().saveUserDefinedArmours(
+          baseDir + "Eigene_Ruestungen.dat");
+    }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(this,
+          "Benutzerdefinierte Rüstungen konnten nicht gespeichert werden. Grund:\n"
+              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+    try {
+      Shields.getInstance().writeUserDefinedFile(baseDir + "Eigene_Parade.dat");
+    }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(this,
+          "Benutzerdefinierte Paradehilfen konnten nicht gespeichert werden. Grund:\n"
+              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+    try {
       prefs.flush();
     }
     catch (BackingStoreException e) {
@@ -233,6 +240,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
           "Einstellungen konnten nicht gespeichert werden.Grund:\n"
               + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
     }
+    Group.getInstance().setActiveHero(null);
     dispose();
     if (openFrames.size() == 0) {
       System.exit(0);
@@ -279,6 +287,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       Group.getInstance().loadFromFile(reader);
     }
     catch (IOException e) {
+      return;
     }
   }
 
@@ -294,19 +303,23 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
 
   private void copyFile(File first, File second) throws IOException {
     BufferedReader in = new BufferedReader(new FileReader(first));
-    PrintWriter out = new PrintWriter(
-        new BufferedWriter(new FileWriter(second)));
     try {
-      String s = in.readLine();
-      while (s != null) {
-        out.println(s);
-        s = in.readLine();
+      PrintWriter out = new PrintWriter(
+          new BufferedWriter(new FileWriter(second)));
+      try {
+        String s = in.readLine();
+        while (s != null) {
+          out.println(s);
+          s = in.readLine();
+        }
+        out.flush();
       }
-      out.flush();
+      finally {
+        if (out != null) out.close();
+      }
     }
     finally {
-      if (in != null) in.close();
-      if (out != null) out.close();
+      if (in != null) in.close();      
     }
   }
 
@@ -363,6 +376,65 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
 
   private JToggleButton derivedValuesButton;
 
+  private final class MyWindowListener extends WindowAdapter {
+    public void windowClosing(WindowEvent e) {
+      saveAndExit();
+    }
+
+    public void windowClosed(WindowEvent e) {
+      // saveAndExit();
+    }
+
+    public void windowIconified(WindowEvent e) {
+      FrameManagement.getInstance().iconifyAllFrames(ControlFrame.this);
+    }
+
+    public void windowDeiconified(WindowEvent e) {
+      FrameManagement.getInstance().deiconifyAllFrames(ControlFrame.this);
+    }
+
+    boolean update = false;
+
+    public void windowActivated(WindowEvent e) {
+      if (update) {
+        update = false;
+        return;
+      }
+      update = true;
+      FrameManagement.getInstance().activateAllFrames(ControlFrame.this);
+    }
+  }
+
+  private static final class GroupFileFilter extends FileFilter {
+    public boolean accept(File f) {
+      return f.getName().endsWith(".dsagroup") || f.isDirectory();
+    }
+
+    public String getDescription() {
+      return "DSA-Gruppen (*.dsagroup)";
+    }
+  }
+
+  private static final class WiegeFileFilter extends FileFilter {
+    public boolean accept(File f) {
+      return f.getName().endsWith(".h42") || f.isDirectory();
+    }
+
+    public String getDescription() {
+      return "Wiege-Charaktere (*.h42)";
+    }
+  }
+
+  private static final class HeroFileFilter extends FileFilter {
+    public boolean accept(File f) {
+      return f.getName().endsWith(".dsahero") || f.isDirectory();
+    }
+
+    public String getDescription() {
+      return "DSA-Charaktere (*.dsahero)";
+    }
+  }
+
   class CharacterNameListener extends CharacterAdapter {
     public void nameChanged(String oldName, String newName) {
       listenForCharacterBox = false;
@@ -400,19 +472,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       }
       Group.getInstance().addObserver(new CharactersObserver() {
         public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
-          if (newCharacter != null)
-            heroBox.setSelectedItem(newCharacter.getName());
-          // newItem.setEnabled(false);
-          // openItem.setEnabled(true);
-          String path = Group.getInstance().getFilePath(newCharacter);
-          saveItem.setEnabled(newCharacter != null && path != null
-              && !path.equals(""));
-          saveAsItem.setEnabled(newCharacter != null);
-          // importItem.setEnabled(true);
-          // closeItem.setEnabled(true);
-          removeItem.setEnabled(newCharacter != null);
-          cloneItem.setEnabled(newCharacter != null);
-          getPrintMenuItem().setEnabled(newCharacter != null);
+          ControlFrame.this.activeCharacterChanged(newCharacter);
         }
 
         public void characterRemoved(Hero character) {
@@ -480,7 +540,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     return jTabbedPane;
   }
 
-  private static int VGAP = 12;
+  private static final int VGAP = 12;
 
   private JPanel animalsPane;
 
@@ -496,7 +556,34 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
 
   private class AnimalsListFiller implements CharactersObserver {
     public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
-      fillAnimalsList(newCharacter);
+      clearList(oldCharacter);
+      fillAnimalsList(newCharacter, true);
+    }
+
+    private void clearList(Hero hero) {
+      Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+      if (hero != null) {
+        prefs.putInt(hero.getName() + "_AnimalFrameCount", animalFrames.size());
+        int nr = 0;
+        for (String animal : animalFrames.keySet()) {
+          int index = -1;
+          for (int i = 0; i < hero.getNrOfAnimals(); ++i) {
+            if (hero.getAnimal(i).getName().equals(animal)) {
+              index = i; 
+              break;
+            }
+          }
+          prefs.putInt(hero.getName() + "_AnimalFrame_" + nr, index);
+          ++nr;
+        }
+      }
+      HashMap<String, AnimalFrame> temp = new HashMap<String, AnimalFrame>();
+      temp.putAll(animalFrames);
+      for (AnimalFrame frame : temp.values()) {
+        frame.dispose();
+      }
+      temp.clear();
+      animalFrames.clear();
     }
 
     public void characterRemoved(Hero character) {
@@ -509,7 +596,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     }
   }
 
-  private void fillAnimalsList(Hero hero) {
+  private void fillAnimalsList(Hero hero, boolean openFrames) {
     if (animalsList == null) {
       return;
     }
@@ -536,6 +623,16 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       editAnimalButton.setEnabled(false);
       deleteAnimalButton.setEnabled(false);
     }
+    if (openFrames) {
+      Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+      int nrOfOpenFrames = prefs.getInt(hero.getName() + "_AnimalFrameCount", 0);
+      for (int i = 0; i < nrOfOpenFrames; ++i) {
+        int index = prefs.getInt(hero.getName() + "_AnimalFrame_" + i, -1);
+        if (index != -1) {
+          editAnimal(index, false);
+        }
+      }
+    }
   }
 
   private void deleteAnimal() {
@@ -543,16 +640,20 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     if (index < 0) return;
     Hero hero = Group.getInstance().getActiveHero();
     hero.removeAnimal(index);
-    fillAnimalsList(hero);
+    fillAnimalsList(hero, false);
   }
 
-  private HashMap<String, AnimalFrame> animalFrames = new HashMap<String, AnimalFrame>();
+  private final HashMap<String, AnimalFrame> animalFrames = new HashMap<String, AnimalFrame>();
 
-  private HashMap<String, Animal.NameListener> animalListeners = new HashMap<String, Animal.NameListener>();
+  private final HashMap<String, Animal.Listener> animalListeners = new HashMap<String, Animal.Listener>();
 
   private void editAnimal() {
     int index = animalsList.getSelectedIndex();
     if (index < 0) return;
+    editAnimal(index, false);
+  }
+    
+  private void editAnimal(int index, boolean setPosition) {
     Hero hero = Group.getInstance().getActiveHero();
     dsa.model.data.Animal animal = hero.getAnimal(index);
     if (animal == null) return;
@@ -560,13 +661,15 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       animalFrames.get(animal.getName()).toFront();
     }
     else {
-      AnimalFrame af = new AnimalFrame(animal);
-      af.setLocationRelativeTo(this);
+      AnimalFrame af = new AnimalFrame(animal, setPosition);
+      if (setPosition) {
+        af.setLocationRelativeTo(this);
+      }
       af.addWindowListener(new WindowAdapter() {
         public void windowClosed(WindowEvent e) {
           String name = ((AnimalFrame) e.getSource()).getTitle();
           animalFrames.remove(name);
-          Animal.NameListener l = animalListeners.get(name);
+          Animal.Listener l = animalListeners.get(name);
           ((AnimalFrame) e.getSource()).getAnimal().removeListener(l);
           animalListeners.remove(name);
         }
@@ -574,19 +677,21 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
         public void windowClosing(WindowEvent e) {
           String name = ((AnimalFrame) e.getSource()).getTitle();
           animalFrames.remove(name);
-          Animal.NameListener l = animalListeners.get(name);
+          Animal.Listener l = animalListeners.get(name);
           ((AnimalFrame) e.getSource()).getAnimal().removeListener(l);
           animalListeners.remove(name);
         }
       });
-      Animal.NameListener l = new dsa.model.data.Animal.NameListener() {
+      Animal.Listener l = new dsa.model.data.Animal.Listener() {
         public void nameChanged(String oldName, String newName) {
           AnimalFrame f = animalFrames.get(oldName);
           if (f != null) {
             animalFrames.remove(oldName);
             animalFrames.put(newName, f);
           }
-          fillAnimalsList(Group.getInstance().getActiveHero());
+          fillAnimalsList(Group.getInstance().getActiveHero(), false);
+        }
+        public void thingRemoved(String thing) {
         }
       };
       animal.addListener(l);
@@ -602,9 +707,9 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     dsa.model.data.Animal a = asd.getAnimal();
     if (a != null) {
       Group.getInstance().getActiveHero().addAnimal(a);
-      fillAnimalsList(Group.getInstance().getActiveHero());
+      fillAnimalsList(Group.getInstance().getActiveHero(), false);
       animalsList.setSelectedIndex(animalsModel.size() - 1);
-      editAnimal();
+      editAnimal(animalsModel.size() - 1, true);
     }
   }
 
@@ -613,6 +718,13 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       animalsPane = new JPanel(new BorderLayout());
       animalsModel = new DefaultListModel();
       animalsList = new BGList(animalsModel);
+      animalsList.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent e) {
+          if (e.getClickCount() > 1) {
+            editAnimal();
+          }
+        }
+      });
       JScrollPane scrollPane = new JScrollPane(animalsList);
       scrollPane.setOpaque(false);
       scrollPane.getViewport().setOpaque(false);
@@ -658,7 +770,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       filler3.setPreferredSize(new java.awt.Dimension(5, 5));
       animalsPane.add(filler3, BorderLayout.SOUTH);
       Hero hero = Group.getInstance().getActiveHero();
-      fillAnimalsList(hero);
+      fillAnimalsList(hero, false);
       Group.getInstance().addObserver(new AnimalsListFiller());
     }
     return animalsPane;
@@ -1103,7 +1215,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     sumLabel2.setForeground(overallWeight > kkWeight ? Color.RED : DARKGREEN);
   }
 
-  static Color DARKGREEN = new Color(0, 175, 0);
+  private static final Color DARKGREEN = new Color(0, 175, 0);
 
   private JPanel fightPanel;
 
@@ -1518,7 +1630,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     return talentsPanel;
   }
 
-  private class TalentFrameAction implements ActionListener {
+  private static class TalentFrameAction implements ActionListener {
     public TalentFrameAction(String category, JToggleButton button) {
       this.category = category;
       this.button = button;
@@ -1547,9 +1659,9 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       }
     }
 
-    private String category;
+    private final String category;
 
-    private JToggleButton button;
+    private final JToggleButton button;
 
     private TalentFrame frame = null;
   };
@@ -1874,7 +1986,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
         openGroup(new File(fileName));
       }
 
-      private String fileName;
+      private final String fileName;
     }
     for (int i = 0; i < nrOfLastGroups; ++i) {
       JMenuItem lastGroupItem = new JMenuItem();
@@ -1919,15 +2031,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       chooser.setCurrentDirectory(f);
     }
     chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new FileFilter() {
-      public boolean accept(File f) {
-        return f.getName().endsWith(".dsagroup") || f.isDirectory();
-      }
-
-      public String getDescription() {
-        return "DSA-Gruppen (*.dsagroup)";
-      }
-    });
+    chooser.addChoosableFileFilter(new GroupFileFilter());
     chooser.setMultiSelectionEnabled(false);
     int result = chooser.showOpenDialog(this);
     if (result == JFileChooser.APPROVE_OPTION) {
@@ -2037,15 +2141,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     File f = Directories.getLastUsedDirectory(this, "Groups");
     if (f != null) chooser.setCurrentDirectory(f);
     chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new FileFilter() {
-      public boolean accept(File f) {
-        return f.getName().endsWith(".dsagroup") || f.isDirectory();
-      }
-
-      public String getDescription() {
-        return "DSA-Gruppen (*.dsagroup)";
-      }
-    });
+    chooser.addChoosableFileFilter(new GroupFileFilter());
     chooser.setMultiSelectionEnabled(false);
     do {
       int result = chooser.showSaveDialog(this);
@@ -2199,15 +2295,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       chooser.setCurrentDirectory(f);
     }
     chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new FileFilter() {
-      public boolean accept(File f) {
-        return f.getName().endsWith(".dsahero") || f.isDirectory();
-      }
-
-      public String getDescription() {
-        return "DSA-Charaktere (*.dsahero)";
-      }
-    });
+    chooser.addChoosableFileFilter(new HeroFileFilter());
     chooser.setMultiSelectionEnabled(true);
     int result = chooser.showOpenDialog(this);
     if (result == JFileChooser.APPROVE_OPTION) {
@@ -2327,15 +2415,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       chooser.setCurrentDirectory(f);
     }
     chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new FileFilter() {
-      public boolean accept(File f) {
-        return f.getName().endsWith(".dsahero") || f.isDirectory();
-      }
-
-      public String getDescription() {
-        return "DSA-Charaktere (*.dsahero)";
-      }
-    });
+    chooser.addChoosableFileFilter(new HeroFileFilter());
     chooser.setMultiSelectionEnabled(false);
     chooser.setSelectedFile(new File(hero.getName() + ".dsahero"));
     do {
@@ -2397,15 +2477,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       chooser.setCurrentDirectory(f);
     }
     chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new FileFilter() {
-      public boolean accept(File f) {
-        return f.getName().endsWith(".h42") || f.isDirectory();
-      }
-
-      public String getDescription() {
-        return "Wiege-Charaktere (*.h42)";
-      }
-    });
+    chooser.addChoosableFileFilter(new WiegeFileFilter());
     chooser.setMultiSelectionEnabled(true);
     int result = chooser.showOpenDialog(this);
     if (result == JFileChooser.APPROVE_OPTION) {
@@ -2530,7 +2602,7 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
     for (java.util.StringTokenizer st = new java.util.StringTokenizer(data,
         "\r\n"); st.hasMoreTokens();) {
       String s = st.nextToken();
-      if (s.startsWith("#")) {
+      if (s.charAt(0) == '#') {
         // the line is a comment (as per the RFC 2483)
         continue;
       }
@@ -2541,9 +2613,11 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       }
       catch (java.net.URISyntaxException e) {
         // malformed URI
+        continue;
       }
       catch (IllegalArgumentException e) {
         // the URI is not a valid 'file:' URI
+        continue;
       }
     }
     return list;
@@ -2677,6 +2751,22 @@ public class ControlFrame extends SubFrame implements DropTargetListener {
       ufe.printStackTrace();
       dtde.rejectDrop();
     }
+  }
+
+  private void activeCharacterChanged(Hero newCharacter) {
+    if (newCharacter != null)
+      heroBox.setSelectedItem(newCharacter.getName());
+    // newItem.setEnabled(false);
+    // openItem.setEnabled(true);
+    String path = Group.getInstance().getFilePath(newCharacter);
+    saveItem.setEnabled(newCharacter != null && path != null
+        && !path.equals(""));
+    saveAsItem.setEnabled(newCharacter != null);
+    // importItem.setEnabled(true);
+    // closeItem.setEnabled(true);
+    removeItem.setEnabled(newCharacter != null);
+    cloneItem.setEnabled(newCharacter != null);
+    getPrintMenuItem().setEnabled(newCharacter != null);
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

@@ -111,7 +111,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       updateData();
     }
 
-    private int mIndex;
+    private final int mIndex;
   }
 
   private class CurrencyChangeListener implements ActionListener {
@@ -133,14 +133,14 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       updateData();
     }
 
-    private int mIndex;
+    private final int mIndex;
 
-    private JFormattedTextField mField;
+    private final JFormattedTextField mField;
   }
 
-  private ArrayList<JFormattedTextField> valueFields = new ArrayList<JFormattedTextField>();
+  private final ArrayList<JFormattedTextField> valueFields = new ArrayList<JFormattedTextField>();
 
-  private ArrayList<JComboBox> currencyBoxes = new ArrayList<JComboBox>();
+  private final ArrayList<JComboBox> currencyBoxes = new ArrayList<JComboBox>();
 
   private void addCurrency(JPanel panel, int i, int currency, int value) {
     JFormattedTextField field = new JFormattedTextField(new NumberFormatter(
@@ -156,7 +156,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
     c.fill = GridBagConstraints.NONE;
     c.anchor = GridBagConstraints.WEST;
     field.setPreferredSize(new java.awt.Dimension(35, 25));
-    field.setValue(new Integer(value));
+    field.setValue(Integer.valueOf(value));
     field.addPropertyChangeListener(new MoneyChangeListener(i));
     panel.add(field, c);
     valueFields.add(field);

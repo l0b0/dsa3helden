@@ -19,10 +19,11 @@
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
-import java.io.*;
 
 public class Currencies {
 
@@ -30,49 +31,52 @@ public class Currencies {
   }
 
   public static Currencies getInstance() {
-    if (sInstance == null) {
-      sInstance = new Currencies();
-    }
     return sInstance;
   }
 
-  private static Currencies sInstance = null;
+  private static Currencies sInstance = new Currencies();
 
   public void readCurrencies(String filename) throws IOException {
     BufferedReader in = new BufferedReader(new FileReader(filename));
-    StringTokenizer tokenizer = null;
-    String line = in.readLine();
-    int lineNr = 1;
-    while (line != null) {
-      tokenizer = new StringTokenizer(line, ";");
-      if (tokenizer.countTokens() != 3) {
-        throw new IOException("Zeile " + lineNr
-            + ": Syntaxfehler in der Währung");
-      }
-      String name = tokenizer.nextToken();
-      String valueS = tokenizer.nextToken();
-      String weightS = tokenizer.nextToken();
-      try {
-        long value = Long.parseLong(valueS);
-        if (value < 0)
+    try {
+      StringTokenizer tokenizer = null;
+      String line = in.readLine();
+      int lineNr = 1;
+      while (line != null) {
+        tokenizer = new StringTokenizer(line, ";");
+        if (tokenizer.countTokens() != 3) {
+          throw new IOException("Zeile " + lineNr
+              + ": Syntaxfehler in der Währung");
+        }
+        String name = tokenizer.nextToken();
+        String valueS = tokenizer.nextToken();
+        String weightS = tokenizer.nextToken();
+        try {
+          long value = Long.parseLong(valueS);
+          if (value < 0)
+            throw new IOException("Zeile " + lineNr
+                + ": Falscher Wert für Währung!");
+          long weight = Long.parseLong(weightS);
+          if (weight < 0)
+            throw new IOException("Zeile " + lineNr
+                + ": Falsches Gewicht für Währung!");
+          names.add(name);
+          values.add(value);
+          weights.add(weight);
+        }
+        catch (NumberFormatException e) {
           throw new IOException("Zeile " + lineNr
               + ": Falscher Wert für Währung!");
-        long weight = Long.parseLong(weightS);
-        if (weight < 0)
-          throw new IOException("Zeile " + lineNr
-              + ": Falsches Gewicht für Währung!");
-        names.add(name);
-        values.add(value);
-        weights.add(weight);
+        }
+        line = in.readLine();
+        lineNr++;
       }
-      catch (NumberFormatException e) {
-        throw new IOException("Zeile " + lineNr
-            + ": Falscher Wert für Währung!");
-      }
-      line = in.readLine();
-      lineNr++;
     }
-    in.close();
+    finally {
+      if (in != null) {
+        in.close();
+      }
+    }
   }
 
   public int changeValueIndex(int value, int oldCurrency, int newCurrency) {
@@ -112,9 +116,9 @@ public class Currencies {
     return values.get(index);
   }
 
-  private ArrayList<Long> weights = new ArrayList<Long>();
+  private final ArrayList<Long> weights = new ArrayList<Long>();
 
-  private ArrayList<String> names = new ArrayList<String>();
+  private final ArrayList<String> names = new ArrayList<String>();
 
-  private ArrayList<Long> values = new ArrayList<Long>();
+  private final ArrayList<Long> values = new ArrayList<Long>();
 }

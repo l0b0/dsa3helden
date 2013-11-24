@@ -1,44 +1,46 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import java.io.*;
-
 public class Shields {
 
-  private HashMap<String, Shield> shields = new HashMap<String, Shield>();
+  private final HashMap<String, Shield> shields = new HashMap<String, Shield>();
 
-  private ArrayList<String> names = new ArrayList<String>();
+  private final ArrayList<String> names = new ArrayList<String>();
 
-  private static Shields instance = null;
+  private static Shields instance = new Shields();
 
   public static Shields getInstance() {
-    if (instance == null) {
-      instance = new Shields();
-    }
     return instance;
   }
 
@@ -57,6 +59,19 @@ public class Shields {
     return s;
   }
 
+  public void addShield(Shield s) {
+    if (getShield(s.getName()) != null) {
+      throw new IllegalArgumentException("Schild existiert bereits!");
+    }
+    names.add(s.getName());
+    shields.put(s.getName(), s);
+  }
+
+  public void removeShield(String shield) {
+    names.remove(shield);
+    shields.remove(shield);
+  }
+
   private int parseInt(String s, int lineNr) throws IOException {
     try {
       return Integer.parseInt(s);
@@ -67,8 +82,19 @@ public class Shields {
   }
 
   public void readFile(String fileName) throws IOException {
+    readFile(fileName, false);
+  }
+
+  public void readUserDefinedFile(String fileName) throws IOException {
+    readFile(fileName, true);
+  }
+
+  private void readFile(String fileName, boolean userDefined)
+      throws IOException {
     int lineNr = 0;
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    File file = new File(fileName);
+    if (!file.exists()) return;
+    BufferedReader in = new BufferedReader(new FileReader(file));
     try {
       String line = in.readLine();
       lineNr++;
@@ -86,7 +112,7 @@ public class Shields {
         int weight = parseInt(t.nextToken(), lineNr);
         int worth = parseInt(t.nextToken(), lineNr);
         Shield shield = new Shield(name, atMod, paMod, paMod2, beMod, fkMod,
-            bf, weight, worth);
+            bf, weight, worth, userDefined);
         shields.put(name, shield);
         names.add(name);
         line = in.readLine();
@@ -98,6 +124,25 @@ public class Shields {
     }
     finally {
       in.close();
+    }
+  }
+
+  public void writeUserDefinedFile(String fileName) throws IOException {
+    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
+        fileName)));
+    try {
+      for (Shield s : shields.values()) {
+        if (s.isUserDefined()) {
+          String line = s.getName() + ";" + s.getPaMod() + ";" + s.getPaMod2()
+              + ";" + s.getAtMod() + ";" + s.getBeMod() + ";" + s.getFkMod()
+              + ";" + s.getBF() + ";" + s.getWeight() + ";" + s.getWorth();
+          out.println(line);
+        }
+      }
+      out.flush();
+    }
+    finally {
+      out.close();
     }
   }
 

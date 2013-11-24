@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
 
@@ -64,12 +64,12 @@ import dsa.model.talents.Talent;
 
 import javax.swing.JCheckBox;
 
-public class FightFrame extends SubFrame implements CharactersObserver,
+public final class FightFrame extends SubFrame implements CharactersObserver,
     OptionsChange.OptionsListener {
 
   private JPanel jContentPane = null;
 
-  private JLabel jLabel = null;
+  private JLabel leLabel = null;
 
   private JTextField leField = null;
 
@@ -136,6 +136,8 @@ public class FightFrame extends SubFrame implements CharactersObserver,
   private JButton attack2Button = null;
 
   private JButton parade2Button = null;
+
+  private JCheckBox fromAUBox = null;
 
   private boolean listen = true;
 
@@ -233,12 +235,19 @@ public class FightFrame extends SubFrame implements CharactersObserver,
 
   boolean withMarkers;
 
+  boolean useAU;
+
   private void updateData() {
     listen = false;
     withDazed = Group.getInstance().getOptions().hasQvatStunned();
-    withMarkers = Markers.useMarkers();
+    withMarkers = Markers.isUsingMarkers();
     if (currentHero != null) {
-      leField.setText("" + currentHero.getCurrentEnergy(Energy.LE));
+      useAU = currentHero.fightUsesAU();
+      fromAUBox.setEnabled(true);
+      fromAUBox.setSelected(useAU);
+      leLabel.setText(useAU ? "AU" : "LE");
+      leField.setText(""
+          + currentHero.getCurrentEnergy(useAU ? Energy.AU : Energy.LE));
       leField.setEnabled(true);
       awLabel.setText(""
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.AB));
@@ -312,6 +321,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       // hand2Changed();
     }
     else {
+      leLabel.setText("LE");
       awLabel.setText("-");
       at1Label.setText("-");
       at2Label.setText("-");
@@ -343,6 +353,8 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       dazedBox.setEnabled(false);
       markerSpinner.setEnabled(false);
       markerSpinner.setValue(0);
+      fromAUBox.setEnabled(false);
+      fromAUBox.setSelected(false);
     }
     setLEColor();
     evadeButton.setEnabled(currentHero != null && canDefend());
@@ -463,12 +475,12 @@ public class FightFrame extends SubFrame implements CharactersObserver,
           leChanged();
         }
       });
-      jLabel = new JLabel();
-      jLabel.setBounds(new java.awt.Rectangle(9, 10, 27, 19));
-      jLabel.setText("LE:");
+      leLabel = new JLabel();
+      leLabel.setBounds(new java.awt.Rectangle(9, 10, 27, 19));
+      leLabel.setText("LE:");
       jContentPane = new JPanel();
       jContentPane.setLayout(null);
-      jContentPane.add(jLabel, null);
+      jContentPane.add(leLabel, null);
       jContentPane.add(leField, null);
       jContentPane.add(jLabel1, null);
       jContentPane.add(awLabel, null);
@@ -508,6 +520,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       jContentPane.add(getDazedBox(), null);
       jContentPane.add(jLabel13, null);
       jContentPane.add(getMarkerSpinner(), null);
+      jContentPane.add(getAUBox(), null);
     }
     return jContentPane;
   }
@@ -519,7 +532,14 @@ public class FightFrame extends SubFrame implements CharactersObserver,
     String text = leField.getText();
     try {
       int value = Integer.parseInt(text);
-      currentHero.setCurrentEnergy(Energy.LE, value);
+      if (useAU) {
+        int oldValue = currentHero.getCurrentEnergy(Energy.AU);
+        int diff = value - oldValue;
+        currentHero.changeAU(diff);
+      }
+      else {
+        currentHero.setCurrentEnergy(Energy.LE, value);
+      }
       setLEColor();
       if (value <= 5 && withDazed) {
         currentHero.setDazed(true);
@@ -529,13 +549,14 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       else if (withDazed) {
         dazedBox.setEnabled(true);
       }
-      if (withMarkers) {
+      if (withMarkers && !useAU) {
         updateMarkerValues();
       }
+      listen = true;
     }
     catch (NumberFormatException e) {
+      listen = true;
     }
-    listen = true;
     modeChanged();
   }
 
@@ -545,7 +566,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       color = Color.BLACK;
     }
     else {
-      int value = currentHero.getCurrentEnergy(Energy.LE);
+      int value = currentHero.getCurrentEnergy(useAU ? Energy.AU : Energy.LE);
       if (value > 20)
         color = Color.GREEN;
       else if (value > 8)
@@ -574,6 +595,22 @@ public class FightFrame extends SubFrame implements CharactersObserver,
     return modeBox;
   }
 
+  private JCheckBox getAUBox() {
+    if (fromAUBox == null) {
+      fromAUBox = new JCheckBox();
+      fromAUBox.setText("SP auf AU");
+      fromAUBox.setToolTipText("SchadensPunkte von der AUsdauer abziehen");
+      fromAUBox.setBounds(new java.awt.Rectangle(160, 220, 130, 21));
+      fromAUBox.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          currentHero.setFightUsesAU(fromAUBox.isSelected());
+          updateData();
+        }
+      });
+    }
+    return fromAUBox;
+  }
+
   private void disableSecondHand() {
     secondHandLabel.setEnabled(false);
     hand2Box.setEnabled(false);
@@ -590,7 +627,8 @@ public class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private boolean canDefend() {
-    return currentHero.getCurrentEnergy(Energy.LE) > 5;
+    boolean leOK = currentHero.getCurrentEnergy(Energy.LE) > 5;
+    return leOK && currentHero.getCurrentEnergy(Energy.AU) > 0;
   }
 
   protected void modeChanged() {
@@ -599,6 +637,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
     if (mode == null) return;
     attack1Button.setEnabled(canAttack());
     parade1Button.setEnabled(canDefend());
+    evadeButton.setEnabled(canDefend());
     hand1Box.removeAllItems();
     hand2Box.removeAllItems();
     beLabel.setText("" + currentHero.getBE());
@@ -803,7 +842,6 @@ public class FightFrame extends SubFrame implements CharactersObserver,
     Object o = hand1Box.getSelectedItem();
     if (o == null) return;
     String s = o.toString();
-    if (mode == null) return;
     if (mode.equals("Waffenlos")) {
       setFirstAT(Weapons.getCategoryIndex(s), 0);
       setFirstPA(Weapons.getCategoryIndex(s), 0);
@@ -1135,6 +1173,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       at = Integer.parseInt(at1Label.getText());
     }
     catch (NumberFormatException e) {
+      at = 0;
     }
     ProjectileAttackDialog dialog = new ProjectileAttackDialog(this, at, w);
     dialog.setVisible(true);
@@ -1197,6 +1236,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       currentHero.setAT1Bonus(bonus);
     }
     catch (NumberFormatException e) {
+      return;
     }
   }
 
@@ -1207,6 +1247,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
       currentHero.setAT2Bonus(bonus);
     }
     catch (NumberFormatException e) {
+      return;
     }
   }
 
@@ -1372,6 +1413,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
         be = Integer.parseInt(beLabel.getText());
       }
       catch (NumberFormatException e) {
+        be = 0;
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
@@ -1391,6 +1433,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
         be = Integer.parseInt(beLabel.getText());
       }
       catch (NumberFormatException e) {
+        be = 0;
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
@@ -1412,6 +1455,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
         be = Integer.parseInt(beLabel.getText());
       }
       catch (NumberFormatException e) {
+        be = 0;
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
@@ -1435,6 +1479,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
         be = Integer.parseInt(beLabel.getText());
       }
       catch (NumberFormatException e) {
+        be = 0;
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
@@ -1471,9 +1516,21 @@ public class FightFrame extends SubFrame implements CharactersObserver,
     ImageIcon icon = ImageManager.getIcon("hit");
     int sp = tp - currentHero.getRS();
     if (sp > 0) {
-      currentHero.changeCurrentEnergy(Energy.LE, -sp);
+      if (useAU) {
+        currentHero.changeAU(-sp);
+      }
+      else {
+        currentHero.changeCurrentEnergy(Energy.LE, -sp);
+      }
     }
-    int le = currentHero.getCurrentEnergy(Energy.LE);
+    int le = currentHero.getCurrentEnergy(useAU ? Energy.AU : Energy.LE);
+    if (useAU) {
+      if (le == 0) {
+        JOptionPane.showMessageDialog(this, currentHero.getName()
+            + " wird bewusstlos.", "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
+      }
+      return;
+    }
     if (le < 0) {
       JOptionPane.showMessageDialog(this, currentHero.getName()
           + " liegt im Sterben ...", "Verwundung", JOptionPane.PLAIN_MESSAGE,
@@ -1643,7 +1700,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
   public void globalLockChanged() {
   }
 
-  private CharacterObserver myCharacterObserver = new MyCharacterObserver();
+  private final CharacterObserver myCharacterObserver = new MyCharacterObserver();
 
   private JCheckBox groundBox = null;
 
@@ -1719,6 +1776,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
         mod = Integer.parseInt(beLabel.getText());
       }
       catch (NumberFormatException e) {
+        mod = 0;
       }
       int roll = Dice.roll(20);
       if (roll <= value - mod - Markers.getMarkers(currentHero)) {
@@ -1914,7 +1972,7 @@ public class FightFrame extends SubFrame implements CharactersObserver,
   private JSpinner getMarkerSpinner() {
     if (markerSpinner == null) {
       markerSpinner = new JSpinner();
-      markerSpinner.setBounds(new java.awt.Rectangle(120, 220, 51, 21));
+      markerSpinner.setBounds(new java.awt.Rectangle(90, 220, 51, 21));
       markerSpinner.setModel(getMarkerSpinnerModel());
       markerSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {

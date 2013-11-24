@@ -19,8 +19,11 @@
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.io.*;
 
 public class RegionNames {
 
@@ -28,17 +31,17 @@ public class RegionNames {
 
   private String language;
 
-  private ArrayList<String> wFirstNames = new ArrayList<String>();
+  private final ArrayList<String> wFirstNames = new ArrayList<String>();
 
-  private ArrayList<String> lastNames = new ArrayList<String>();
+  private final ArrayList<String> lastNames = new ArrayList<String>();
 
-  private ArrayList<String> mFirstNames = new ArrayList<String>();
+  private final ArrayList<String> mFirstNames = new ArrayList<String>();
 
-  private ArrayList<String> mSecondNames = new ArrayList<String>();
+  private final ArrayList<String> mSecondNames = new ArrayList<String>();
 
-  private ArrayList<String> wSecondNames = new ArrayList<String>();
+  private final ArrayList<String> wSecondNames = new ArrayList<String>();
 
-  private ArrayList<String> nobleLastNames = new ArrayList<String>();
+  private final ArrayList<String> nobleLastNames = new ArrayList<String>();
 
   public ArrayList<String> getLastNames() {
     return lastNames;

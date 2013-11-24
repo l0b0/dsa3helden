@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
 
@@ -32,7 +32,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class ProjectileAttackDialog extends BGDialog {
+public final class ProjectileAttackDialog extends BGDialog {
 
   private JPanel jContentPane = null;
 
@@ -228,6 +228,8 @@ public class ProjectileAttackDialog extends BGDialog {
     case 4:
       modifier += 12;
       break;
+    default:
+      break;
     }
     switch (sizeBox.getSelectedIndex()) {
     case 0:
@@ -247,6 +249,8 @@ public class ProjectileAttackDialog extends BGDialog {
     case 5:
       modifier -= 6;
       break;
+    default:
+      break;
     }
     switch (movementBox.getSelectedIndex()) {
     case 0:
@@ -259,6 +263,8 @@ public class ProjectileAttackDialog extends BGDialog {
       break;
     case 3:
       modifier += 6;
+      break;
+    default:
       break;
     }
     modifier += sightBox.getSelectedIndex();
@@ -274,6 +280,8 @@ public class ProjectileAttackDialog extends BGDialog {
     case 2:
       atValue = baseAT + baseAT / 2;
       break;
+    default:
+      atValue = baseAT;
     }
     sumLabel.setText("AT-Wert: " + atValue + "  Zuschlag: " + modifier);
   }
@@ -430,9 +438,9 @@ public class ProjectileAttackDialog extends BGDialog {
   }
 
   /**
-   * This method initializes jButton	
-   * 	
-   * @return javax.swing.JButton	
+   * This method initializes jButton
+   * 
+   * @return javax.swing.JButton
    */
   private JButton getCancelButton() {
     if (jButton == null) {
@@ -448,4 +456,4 @@ public class ProjectileAttackDialog extends BGDialog {
     return jButton;
   }
 
-} //  @jve:decl-index=0:visual-constraint="10,10"
+} // @jve:decl-index=0:visual-constraint="10,10"

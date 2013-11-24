@@ -19,23 +19,21 @@
  */
 package dsa.model.data;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
-import java.io.*;
 
 public class Names {
 
-  private HashMap<String, RegionNames> regionNames;
+  private final HashMap<String, RegionNames> regionNames;
 
   public RegionNames getRegionNames(String region) {
     return regionNames.get(region);
   }
 
-  private static Names instance = null;
+  private static Names instance = new Names();
 
   public static Names getInstance() {
-    if (instance == null) {
-      instance = new Names();
-    }
     return instance;
   }
 

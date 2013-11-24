@@ -19,7 +19,10 @@
  */
 package dsa.model.data;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,11 +32,11 @@ import dsa.model.DiceSpecification;
 
 public class Animals {
 
-  private ArrayList<String> categories;
+  private final ArrayList<String> categories;
 
-  private HashMap<String, ArrayList<String>> races;
+  private final HashMap<String, ArrayList<String>> races;
 
-  private HashMap<String, ArrayList<Animal>> prototypes;
+  private final HashMap<String, ArrayList<Animal>> prototypes;
 
   private String fileName;
 
@@ -77,13 +80,19 @@ public class Animals {
     if (!prototypes.containsKey(key)) return null;
     ArrayList<Animal> p = prototypes.get(key);
     if (step < 0 || step >= p.size()) return null;
-    Animal a = (Animal) p.get(step).clone();
+    Animal a = null;
+    try {
+      a = (Animal) p.get(step).clone();
+    }
+    catch (CloneNotSupportedException e) { 
+      throw new InternalError();
+    }
     for (int i = 0; i < a.attributeInfos.size(); ++i) {
       if (a.attributeInfos.get(i).type == Animal.AttributeType.eMultiplier) {
         a.attributeInfos.get(i).type = Animal.AttributeType.eInt;
         double multiplier = ((Double) a.attributes.get(i)).doubleValue();
         int factor = ((Integer) a.attributes.get(i - 1)).intValue();
-        a.attributes.set(i, new Integer((int) (multiplier * factor)));
+        a.attributes.set(i, Integer.valueOf((int) (multiplier * factor)));
       }
       else if (a.attributeInfos.get(i).addedWithSteps) {
         int value = 0;
@@ -117,7 +126,6 @@ public class Animals {
   }
 
   public static Animals getInstance() {
-    if (sInstance == null) sInstance = new Animals();
     return sInstance;
   }
 
@@ -127,7 +135,7 @@ public class Animals {
     prototypes = new HashMap<String, ArrayList<Animal>>();
   }
 
-  private static Animals sInstance = null;
+  private static Animals sInstance = new Animals();
 
   private int parseInt(String line) throws IOException {
     try {
@@ -226,7 +234,7 @@ public class Animals {
     }
   }
 
-  private void readPrototypes(BufferedReader in, ArrayList<Animal> prototypes,
+  private void readPrototypes(BufferedReader in, ArrayList<Animal> animals,
       Animal.AttributeType[] attrTypes, boolean[] increasing, int steps)
       throws IOException {
     for (int i = 0; i < attrTypes.length; ++i) {
@@ -236,7 +244,7 @@ public class Animals {
       Object[] values = new Object[steps];
       readValues(values, attrTypes[i], line);
       for (int j = 0; j < steps; ++j)
-        prototypes.get(j).attributes.add(values[j]);
+        animals.get(j).attributes.add(values[j]);
     }
   }
 

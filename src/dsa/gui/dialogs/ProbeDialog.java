@@ -45,7 +45,7 @@ import dsa.util.Strings;
 /**
  * 
  */
-public class ProbeDialog extends BGDialog {
+public final class ProbeDialog extends BGDialog {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -240,7 +240,7 @@ public class ProbeDialog extends BGDialog {
         + Strings.cutTo(hero.getName(), ' '), JOptionPane.INFORMATION_MESSAGE);
   }
 
-  private String doProbe(Hero character, String talentName, int mod) {
+  private static String doProbe(Hero character, String talentName, int mod) {
     NormalTalent talent = (NormalTalent) Talents.getInstance().getTalent(
         talentName);
     Probe probe = new Probe();
@@ -279,7 +279,7 @@ public class ProbeDialog extends BGDialog {
     }
   }
 
-  private String doProbe(Hero character, Property property, int mod) {
+  private static String doProbe(Hero character, Property property, int mod) {
     mod += Markers.getMarkers(character);
     int hurdle = character.getCurrentProperty(property) - mod;
     int diceThrow = Dice.roll(20);
@@ -296,7 +296,7 @@ public class ProbeDialog extends BGDialog {
       return "Mit einer " + diceThrow + " nicht bestanden.";
   }
 
-  private String doProbe(Hero character, int mod) {
+  private static String doProbe(Hero character, int mod) {
     mod += Markers.getMarkers(character);
     int hurdle = character.getCurrentEnergy(dsa.model.characters.Energy.KO)
         - mod;

@@ -49,9 +49,11 @@ public interface CharacterObserver extends dsa.util.Observer {
 
   void derivedValueChanged(Hero.DerivedValue dv);
 
-  void thingRemoved(String thing);
+  void thingRemoved(String thing, boolean fromWarehouse);
 
   void weaponRemoved(String weapon);
+  
+  void armourRemoved(String armour);
 
   void shieldRemoved(String name);
 

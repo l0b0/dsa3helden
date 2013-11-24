@@ -61,5 +61,5 @@ public class Optional<T extends Comparable<T>> implements
     return ((Comparable<T>) value).compareTo(other.value);
   }
 
-  public static Optional<Integer> NullInt = new Optional<Integer>();
+  public static final Optional<Integer> NULL_INT = new Optional<Integer>();
 }

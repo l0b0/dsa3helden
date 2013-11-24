@@ -38,7 +38,7 @@ import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 
-public class TypeMetaFrame extends SubFrame implements CharactersObserver {
+public final class TypeMetaFrame extends SubFrame implements CharactersObserver {
 
   private JPanel jContentPane = null;
 

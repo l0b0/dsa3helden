@@ -41,18 +41,13 @@ import javax.swing.plaf.synth.SynthContext;
 import de.javasoft.plaf.synthetica.painter.SyntheticaPainter;
 
 public class BackgroundPainter extends SyntheticaPainter {
-
-  public BackgroundPainter() {
-    super();
+  
+  private static class BGImageHolder {
+    private static final Image IMAGE = loadImage("bg");
   }
 
-  private static Image bgImage = null;
-
   private static Image getBGImage() {
-    if (bgImage == null) {
-      bgImage = loadImage("bg");
-    }
-    return bgImage;
+    return BGImageHolder.IMAGE;
   }
 
   // public void paintButtonBackground(SynthContext context, Graphics g, int x,
@@ -60,58 +55,54 @@ public class BackgroundPainter extends SyntheticaPainter {
   // paintBackground(context, g, x, y, w, h, GetBGImage());
   // }
 
-  private static Image inactiveImage = null;
-
+  private static class InactiveImageHolder {
+    private static final Image IMAGE = loadImage("hout");
+  }
+  
   private static Image getInactiveImage() {
-    if (inactiveImage == null) {
-      inactiveImage = loadImage("hout");
-    }
-    return inactiveImage;
+    return InactiveImageHolder.IMAGE;
   }
 
-  private static Image hoverImage = null;
-
+  private static class HoverImageHolder {
+    private static final Image IMAGE = loadImage("hout-hover");
+  }
+  
   private static Image getHoverImage() {
-    if (hoverImage == null) {
-      hoverImage = loadImage("hout-hover");
-    }
-    return hoverImage;
+    return HoverImageHolder.IMAGE;
   }
 
-  private static Image pressedImage = null;
-
+  private static class PressedImageHolder {
+    private static final Image IMAGE = loadImage("hout-active");
+  }
+  
   private static Image getPressedImage() {
-    if (pressedImage == null) {
-      pressedImage = loadImage("hout-active");
-    }
-    return pressedImage;
+    return PressedImageHolder.IMAGE;
   }
 
-  private static Image inactiveVertImage = null;
+  private static class InactiveVertImageHolder {
+    private static final Image IMAGE = loadImage("hout-vert");
+  }
+  
 
   private static Image getInactiveVertImage() {
-    if (inactiveVertImage == null) {
-      inactiveVertImage = loadImage("hout-vert");
-    }
-    return inactiveVertImage;
+    return InactiveVertImageHolder.IMAGE;
   }
 
-  private static Image hoverVertImage = null;
-
+  private static class HoverVertImageHolder {
+    private static final Image IMAGE = loadImage("hout-vert-hover");
+  }
+  
   private static Image getHoverVertImage() {
-    if (hoverVertImage == null) {
-      hoverVertImage = loadImage("hout-vert-hover");
-    }
-    return hoverVertImage;
+    return HoverVertImageHolder.IMAGE;
   }
 
-  private static Image pressedVertImage = null;
+  private static class PressedVertImageHolder {
+    private static final Image IMAGE = loadImage("hout-vert-active");
+  }
+  
 
   private static Image getPressedVertImage() {
-    if (pressedVertImage == null) {
-      pressedVertImage = loadImage("hout-vert-active");
-    }
-    return pressedVertImage;
+    return PressedVertImageHolder.IMAGE;
   }
 
   public void paintScrollBarThumbBackground(SynthContext context, Graphics g,
@@ -155,13 +146,21 @@ public class BackgroundPainter extends SyntheticaPainter {
     }
   }
 
-  private static Image arrowBtnLeft = null;
+  private static class ArrowButtonLeftImageHolder {
+    private static final Image IMAGE = loadImage("arrowButtonLeft");
+  }
+  
+  private static class ArrowButtonRightImageHolder {
+    private static final Image IMAGE = loadImage("arrowButtonRight");
+  }
 
-  private static Image arrowBtnRight = null;
+  private static class ArrowButtonUpImageHolder {
+    private static final Image IMAGE = loadImage("arrowButtonUp");
+  }
 
-  private static Image arrowBtnUp = null;
-
-  private static Image arrowBtnDown = null;
+  private static class ArrowButtonDownImageHolder {
+    private static final Image IMAGE = loadImage("arrowButtonDown");
+  }
 
   private static Image loadImage(String id) {
     String img = UIManager.getString("dsa.gui.lf." + id);
@@ -172,30 +171,18 @@ public class BackgroundPainter extends SyntheticaPainter {
   private static Image getArrowBtnImage(boolean horizontal, boolean leftOrUp) {
     if (horizontal) {
       if (leftOrUp) {
-        if (arrowBtnLeft == null) {
-          arrowBtnLeft = loadImage("arrowButtonLeft");
-        }
-        return arrowBtnLeft;
+        return ArrowButtonLeftImageHolder.IMAGE;
       }
       else {
-        if (arrowBtnRight == null) {
-          arrowBtnRight = loadImage("arrowButtonRight");
-        }
-        return arrowBtnRight;
+        return ArrowButtonRightImageHolder.IMAGE;
       }
     }
     else {
       if (leftOrUp) {
-        if (arrowBtnUp == null) {
-          arrowBtnUp = loadImage("arrowButtonUp");
-        }
-        return arrowBtnUp;
+        return ArrowButtonUpImageHolder.IMAGE;
       }
       else {
-        if (arrowBtnDown == null) {
-          arrowBtnDown = loadImage("arrowButtonDown");
-        }
-        return arrowBtnDown;
+        return ArrowButtonDownImageHolder.IMAGE;
       }
     }
   }

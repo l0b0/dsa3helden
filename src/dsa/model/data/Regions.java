@@ -27,18 +27,15 @@ import java.util.HashMap;
 
 public class Regions {
 
-  private static Regions instance = null;
+  private static Regions instance = new Regions();
 
   public static Regions getInstance() {
-    if (instance == null) {
-      instance = new Regions();
-    }
     return instance;
   }
 
-  private ArrayList<String> regionNames = new ArrayList<String>();
+  private final ArrayList<String> regionNames = new ArrayList<String>();
 
-  private HashMap<String, Region> regions = new HashMap<String, Region>();
+  private final HashMap<String, Region> regions = new HashMap<String, Region>();
 
   public void readFiles(String directory) throws IOException {
     File dir = new File(directory);
@@ -54,8 +51,8 @@ public class Regions {
   }
 
   public String[] getRegions() {
-    String[] regions = new String[regionNames.size()];
-    return regionNames.toArray(regions);
+    String[] regionsArray = new String[regionNames.size()];
+    return regionNames.toArray(regionsArray);
   }
 
   public Region getRegion(String name) {

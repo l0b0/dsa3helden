@@ -19,44 +19,49 @@
  */
 package dsa.model.data;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 public class Things {
 
-  private static Things instance = null;
+  private static Things instance = new Things();
 
-  private java.util.HashMap<String, Thing> things;
+  private final java.util.HashMap<String, Thing> theThings;
 
   public static Things getInstance() {
-    if (instance == null) instance = new Things();
     return instance;
   }
 
   public Thing getThing(String name) {
-    if (things.containsKey(name))
-      return things.get(name);
+    if (theThings.containsKey(name))
+      return theThings.get(name);
     else
       return null;
   }
 
   public void addThing(Thing thing) {
-    things.put(thing.getName(), thing);
+    theThings.put(thing.getName(), thing);
   }
 
   public void removeThing(String thing) {
-    things.remove(thing);
+    theThings.remove(thing);
   }
 
   public Thing[] getAllThings() {
-    Thing[] allThings = new Thing[things.size()];
-    return things.values().toArray(allThings);
+    Thing[] allThings = new Thing[theThings.size()];
+    return theThings.values().toArray(allThings);
   }
 
   public java.util.ArrayList<Thing> getAllWearableThings() {
     java.util.ArrayList<Thing> result = new java.util.ArrayList<Thing>();
-    for (Thing thing : things.values()) {
+    for (Thing thing : theThings.values()) {
       String category = thing.getCategory();
       if (!category.equals("Transport / Reise")
           && !category.equals("Gasthaus / Miete")
@@ -70,7 +75,7 @@ public class Things {
 
   public java.util.HashSet<String> getKnownCategories() {
     java.util.HashSet<String> categories = new java.util.HashSet<String>();
-    for (Thing t : things.values()) {
+    for (Thing t : theThings.values()) {
       if (t.getCategory() != null) categories.add(t.getCategory());
     }
     return categories;
@@ -78,64 +83,71 @@ public class Things {
 
   public void loadFile(String fileName) throws IOException {
     BufferedReader in = new BufferedReader(new FileReader(fileName));
-    int lineNr = 0;
-    String line = in.readLine();
-    lineNr++;
-    while (line != null) {
-      StringTokenizer tokenizer = new StringTokenizer(line, ";");
-      if (tokenizer.countTokens() != 6)
-        throw new IOException("Zeile " + lineNr
-            + ": Syntaxfehler in Ausrüstung!");
-      String name = tokenizer.nextToken();
-      tokenizer.nextToken(); // Regionen
-      String valueS = tokenizer.nextToken().trim();
-      if (valueS.endsWith("+"))
-        valueS = valueS.substring(0, valueS.length() - 1);
-      if (valueS.indexOf(',') != -1)
-        valueS = valueS.substring(0, valueS.indexOf(','));
-      char currencyIndicator = valueS.charAt(valueS.length() - 1);
-      Thing.Currency currency;
-      switch (currencyIndicator) {
-      case 'D':
-        currency = Thing.Currency.D;
-        break;
-      case 'S':
-        currency = Thing.Currency.S;
-        break;
-      case 'K':
-        currency = Thing.Currency.K;
-        break;
-      case 'H':
-        currency = Thing.Currency.H;
-        break;
-      default:
-        throw new IOException("Zeile " + lineNr
-            + ": Ausrüstung hat falsches Währungsformat!");
-      }
-      int value = 0;
-      try {
-        value = Integer.parseInt(valueS.substring(0, valueS.length() - 1));
-      }
-      catch (NumberFormatException e) {
-        throw new IOException("Zeile " + lineNr
-            + ": Ausrüstung hat falschen Wert!");
-      }
-      String weightS = tokenizer.nextToken();
-      int weight = 0;
-      try {
-        weight = Integer.parseInt(weightS);
-      }
-      catch (NumberFormatException e) {
-        throw new IOException("Zeile " + lineNr
-            + ": Ausrüstung hat falsches Gewicht!");
-      }
-      String category = tokenizer.nextToken();
-      // one token remains, either 1 or 0, don't know what it means
-      Thing thing = new Thing(name, new dsa.util.Optional<Integer>(value),
-          currency, weight, category, false);
-      things.put(name, thing);
-      line = in.readLine();
+    try {
+      int lineNr = 0;
+      String line = in.readLine();
       lineNr++;
+      while (line != null) {
+        StringTokenizer tokenizer = new StringTokenizer(line, ";");
+        if (tokenizer.countTokens() != 6)
+          throw new IOException("Zeile " + lineNr
+              + ": Syntaxfehler in Ausrüstung!");
+        String name = tokenizer.nextToken();
+        tokenizer.nextToken(); // Regionen
+        String valueS = tokenizer.nextToken().trim();
+        if (valueS.endsWith("+"))
+          valueS = valueS.substring(0, valueS.length() - 1);
+        if (valueS.indexOf(',') != -1)
+          valueS = valueS.substring(0, valueS.indexOf(','));
+        char currencyIndicator = valueS.charAt(valueS.length() - 1);
+        Thing.Currency currency;
+        switch (currencyIndicator) {
+        case 'D':
+          currency = Thing.Currency.D;
+          break;
+        case 'S':
+          currency = Thing.Currency.S;
+          break;
+        case 'K':
+          currency = Thing.Currency.K;
+          break;
+        case 'H':
+          currency = Thing.Currency.H;
+          break;
+        default:
+          throw new IOException("Zeile " + lineNr
+              + ": Ausrüstung hat falsches Währungsformat!");
+        }
+        int value = 0;
+        try {
+          value = Integer.parseInt(valueS.substring(0, valueS.length() - 1));
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Zeile " + lineNr
+              + ": Ausrüstung hat falschen Wert!");
+        }
+        String weightS = tokenizer.nextToken();
+        int weight = 0;
+        try {
+          weight = Integer.parseInt(weightS);
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Zeile " + lineNr
+              + ": Ausrüstung hat falsches Gewicht!");
+        }
+        String category = tokenizer.nextToken();
+        // one token remains, either 1 or 0, don't know what it means
+        Thing thing = new Thing(name, new dsa.util.Optional<Integer>(value),
+            currency, weight, category, false);
+        theThings.put(name, thing);
+        line = in.readLine();
+        lineNr++;
+      }
+    }
+    finally {
+      if (in != null) {
+        in.close();
+      }
     }
   }
 
@@ -164,7 +176,7 @@ public class Things {
 
   public void writeUserDefinedThings(String fileName) throws IOException {
     ArrayList<Thing> userDefinedThings = new ArrayList<Thing>();
-    for (Thing t : things.values()) {
+    for (Thing t : theThings.values()) {
       if (t.isUserDefined()) userDefinedThings.add(t);
     }
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
@@ -181,7 +193,7 @@ public class Things {
   }
 
   private Things() {
-    things = new java.util.HashMap<String, Thing>();
+    theThings = new java.util.HashMap<String, Thing>();
   }
 
 }

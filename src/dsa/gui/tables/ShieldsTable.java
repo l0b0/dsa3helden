@@ -35,7 +35,7 @@ import dsa.gui.util.TableSorter;
 import dsa.model.data.Shield;
 import dsa.util.Optional;
 
-public class ShieldsTable extends BasicTable {
+public class ShieldsTable extends AbstractTable {
 
   protected int getNameColumn() {
     return 0;
@@ -69,12 +69,12 @@ public class ShieldsTable extends BasicTable {
     return 6;
   }
 
-  static Optional<Integer> NullInt = Optional.NullInt;
+  static final Optional<Integer> NULL_INT = Optional.NULL_INT;
 
   class MyTableModel extends DefaultTableModel {
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex != getNameColumn()) {
-        return NullInt.getClass();
+        return NULL_INT.getClass();
       }
       return super.getColumnClass(columnIndex);
     }
@@ -87,6 +87,7 @@ public class ShieldsTable extends BasicTable {
   MyTableModel mModel;
 
   public ShieldsTable() {
+    super();
     mModel = new MyTableModel();
     mModel.addColumn("Name");
     mModel.addColumn("PA");
@@ -122,8 +123,8 @@ public class ShieldsTable extends BasicTable {
     mTable.addMouseListener(new MouseAdapter() {
 
       public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && dcListener != null) {
-          dcListener.actionPerformed(new ActionEvent(this, 0, ""));
+        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
+          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
         }
       }
     });
@@ -153,7 +154,7 @@ public class ShieldsTable extends BasicTable {
   }
 
   public void addShield(Shield shield) {
-    addShield(shield, shield.getBf());
+    addShield(shield, shield.getBF());
   }
 
   public void addShield(Shield shield, int bf) {
@@ -175,15 +176,15 @@ public class ShieldsTable extends BasicTable {
   }
 
   public void addUnknownShield(String name) {
-    Object[] rowData = new Object[4];
+    Object[] rowData = new Object[8];
     rowData[getNameColumn()] = name;
-    rowData[getPAColumn()] = NullInt;
-    rowData[getATColumn()] = NullInt;
-    rowData[getBEColumn()] = NullInt;
-    rowData[getFKColumn()] = NullInt;
-    rowData[getBFColumn()] = NullInt;
-    rowData[getWorthColumn()] = NullInt;
-    rowData[getWeightColumn()] = NullInt;
+    rowData[getPAColumn()] = NULL_INT;
+    rowData[getATColumn()] = NULL_INT;
+    rowData[getBEColumn()] = NULL_INT;
+    rowData[getFKColumn()] = NULL_INT;
+    rowData[getBFColumn()] = NULL_INT;
+    rowData[getWorthColumn()] = NULL_INT;
+    rowData[getWeightColumn()] = NULL_INT;
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
   }

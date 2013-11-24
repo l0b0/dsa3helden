@@ -36,7 +36,7 @@ import dsa.gui.lf.BGDialog;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public class ThingDialog extends BGDialog {
+public final class ThingDialog extends BGDialog {
 
   private JPanel jContentPane = null;
 

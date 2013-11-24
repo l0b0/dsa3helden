@@ -40,10 +40,11 @@ import dsa.model.data.Talents;
 import dsa.model.talents.Talent;
 import dsa.util.Optional;
 
-public class LanguageFrame extends TalentFrame {
+public final class LanguageFrame extends TalentFrame {
 
   public LanguageFrame(String title) {
     super(title, false);
+    loadSubclassState();
   }
 
   private JCheckBox mCheckbox;
@@ -103,7 +104,7 @@ public class LanguageFrame extends TalentFrame {
     mCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         displayUnknownLanguages = mCheckbox.isSelected();
-        createUI();
+        recreateUI();
       }
     });
     panel.add(mCheckbox);
@@ -163,16 +164,16 @@ public class LanguageFrame extends TalentFrame {
 
   protected Class<?> getColumnClass(int column, Class<?> defaultValue) {
     if (column == getMaxColumn())
-      return NullInt.getClass();
+      return NULL_INT.getClass();
     else
       return super.getColumnClass(column, defaultValue);
   }
 
   protected void updateSubclassSpecificData(DefaultTableModel model, int i,
       int displayIndex) {
-    Talent talent = this.talents.elementAt(i);
+    Talent talent = this.talents.get(i);
     if (!talent.isLanguage()) {
-      model.setValueAt(NullInt, displayIndex, getMaxColumn());
+      model.setValueAt(NULL_INT, displayIndex, getMaxColumn());
     }
     else {
       dsa.model.talents.Language language = (dsa.model.talents.Language) talent;
@@ -184,10 +185,10 @@ public class LanguageFrame extends TalentFrame {
   }
 
   protected void initSubclassSpecificData(DefaultTableModel model, int i) {
-    Talent talent = this.talents.elementAt(i);
+    Talent talent = this.talents.get(i);
     int displayIndex = model.getRowCount() - 1;
     if (!talent.isLanguage()) {
-      model.setValueAt(NullInt, displayIndex, getMaxColumn());
+      model.setValueAt(NULL_INT, displayIndex, getMaxColumn());
     }
     else {
       dsa.model.talents.Language language = (dsa.model.talents.Language) talent;
@@ -255,7 +256,7 @@ public class LanguageFrame extends TalentFrame {
     else if (currentHero == null)
       return false;
     else
-      return (currentHero.hasTalent(talent.getName()));
+      return currentHero.hasTalent(talent.getName());
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
@@ -267,20 +268,28 @@ public class LanguageFrame extends TalentFrame {
         newCharacter.addHeroObserver(myCharacterObserver);
       if (oldCharacter != null)
         oldCharacter.removeHeroObserver(myCharacterObserver);
-      createUI();
+      recreateUI();
     }
   }
 
   protected void loadSubclassState() {
-    displayUnknownLanguages = java.util.prefs.Preferences.userNodeForPackage(
+    boolean dUL = java.util.prefs.Preferences.userNodeForPackage(
         dsa.gui.PackageID.class).getBoolean(
         getTitle() + "DisplayUnknownSpells", false);
+    if (dUL != displayUnknownLanguages) {
+      displayUnknownLanguages = dUL;
+      recreateUI();
+    }
   }
 
   protected void saveSubclassState() {
     java.util.prefs.Preferences.userNodeForPackage(dsa.gui.PackageID.class)
         .putBoolean(getTitle() + "DisplayUnknownSpells",
             displayUnknownLanguages);
+  }
+  
+  protected boolean isTalentRelevant(String talent) {
+    return (talent.equals("Sprachen Kennen") || talent.equals("Alte Sprachen"));
   }
 
   private boolean displayUnknownLanguages;

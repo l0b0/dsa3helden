@@ -19,7 +19,9 @@
  */
 package dsa.model.characters;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.prefs.Preferences;
 
 import javax.swing.JOptionPane;
@@ -63,7 +65,7 @@ public class GroupOptions {
     setEarlyTwoHanded(prefs.getBoolean("EarlyLeftHanded", true));
     setFastAERegeneration(prefs.getBoolean("HighAERegeneration", true));
     setQvatStunned(prefs.getBoolean("QvatUseKO", false));
-    setQvatMarkers(Markers.useMarkers());
+    setQvatMarkers(Markers.isUsingMarkers());
     heavyClothes = prefs.getBoolean("HeavyClothes", false);
     hardTwoHandedWeapons = prefs.getBoolean("Hard2HWeapons", true);
     prefs = Preferences.userRoot().node("dsa/data/impl");
@@ -108,33 +110,33 @@ public class GroupOptions {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      fastAERegeneration = line.equals("1");
+      fastAERegeneration = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      fullFirstStep = line.equals("1");
+      fullFirstStep = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      earlyTwoHanded = line.equals("1");
+      earlyTwoHanded = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      qvatPABasis = line.equals("1");
+      qvatPABasis = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      qvatStunned = line.equals("1");
+      qvatStunned = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      qvatMarkers = line.equals("1");
+      qvatMarkers = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
     }
     if (version > 1) {
-      heavyClothes = line.equals("1");
+      heavyClothes = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
@@ -144,7 +146,7 @@ public class GroupOptions {
       heavyClothes = prefs.getBoolean("HeavyClothes", false);
     }
     if (version > 2) {
-      hardTwoHandedWeapons = line.equals("1");
+      hardTwoHandedWeapons = "1".equals(line);
       line = in.readLine();
       lineNr++;
       testEmpty(line);
@@ -153,7 +155,7 @@ public class GroupOptions {
       Preferences prefs = Preferences.userNodeForPackage(OptionsDialog.class);
       hardTwoHandedWeapons = prefs.getBoolean("Hard2HWeapons", true);
     }
-    while (!line.equals("-- End Options --")) {
+    while (line != null && !line.equals("-- End Options --")) {
       line = in.readLine();
       lineNr++;
       testEmpty(line);

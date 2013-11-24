@@ -49,7 +49,7 @@ public class BGList extends JList {
     setRenderer();
   }
 
-  protected void setRenderer() {
+  private void setRenderer() {
     if (Colors.hasCustomColors()) {
       setSelectionForeground(Colors.getSelectedForeground());
       setSelectionBackground(Colors.getSelectedBackground());

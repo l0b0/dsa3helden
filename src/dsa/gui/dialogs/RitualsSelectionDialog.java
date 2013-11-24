@@ -41,7 +41,7 @@ import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.data.Rituals;
 
-public class RitualsSelectionDialog extends BGDialog {
+public final class RitualsSelectionDialog extends BGDialog {
 
   public interface RitualsSelectionCallback {
     void ritualAdded(String ritual);
@@ -157,10 +157,10 @@ public class RitualsSelectionDialog extends BGDialog {
     dialog.setLocationRelativeTo(this);
     dialog.setVisible(true);
     if (dialog.getResult() != RitualProbeDialog.Result.Success) return;
-    int defaultAPChange = getPoints(ltd.permanentAP);
-    int currentAPChange = getPoints(ltd.ap);
-    int defaultLEChange = getPoints(ltd.permanentLE);
-    int currentLEChange = getPoints(ltd.le);
+    int defaultAPChange = getPoints(ltd.getPermanentAP());
+    int currentAPChange = getPoints(ltd.getAp());
+    int defaultLEChange = getPoints(ltd.getPermanentLE());
+    int currentLEChange = getPoints(ltd.getLe());
     if (currentLEChange > currentHero.getCurrentEnergy(Energy.LE)) {
       JOptionPane.showMessageDialog(this,
           "Es steht nicht genug LE zur Verfügung!", "Ritual",

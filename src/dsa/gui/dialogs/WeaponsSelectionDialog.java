@@ -33,11 +33,11 @@ import dsa.model.characters.Group;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 
-public class WeaponsSelectionDialog extends SelectionDialogBase {
+public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
 
   public WeaponsSelectionDialog(javax.swing.JFrame owner) {
     super(owner, "Waffe hinzufügen", new WeaponsTable(false), "Waffen");
-
+    initialize();
     fillTable();
   }
 
@@ -65,16 +65,16 @@ public class WeaponsSelectionDialog extends SelectionDialogBase {
     });
   }
 
-  private JButton addButton;
+  private JButton newButton;
 
   private JButton deleteButton;
 
   private JButton getNewButton() {
-    if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setToolTipText("Neue Waffe anlegen");
-      addButton.setBounds(315, 5, 40, 25);
-      addButton.addActionListener(new ActionListener() {
+    if (newButton == null) {
+      newButton = new JButton(ImageManager.getIcon("increase"));
+      newButton.setToolTipText("Neue Waffe anlegen");
+      newButton.setBounds(315, 5, 40, 25);
+      newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           WeaponDialog dialog = new WeaponDialog(WeaponsSelectionDialog.this);
           dialog.setVisible(true);
@@ -85,7 +85,7 @@ public class WeaponsSelectionDialog extends SelectionDialogBase {
         }
       });
     }
-    return addButton;
+    return newButton;
   }
 
   private JButton getDeleteButton() {

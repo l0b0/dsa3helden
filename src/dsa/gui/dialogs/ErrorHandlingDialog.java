@@ -28,7 +28,7 @@ import javax.swing.JButton;
 import org.jdesktop.jdic.desktop.Desktop;
 import org.jdesktop.jdic.desktop.Message;
 
-public class ErrorHandlingDialog extends BGDialog {
+public final class ErrorHandlingDialog extends BGDialog {
 
   private JPanel jContentPane = null;
 

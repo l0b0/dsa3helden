@@ -47,7 +47,7 @@ import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 import dsa.util.Directories;
 
-public class BackgroundFrame extends SubFrame implements CharactersObserver {
+public final class BackgroundFrame extends SubFrame implements CharactersObserver {
 
   private JPanel jContentPane = null;
 
@@ -211,18 +211,18 @@ public class BackgroundFrame extends SubFrame implements CharactersObserver {
       notesPane.getDocument().addDocumentListener(new DocumentListener() {
 
         public void insertUpdate(DocumentEvent e) {
-          SaveText();
+          saveText();
         }
 
         public void removeUpdate(DocumentEvent e) {
-          SaveText();
+          saveText();
         }
 
         public void changedUpdate(DocumentEvent e) {
-          SaveText();
+          saveText();
         }
 
-        private void SaveText() {
+        private void saveText() {
           if (!listenForChanges) return;
           if (currentHero != null) {
             currentHero.setNotes(notesPane.getText());
@@ -248,18 +248,18 @@ public class BackgroundFrame extends SubFrame implements CharactersObserver {
           new DocumentListener() {
 
             public void insertUpdate(DocumentEvent e) {
-              SaveText();
+              saveText();
             }
 
             public void removeUpdate(DocumentEvent e) {
-              SaveText();
+              saveText();
             }
 
             public void changedUpdate(DocumentEvent e) {
-              SaveText();
+              saveText();
             }
 
-            private void SaveText() {
+            private void saveText() {
               if (!listenForChanges) return;
               if (currentHero != null) {
                 currentHero.setBGFile(backgroundFileField.getText());

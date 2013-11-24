@@ -77,7 +77,7 @@ public class FightingTalent implements dsa.model.talents.FightingTalent {
   }
 
   public boolean isLefthandIndicator() {
-    return name.equals("Linkshändig");
+    return "Linkshändig".equals(name);
   }
 
   boolean isProjectile;

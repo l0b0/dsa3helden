@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
 
@@ -23,7 +23,6 @@ import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.NoSuchElementException;
@@ -103,30 +102,27 @@ public class DateSelectionDialog extends BGDialog {
     halCombo.setSelectedIndex(0);
   }
 
-  public DateSelectionDialog() throws HeadlessException {
+  public DateSelectionDialog() {
     super();
     initialize();
   }
 
-  public DateSelectionDialog(Frame owner) throws HeadlessException {
+  public DateSelectionDialog(Frame owner) {
     super(owner);
     initialize();
   }
 
-  public DateSelectionDialog(Frame owner, boolean modal)
-      throws HeadlessException {
+  public DateSelectionDialog(Frame owner, boolean modal) {
     super(owner, modal);
     initialize();
   }
 
-  public DateSelectionDialog(Frame owner, String title)
-      throws HeadlessException {
+  public DateSelectionDialog(Frame owner, String title) {
     super(owner, title);
     initialize();
   }
 
-  public DateSelectionDialog(Frame owner, String title, boolean modal)
-      throws HeadlessException {
+  public DateSelectionDialog(Frame owner, String title, boolean modal) {
     super(owner, title, modal);
     initialize();
   }
@@ -137,31 +133,28 @@ public class DateSelectionDialog extends BGDialog {
     initialize();
   }
 
-  public DateSelectionDialog(Dialog owner) throws HeadlessException {
+  public DateSelectionDialog(Dialog owner) {
     super(owner);
     initialize();
   }
 
-  public DateSelectionDialog(Dialog owner, boolean modal)
-      throws HeadlessException {
+  public DateSelectionDialog(Dialog owner, boolean modal) {
     super(owner, modal);
     initialize();
   }
 
-  public DateSelectionDialog(Dialog owner, String title)
-      throws HeadlessException {
+  public DateSelectionDialog(Dialog owner, String title) {
     super(owner, title);
     initialize();
   }
 
-  public DateSelectionDialog(Dialog owner, String title, boolean modal)
-      throws HeadlessException {
+  public DateSelectionDialog(Dialog owner, String title, boolean modal) {
     super(owner, title, modal);
     initialize();
   }
 
   public DateSelectionDialog(Dialog owner, String title, boolean modal,
-      GraphicsConfiguration gc) throws HeadlessException {
+      GraphicsConfiguration gc) {
     super(owner, title, modal, gc);
     initialize();
   }
@@ -330,4 +323,4 @@ public class DateSelectionDialog extends BGDialog {
     return cancelButton;
   }
 
-} //  @jve:decl-index=0:visual-constraint="10,10"
+} // @jve:decl-index=0:visual-constraint="10,10"

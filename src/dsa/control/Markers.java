@@ -26,12 +26,13 @@ import dsa.model.characters.Hero;
 public class Markers {
 
   private Markers() {
+    // nothing to do
   }
 
   private static boolean useMarkers = Preferences.userNodeForPackage(
       Markers.class).getBoolean("QvatUseMarkers", false);
 
-  public static boolean useMarkers() {
+  public static boolean isUsingMarkers() {
     return useMarkers;
   }
 
@@ -40,7 +41,7 @@ public class Markers {
   }
 
   public static int getMarkers(Hero hero) {
-    if (useMarkers()) {
+    if (isUsingMarkers()) {
       return hero.getMarkers();
     }
     else {

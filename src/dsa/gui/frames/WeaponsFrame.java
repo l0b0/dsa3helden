@@ -30,7 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.WeaponsSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.WeaponsTable;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
@@ -42,7 +42,7 @@ import dsa.model.characters.Property;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 
-public class WeaponsFrame extends SubFrame implements CharactersObserver,
+public final class WeaponsFrame extends SubFrame implements CharactersObserver,
     OptionsListener {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
@@ -55,7 +55,7 @@ public class WeaponsFrame extends SubFrame implements CharactersObserver,
     }
   }
 
-  private MyHeroObserver myHeroObserver = new MyHeroObserver();
+  private final MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public WeaponsFrame() {
     super("Waffen");
@@ -79,6 +79,8 @@ public class WeaponsFrame extends SubFrame implements CharactersObserver,
         if (!done) {
           mTable.saveSortingState("Waffen");
           Group.getInstance().removeObserver(WeaponsFrame.this);
+          if (currentHero != null)
+            currentHero.removeHeroObserver(myHeroObserver);
           OptionsChange.removeListener(WeaponsFrame.this);
           done = true;
         }
@@ -127,29 +129,8 @@ public class WeaponsFrame extends SubFrame implements CharactersObserver,
   protected void addWeapon() {
     WeaponsSelectionDialog dialog = new WeaponsSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
-      public void ItemSelected(String item) {
-        Weapon weapon = Weapons.getInstance().getWeapon(item);
-        if (weapon != null
-            && Weapons.getCategoryName(weapon.getType()).equals("Schußwaffen")
-            && weapon.getKKBonus().hasValue()
-            && weapon.getKKBonus().getValue() > currentHero
-                .getCurrentProperty(Property.KK)) {
-          JOptionPane.showMessageDialog(WeaponsFrame.this, currentHero
-              .getName()
-              + " ist zu schwach, um diese Waffe zu benutzen!", "Fehler",
-              JOptionPane.INFORMATION_MESSAGE);
-          return;
-        }
-        String name = currentHero.addWeapon(item);
-        if (weapon != null && currentHero.getWeaponCount(item) == 1) {
-          mTable.addWeapon(weapon, name, currentHero.getWeaponCount(name),
-              currentHero.getBF(name, 1));
-        }
-        else if (weapon != null)
-          mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
-        else
-          mTable.addUnknownWeapon(item);
-        removeButton.setEnabled(true);
+      public void itemSelected(String item) {
+        weaponSelected(item);
       }
     });
     dialog.setVisible(true);
@@ -219,5 +200,30 @@ public class WeaponsFrame extends SubFrame implements CharactersObserver,
 
   public void optionsChanged() {
     updateData();
+  }
+
+  private void weaponSelected(String item) {
+    Weapon weapon = Weapons.getInstance().getWeapon(item);
+    if (weapon != null
+        && Weapons.getCategoryName(weapon.getType()).equals("Schußwaffen")
+        && weapon.getKKBonus().hasValue()
+        && weapon.getKKBonus().getValue() > currentHero
+            .getCurrentProperty(Property.KK)) {
+      JOptionPane.showMessageDialog(WeaponsFrame.this, currentHero
+          .getName()
+          + " ist zu schwach, um diese Waffe zu benutzen!", "Fehler",
+          JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+    String name = currentHero.addWeapon(item);
+    if (weapon != null && currentHero.getWeaponCount(item) == 1) {
+      mTable.addWeapon(weapon, name, currentHero.getWeaponCount(name),
+          currentHero.getBF(name, 1));
+    }
+    else if (weapon != null)
+      mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
+    else
+      mTable.addUnknownWeapon(item);
+    removeButton.setEnabled(true);
   }
 }

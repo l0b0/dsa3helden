@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
 
@@ -24,7 +24,6 @@ import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
-import java.awt.HeadlessException;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
@@ -64,30 +63,27 @@ public class CitySelectionDialog extends BGDialog {
 
   private JList cityList = null;
 
-  public CitySelectionDialog() throws HeadlessException {
+  public CitySelectionDialog() {
     super();
     initialize();
   }
 
-  public CitySelectionDialog(Frame owner) throws HeadlessException {
+  public CitySelectionDialog(Frame owner) {
     super(owner);
     initialize();
   }
 
-  public CitySelectionDialog(Frame owner, boolean modal)
-      throws HeadlessException {
+  public CitySelectionDialog(Frame owner, boolean modal) {
     super(owner, modal);
     initialize();
   }
 
-  public CitySelectionDialog(Frame owner, String title)
-      throws HeadlessException {
+  public CitySelectionDialog(Frame owner, String title) {
     super(owner, title);
     initialize();
   }
 
-  public CitySelectionDialog(Frame owner, String title, boolean modal)
-      throws HeadlessException {
+  public CitySelectionDialog(Frame owner, String title, boolean modal) {
     super(owner, title, modal);
     initialize();
   }
@@ -98,31 +94,28 @@ public class CitySelectionDialog extends BGDialog {
     initialize();
   }
 
-  public CitySelectionDialog(Dialog owner) throws HeadlessException {
+  public CitySelectionDialog(Dialog owner) {
     super(owner);
     initialize();
   }
 
-  public CitySelectionDialog(Dialog owner, boolean modal)
-      throws HeadlessException {
+  public CitySelectionDialog(Dialog owner, boolean modal) {
     super(owner, modal);
     initialize();
   }
 
-  public CitySelectionDialog(Dialog owner, String title)
-      throws HeadlessException {
+  public CitySelectionDialog(Dialog owner, String title) {
     super(owner, title);
     initialize();
   }
 
-  public CitySelectionDialog(Dialog owner, String title, boolean modal)
-      throws HeadlessException {
+  public CitySelectionDialog(Dialog owner, String title, boolean modal) {
     super(owner, title, modal);
     initialize();
   }
 
   public CitySelectionDialog(Dialog owner, String title, boolean modal,
-      GraphicsConfiguration gc) throws HeadlessException {
+      GraphicsConfiguration gc) {
     super(owner, title, modal, gc);
     initialize();
   }
@@ -328,4 +321,4 @@ public class CitySelectionDialog extends BGDialog {
     }
   }
 
-} //  @jve:decl-index=0:visual-constraint="10,10"
+} // @jve:decl-index=0:visual-constraint="10,10"

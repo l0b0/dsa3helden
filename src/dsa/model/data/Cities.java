@@ -19,28 +19,27 @@
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.io.*;
 
 public class Cities {
 
   public static Cities getInstance() {
-    if (instance == null) {
-      instance = new Cities();
-    }
     return instance;
   }
 
-  private static Cities instance = null;
+  private static Cities instance = new Cities();
 
-  private ArrayList<String> regions;
+  private final ArrayList<String> regions;
 
-  private HashMap<String, ArrayList<String>> cities;
+  private final HashMap<String, ArrayList<String>> cities;
 
-  private HashMap<String, String> nameRegions;
+  private final HashMap<String, String> nameRegions;
 
   private Cities() {
     regions = new ArrayList<String>();
@@ -75,7 +74,7 @@ public class Cities {
     BufferedReader in = new BufferedReader(new FileReader(fileName));
     try {
       String line = in.readLine();
-      if (!line.startsWith("---"))
+      if (line == null || !line.startsWith("---"))
         throw new IOException("Falsches Format in " + fileName + "!");
       String region = line.substring(3);
       regions.add(region);

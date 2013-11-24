@@ -19,17 +19,16 @@
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collections;
-import java.io.*;
 
 public class Looks {
 
-  private static Looks instance = null;
+  private static Looks instance = new Looks();
 
   public static Looks getInstance() {
-    if (instance == null) {
-      instance = new Looks();
-    }
     return instance;
   }
 
@@ -37,7 +36,7 @@ public class Looks {
   }
 
   public static String getMatchingEyeColor(String hairColor) {
-    String s = hairColor.toLowerCase();
+    String s = hairColor.toLowerCase(java.util.Locale.GERMAN);
     int roll = dsa.control.Dice.roll(20);
     if (s.contains("schwarz")) {
       if (roll <= 16)
@@ -132,11 +131,11 @@ public class Looks {
     }
   }
 
-  private java.util.ArrayList<String> eyeColors = new java.util.ArrayList<String>();
+  private final java.util.ArrayList<String> eyeColors = new java.util.ArrayList<String>();
 
-  private java.util.ArrayList<String> hairCategories = new java.util.ArrayList<String>();
+  private final java.util.ArrayList<String> hairCategories = new java.util.ArrayList<String>();
 
-  private java.util.HashMap<String, java.util.ArrayList<String>> hairColors = new java.util.HashMap<String, java.util.ArrayList<String>>();
+  private final java.util.HashMap<String, java.util.ArrayList<String>> hairColors = new java.util.HashMap<String, java.util.ArrayList<String>>();
 
   public java.util.List<String> getEyeColors() {
     return Collections.unmodifiableList(eyeColors);
@@ -154,19 +153,17 @@ public class Looks {
       return new java.util.ArrayList<String>();
   }
 
-  private int lineNr;
+  private String fileName;
 
-  private static String fileName;
-
-  public static void testEmpty(String line) throws IOException {
+  public void testEmpty(String line) throws IOException {
     if (line == null)
       throw new IOException(fileName + ": Unerwartetes Dateiende!");
   }
 
-  public void readEyeColors(String fileName) throws IOException {
-    Looks.fileName = fileName;
+  public void readEyeColors(String name) throws IOException {
+    fileName = name;
     eyeColors.clear();
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new FileReader(name));
     try {
       String line = in.readLine();
       while (line != null) {
@@ -179,12 +176,11 @@ public class Looks {
     }
   }
 
-  public void readHairColors(String fileName) throws IOException {
-    Looks.fileName = fileName;
-    lineNr = 0;
+  public void readHairColors(String name) throws IOException {
+    fileName = name;
     hairColors.clear();
     hairCategories.clear();
-    BufferedReader in = new BufferedReader(new FileReader(fileName));
+    BufferedReader in = new BufferedReader(new FileReader(name));
     try {
       String line = in.readLine();
       while (line != null) {
@@ -203,12 +199,10 @@ public class Looks {
       throws IOException {
     java.util.ArrayList<String> colors = new java.util.ArrayList<String>();
     String line = in.readLine();
-    lineNr++;
     testEmpty(line);
-    while (!line.equals("-- end --")) {
+    while (!"-- end --".equals(line)) {
       colors.add(line);
       line = in.readLine();
-      lineNr++;
       testEmpty(line);
     }
     return colors;

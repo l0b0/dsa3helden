@@ -28,10 +28,12 @@ import java.text.NumberFormat;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ThingSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
@@ -40,18 +42,20 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public class WarehouseFrame extends SubFrame implements CharactersObserver {
+public final class WarehouseFrame extends AbstractDnDFrame implements CharactersObserver {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
-    public void thingRemoved(String thing) {
-      mTable.removeThing(thing);
+    public void thingRemoved(String thing, boolean fromWarehouse) {
+      if (fromWarehouse) {
+        mTable.removeThing(thing);
+      }
     }
   }
 
-  private MyHeroObserver myHeroObserver = new MyHeroObserver();
-
+  private final MyHeroObserver myHeroObserver = new MyHeroObserver();
+  
   public WarehouseFrame() {
-    super("Lager");
+    super(ThingTransfer.Flavors.Thing, "Lager");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     if (currentHero != null) currentHero.addHeroObserver(myHeroObserver);
@@ -75,12 +79,13 @@ public class WarehouseFrame extends SubFrame implements CharactersObserver {
       }
     });
     mTable = new ThingsTable(true);
-    JPanel panel = mTable.getPanelWithTable();
+    registerForDnD(mTable);
 
     JPanel lowerPanel = new JPanel();
     lowerPanel.setLayout(null);
     lowerPanel.setPreferredSize(new java.awt.Dimension(150, 40));
     lowerPanel.add(getSumLabel(), null);
+    JPanel panel = mTable.getPanelWithTable();
     panel.add(lowerPanel, BorderLayout.SOUTH);
 
     JPanel rightPanel = new JPanel();
@@ -134,19 +139,8 @@ public class WarehouseFrame extends SubFrame implements CharactersObserver {
   protected void addThing() {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
-      public void ItemSelected(String item) {
-        currentHero.addThingToWarehouse(item);
-        if (currentHero.getThingInWarehouseCount(item) == 1) {
-          Thing thing = Things.getInstance().getThing(item);
-          if (thing != null)
-            mTable.addThing(thing);
-          else
-            mTable.addUnknownThing(item);
-        }
-        else
-          mTable.setCount(item, currentHero.getThingInWarehouseCount(item));
-        removeButton.setEnabled(true);
-        calcSums();
+      public void itemSelected(String item) {
+        addItem(item);
       }
     });
     dialog.setVisible(true);
@@ -161,16 +155,7 @@ public class WarehouseFrame extends SubFrame implements CharactersObserver {
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
-          int oldCount = currentHero.getThingInWarehouseCount(name);
-          currentHero.removeThingFromWarehouse(name);
-          if (oldCount == 1) {
-            mTable.removeSelectedThing();
-          }
-          else
-            mTable.setCount(name, oldCount - 1);
-          removeButton
-              .setEnabled(currentHero.getThingsInWarehouse().length > 0);
-          calcSums();
+          removeItem(name);
         }
       });
     }
@@ -188,11 +173,11 @@ public class WarehouseFrame extends SubFrame implements CharactersObserver {
         weight += count * (long) thing.getWeight();
         if (thing.getValue().hasValue()) {
           if (thing.getCurrency() == Thing.Currency.D)
-            value += count * (long) thing.getValue().getValue() * 1000l;
+            value += count * (long) thing.getValue().getValue() * 1000L;
           else if (thing.getCurrency() == Thing.Currency.S)
-            value += count * (long) thing.getValue().getValue() * 100l;
+            value += count * (long) thing.getValue().getValue() * 100L;
           else if (thing.getCurrency() == Thing.Currency.K)
-            value += count * (long) thing.getValue().getValue() * 10l;
+            value += count * (long) thing.getValue().getValue() * 10L;
           else if (thing.getCurrency() == Thing.Currency.H)
             value += count * (long) thing.getValue().getValue();
         }
@@ -255,5 +240,38 @@ public class WarehouseFrame extends SubFrame implements CharactersObserver {
   }
 
   public void globalLockChanged() {
+  }
+
+  protected boolean addItem(String item) {
+    currentHero.addThingToWarehouse(item);
+    if (currentHero.getThingInWarehouseCount(item) == 1) {
+      Thing thing = Things.getInstance().getThing(item);
+      if (thing != null) {
+        mTable.addThing(thing);
+      }
+      else {
+        JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
+            "Gegenstand hinzufügen", JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+    }
+    else
+      mTable.setCount(item, currentHero.getThingInWarehouseCount(item));
+    removeButton.setEnabled(true);
+    calcSums();
+    return true;
+  }
+
+  protected void removeItem(String name) {
+    int oldCount = currentHero.getThingInWarehouseCount(name);
+    currentHero.removeThingFromWarehouse(name);
+    if (oldCount != 1) {
+      mTable.setCount(name, oldCount - 1);
+    }
+    // else
+      // mTable.removeSelectedThing();
+    removeButton
+        .setEnabled(currentHero.getThingsInWarehouse().length > 0);
+    calcSums();
   }
 }

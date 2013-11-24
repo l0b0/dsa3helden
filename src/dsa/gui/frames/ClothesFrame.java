@@ -30,7 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ThingSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
@@ -39,7 +39,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public class ClothesFrame extends SubFrame implements CharactersObserver {
+public final class ClothesFrame extends SubFrame implements CharactersObserver {
 
   public ClothesFrame() {
     super("Kleidung");
@@ -105,7 +105,7 @@ public class ClothesFrame extends SubFrame implements CharactersObserver {
   protected void addWeapon() {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this, false);
     dialog.setCallback(new SelectionDialogCallback() {
-      public void ItemSelected(String item) {
+      public void itemSelected(String item) {
         if (java.util.Arrays.asList(currentHero.getClothes()).contains(item)) {
           JOptionPane
               .showMessageDialog(

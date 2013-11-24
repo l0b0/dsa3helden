@@ -33,14 +33,14 @@ import dsa.model.characters.Property;
 public class Rituals {
 
   private static class TypeRituals {
-    public String title;
+    String title;
 
-    public ArrayList<Ritual> rituals;
+    ArrayList<Ritual> rituals;
   }
 
-  private HashMap<String, TypeRituals> rituals;
+  private final HashMap<String, TypeRituals> theRituals;
 
-  private HashMap<String, Ritual> allRituals;
+  private final HashMap<String, Ritual> allRituals;
 
   private Ritual readRitual(String line) throws IOException {
     StringTokenizer tok = new StringTokenizer(line, ";");
@@ -68,17 +68,17 @@ public class Rituals {
   }
 
   private TypeRituals readRituals(BufferedReader in) throws IOException {
-    TypeRituals rituals = new TypeRituals();
-    rituals.title = readLine(in);
-    rituals.rituals = new ArrayList<Ritual>();
+    TypeRituals readRituals = new TypeRituals();
+    readRituals.title = readLine(in);
+    readRituals.rituals = new ArrayList<Ritual>();
     String line = readLine(in);
-    while (!line.equals("-- End --")) {
+    while (line != null && !"-- End --".equals(line)) {
       Ritual ritual = readRitual(line);
-      rituals.rituals.add(ritual);
+      readRituals.rituals.add(ritual);
       allRituals.put(ritual.getName(), ritual);
       line = readLine(in);
     }
-    return rituals;
+    return readRituals;
   }
 
   private void testEmpty(String line) throws IOException {
@@ -103,7 +103,7 @@ public class Rituals {
     td.p2 = Property.valueOf(tok.nextToken());
     td.p3 = Property.valueOf(tok.nextToken());
     td.defaultModifier = parseInt(tok.nextToken());
-    td.hasHalfStepLess = tok.nextToken().equals("1");
+    td.mHasHalfStepLess = tok.nextToken().equals("1");
   }
 
   private Ritual.TestData parseTestData(String text) throws IOException {
@@ -141,7 +141,7 @@ public class Rituals {
   }
 
   private void readAllRituals(BufferedReader in) throws IOException {
-    rituals.clear();
+    theRituals.clear();
     allRituals.clear();
     lineNr = 0;
     lineNr++;
@@ -149,7 +149,7 @@ public class Rituals {
     while (line != null) {
       String chType = line;
       TypeRituals tr = readRituals(in);
-      rituals.put(chType, tr);
+      theRituals.put(chType, tr);
       lineNr++;
       line = in.readLine();
     }
@@ -167,9 +167,9 @@ public class Rituals {
 
   public ArrayList<String> getAllRituals(String characterType) {
     ArrayList<String> rs = new ArrayList<String>();
-    for (String chType : rituals.keySet()) {
+    for (String chType : theRituals.keySet()) {
       if (characterType.indexOf(chType) != -1) {
-        for (Ritual r : rituals.get(chType).rituals) {
+        for (Ritual r : theRituals.get(chType).rituals) {
           rs.add(r.getName());
         }
       }
@@ -178,9 +178,9 @@ public class Rituals {
   }
 
   public String getRitualsTitle(String characterType) {
-    for (String chType : rituals.keySet()) {
+    for (String chType : theRituals.keySet()) {
       if (characterType.indexOf(chType) != -1) {
-        return rituals.get(chType).title;
+        return theRituals.get(chType).title;
       }
     }
     return "";
@@ -188,10 +188,11 @@ public class Rituals {
 
   public ArrayList<String> getStartRituals(String characterType) {
     ArrayList<String> rs = new ArrayList<String>();
-    if (characterType.toLowerCase().indexOf("halbelf") != -1) return rs;
-    for (String chType : rituals.keySet()) {
-      if (characterType.toLowerCase().indexOf(chType.toLowerCase()) != -1) {
-        for (Ritual r : rituals.get(chType).rituals) {
+    if (characterType.toLowerCase(java.util.Locale.GERMAN).indexOf("halbelf") != -1) return rs;
+    for (String chType : theRituals.keySet()) {
+      if (characterType.toLowerCase(java.util.Locale.GERMAN).indexOf(
+          chType.toLowerCase(java.util.Locale.GERMAN)) != -1) {
+        for (Ritual r : theRituals.get(chType).rituals) {
           if (r.isKnownAtStart()) rs.add(r.getName());
         }
       }
@@ -219,14 +220,13 @@ public class Rituals {
   }
 
   public static Rituals getInstance() {
-    if (instance == null) instance = new Rituals();
     return instance;
   }
 
-  private static Rituals instance = null;
+  private static Rituals instance = new Rituals();
 
   private Rituals() {
-    rituals = new HashMap<String, TypeRituals>();
+    theRituals = new HashMap<String, TypeRituals>();
     allRituals = new HashMap<String, Ritual>();
   }
 

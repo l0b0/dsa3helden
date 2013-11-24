@@ -60,7 +60,7 @@ public class RedistributionDialog extends BGDialog {
         valueSpinner.getWidth(), valueSpinner.getHeight());
   }
 
-  private SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 10, 1);
+  private final SpinnerNumberModel model = new SpinnerNumberModel(0, 0, 10, 1);
 
   public void setMinimum(int minimum) {
     model.setMinimum(minimum);

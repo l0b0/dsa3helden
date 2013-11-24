@@ -43,7 +43,7 @@ import dsa.util.Strings;
 /**
  * 
  */
-public class RitualProbeDialog extends BGDialog {
+public final class RitualProbeDialog extends BGDialog {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -90,13 +90,13 @@ public class RitualProbeDialog extends BGDialog {
     this.setSize(289, 238);
     this.setContentPane(getJContentPane());
 
-    String text = "Probe geht auf: " + testData.p1 + "/" + testData.p2 + "/"
-        + testData.p3;
+    String text = "Probe geht auf: " + testData.getP1() + "/" + testData.getP2() + "/"
+        + testData.getP3();
     propertyLabel.setText(text);
     defaultAddLabel.setText("Normaler Zuschlag für Probe: "
-        + testData.defaultModifier);
-    int mod = testData.defaultModifier;
-    if (testData.hasHalfStepLess) {
+        + testData.getDefaultModifier());
+    int mod = testData.getDefaultModifier();
+    if (testData.hasHalfStepLess()) {
       halfStepLabel.setText("Reduzierung um halbe Stufe: -"
           + (hero.getStep() / 2));
       mod -= hero.getStep() / 2;
@@ -104,7 +104,7 @@ public class RitualProbeDialog extends BGDialog {
     else {
       halfStepLabel.setText("Reduzierung um halbe Stufe: nein");
     }
-    getDifficultySpinner().setValue(new Integer(mod));
+    getDifficultySpinner().setValue(Integer.valueOf(mod));
 
     getDifficultySpinner().requestFocus();
     ((JSpinner.DefaultEditor) getDifficultySpinner().getEditor()).getTextField().select(
@@ -119,9 +119,9 @@ public class RitualProbeDialog extends BGDialog {
   private void setProbability() {
     int difficulty = ((Integer) getDifficultySpinner().getModel().getValue()).intValue();
     Probe probe = new Probe();
-    probe.setFirstProperty(hero.getCurrentProperty(testData.p1));
-    probe.setSecondProperty(hero.getCurrentProperty(testData.p2));
-    probe.setThirdProperty(hero.getCurrentProperty(testData.p3));
+    probe.setFirstProperty(hero.getCurrentProperty(testData.getP1()));
+    probe.setSecondProperty(hero.getCurrentProperty(testData.getP2()));
+    probe.setThirdProperty(hero.getCurrentProperty(testData.getP3()));
     probe.setSkill(0);
     probe.setModifier(difficulty + Markers.getMarkers(hero));
     int successCount = 0;
@@ -179,9 +179,9 @@ public class RitualProbeDialog extends BGDialog {
     int difficulty = ((Integer) getDifficultySpinner().getModel().getValue()).intValue();
     java.awt.Container parent = getParent();
     dispose();
-    String result = "";
-    result = doProbe(hero, testData, difficulty);
-    JOptionPane.showMessageDialog(parent, result, "Ritual-Probe für "
+    String ret = "";
+    ret = doProbe(hero, testData, difficulty);
+    JOptionPane.showMessageDialog(parent, ret, "Ritual-Probe für "
         + Strings.cutTo(hero.getName(), ' '), JOptionPane.INFORMATION_MESSAGE);
   }
 
@@ -201,41 +201,41 @@ public class RitualProbeDialog extends BGDialog {
     return result;
   }
 
-  private String doProbe(Hero character, Ritual.TestData testData, int mod) {
+  private String doProbe(Hero character, Ritual.TestData test, int mod) {
     Probe probe = new Probe();
-    probe.setFirstProperty(character.getCurrentProperty(testData.p1));
-    probe.setSecondProperty(character.getCurrentProperty(testData.p2));
-    probe.setThirdProperty(character.getCurrentProperty(testData.p3));
+    probe.setFirstProperty(character.getCurrentProperty(test.getP1()));
+    probe.setSecondProperty(character.getCurrentProperty(test.getP2()));
+    probe.setThirdProperty(character.getCurrentProperty(test.getP3()));
     probe.setSkill(0);
     probe.setModifier(mod + Markers.getMarkers(character));
     int throw1 = Dice.roll(20);
     int throw2 = Dice.roll(20);
     int throw3 = Dice.roll(20);
-    int result = probe.performDetailedTest(throw1, throw2, throw3);
+    int ret = probe.performDetailedTest(throw1, throw2, throw3);
     String s = "\n (Wurf: " + throw1 + ", " + throw2 + ", " + throw3 + ")";
-    if (result == Probe.DAEMONENPECH) {
+    if (ret == Probe.DAEMONENPECH) {
       this.result = Result.Failure;
       return "DÄMONISCHES PECH! 3x die 20!";
     }
-    else if (result == Probe.PATZER) {
+    else if (ret == Probe.PATZER) {
       this.result = Result.Failure;
       return "Patzer (2 20er)!" + s;
     }
-    else if (result == Probe.PERFEKT) {
+    else if (ret == Probe.PERFEKT) {
       this.result = Result.Success;
       return "Perfekt (2 1er)!" + s;
     }
-    else if (result == Probe.GOETTERGLUECK) {
+    else if (ret == Probe.GOETTERGLUECK) {
       this.result = Result.Success;
       return "GÖTTLICHE GUNST! 3x die 1!";
     }
-    else if (result == Probe.FEHLSCHLAG) {
+    else if (ret == Probe.FEHLSCHLAG) {
       this.result = Result.Failure;
       return "Nicht gelungen." + s;
     }
     else {
       this.result = Result.Success;
-      return "Gelungen; " + result + (result == 1 ? " Punkt" : " Punkte")
+      return "Gelungen; " + result + (ret == 1 ? " Punkt" : " Punkte")
           + " übrig." + s;
     }
   }

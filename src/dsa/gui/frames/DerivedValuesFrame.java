@@ -144,7 +144,7 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
     return value > 0 ? "+" : "";
   }
 
-  private static Color DARKGREEN = new Color(0, 175, 0);
+  private static final Color DARKGREEN = new Color(0, 175, 0);
 
   private Color getColor(int value) {
     return value > 0 ? DARKGREEN : value < 0 ? Color.RED : Color.BLACK;
@@ -235,7 +235,7 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
     }
   }
 
-  private CharacterObserver myCharacterObserver = new CharacterAdapter() {
+  private final CharacterObserver myCharacterObserver = new CharacterAdapter() {
 
     public void defaultPropertyChanged(Property property) {
       updateData();
@@ -289,7 +289,6 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
   private class ValueChanger implements PropertyChangeListener {
     public ValueChanger(Hero.DerivedValue dv, JLabel label) {
       this.dv = dv;
-      this.label = label;
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
@@ -305,9 +304,8 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
       }
     }
 
-    private Hero.DerivedValue dv;
+    private final Hero.DerivedValue dv;
 
-    private JLabel label;
   };
 
   private JPanel getJContentPane() {

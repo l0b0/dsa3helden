@@ -28,7 +28,7 @@ public class Version implements Comparable<Version> {
 
   private static Version createCurrentVersion() {
     try {
-      return Version.parse("1.0.0");
+      return Version.parse("1.1.0");
     }
     catch (ParseException e) {
       return createVersion(1, 0, 0);
@@ -36,6 +36,7 @@ public class Version implements Comparable<Version> {
   }
 
   private Version() {
+    // nothing to do
   }
 
   private Version(int major, int minor, int patch) {
@@ -79,11 +80,8 @@ public class Version implements Comparable<Version> {
   public boolean equals(Object other) {
     if (other == null) return false;
     if (!(other instanceof Version)) return false;
-    return equals((Version) other);
-  }
-
-  public boolean equals(Version other) {
-    return compareTo(other) == 0;
+    Version version2 = (Version) other;
+    return major == version2.major && minor == version2.minor && patch == version2.patch;
   }
 
   public int hashCode() {
@@ -98,14 +96,14 @@ public class Version implements Comparable<Version> {
     return currentVersion;
   }
 
-  public int compareTo(Version o) {
-    if (o == null) return -1;
-    if (major < o.major) return -1;
-    if (major > o.major) return 1;
-    if (minor < o.minor) return -1;
-    if (minor > o.minor) return 1;
-    if (patch < o.patch) return -1;
-    if (patch > o.patch) return 1;
+  public int compareTo(Version version) {
+    if (version == null) return -1;
+    if (major < version.major) return -1;
+    if (major > version.major) return 1;
+    if (minor < version.minor) return -1;
+    if (minor > version.minor) return 1;
+    if (patch < version.patch) return -1;
+    if (patch > version.patch) return 1;
     return 0;
   }
 

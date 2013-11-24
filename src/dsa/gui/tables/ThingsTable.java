@@ -35,7 +35,7 @@ import dsa.gui.util.TableSorter;
 import dsa.model.data.Thing;
 import dsa.util.Optional;
 
-public class ThingsTable extends BasicTable {
+public class ThingsTable extends AbstractTable {
 
   protected int getNameColumn() {
     return 0;
@@ -63,12 +63,12 @@ public class ThingsTable extends BasicTable {
     return column;
   }
 
-  static Optional<Integer> NullInt = Optional.NullInt;
+  static final Optional<Integer> NULL_INT = Optional.NULL_INT;
 
-  class MyValue implements Comparable<MyValue> {
-    private dsa.model.data.Thing.Currency currency;
+  static class MyValue implements Comparable<MyValue> {
+    private final dsa.model.data.Thing.Currency currency;
 
-    private int value;
+    private final int value;
 
     public int compareTo(MyValue o) {
       if (currency != o.currency) {
@@ -91,15 +91,15 @@ public class ThingsTable extends BasicTable {
     }
   }
 
-  static Optional<MyValue> NullValue = new Optional<MyValue>();
+  static final Optional<MyValue> NULL_VALUE = new Optional<MyValue>();
 
   class MyTableModel extends DefaultTableModel {
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex == getWeightColumn()) {
-        return NullInt.getClass();
+        return NULL_INT.getClass();
       }
       else if (columnIndex == getValueColumn()) {
-        return NullValue.getClass();
+        return NULL_VALUE.getClass();
       }
       else if (columnIndex == getCountColumn() && withCountColumn) {
         return Integer.class;
@@ -113,12 +113,13 @@ public class ThingsTable extends BasicTable {
   }
 
   MyTableModel mModel;
-
+  
   public ThingsTable(boolean showCountColumn) {
     this(showCountColumn, true);
   }
 
   public ThingsTable(boolean showCountColumn, boolean showCategoryColumn) {
+    super();
     withCountColumn = showCountColumn;
     withCategoryColumn = showCategoryColumn;
     mModel = new MyTableModel();
@@ -151,12 +152,12 @@ public class ThingsTable extends BasicTable {
     mTable.addMouseListener(new MouseAdapter() {
 
       public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && dcListener != null) {
-          dcListener.actionPerformed(new ActionEvent(this, 0, ""));
+        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
+          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
         }
       }
     });
-
+    
     mTable.setBackground(BACKGROUND_GRAY);
     scrollPane = new JScrollPane(mTable);
     scrollPane.setOpaque(false);
@@ -169,7 +170,7 @@ public class ThingsTable extends BasicTable {
     mSorter.setSortingListener(this);
 
   }
-
+  
   JScrollPane scrollPane;
 
   public void removeSelectedThing() {
@@ -204,9 +205,9 @@ public class ThingsTable extends BasicTable {
           .getCurrency(), thing.getValue().getValue().intValue()));
     }
     else {
-      rowData[getValueColumn()] = NullValue;
+      rowData[getValueColumn()] = NULL_VALUE;
     }
-    if (withCountColumn) rowData[getCountColumn()] = new Integer(1);
+    if (withCountColumn) rowData[getCountColumn()] = Integer.valueOf(1);
     mModel.addRow(rowData);
     if (selectThisThing) {
       for (int i = 0; i < mModel.getRowCount(); ++i) {
@@ -227,9 +228,9 @@ public class ThingsTable extends BasicTable {
     Object[] rowData = new Object[colCount];
     rowData[getNameColumn()] = name;
     if (withCategoryColumn) rowData[getCategoryColumn()] = "-";
-    rowData[getValueColumn()] = NullValue;
-    rowData[getWeightColumn()] = NullInt;
-    if (withCountColumn) rowData[getCountColumn()] = new Integer(1);
+    rowData[getValueColumn()] = NULL_VALUE;
+    rowData[getWeightColumn()] = NULL_INT;
+    if (withCountColumn) rowData[getCountColumn()] = Integer.valueOf(1);
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
   }

@@ -19,7 +19,9 @@
  */
 package dsa.model.data;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -27,28 +29,29 @@ import dsa.model.DiceSpecification;
 
 public class Animal implements Cloneable {
 
-  public interface NameListener {
+  public interface Listener {
     void nameChanged(String oldName, String newName);
+    void thingRemoved(String thing);
   }
 
   public enum AttributeType {
     eString, eInt, eDicing, eDiced, eSpeed, eMultiplier
   }
 
-  private ArrayList<NameListener> listeners = new ArrayList<NameListener>();
+  private final ArrayList<Listener> listeners = new ArrayList<Listener>();
 
-  public void addListener(NameListener listener) {
+  public void addListener(Listener listener) {
     listeners.add(listener);
   }
 
-  public void removeListener(NameListener listener) {
+  public void removeListener(Listener listener) {
     listeners.remove(listener);
   }
 
   public static class SpeedData implements Cloneable {
-    public int value1;
+    private final int value1;
 
-    public int value2;
+    private final int value2;
 
     public String toString() {
       return "" + value1 + "/" + value2;
@@ -75,13 +78,13 @@ public class Animal implements Cloneable {
   }
 
   static class AttributeMetaInfo implements Cloneable {
-    public String title;
+    String title;
 
-    public AttributeType type;
+    AttributeType type = null;
 
-    public boolean addedWithSteps;
+    boolean addedWithSteps;
 
-    public boolean testable;
+    boolean testable;
 
     public Object clone() throws CloneNotSupportedException {
       return super.clone();
@@ -145,11 +148,11 @@ public class Animal implements Cloneable {
     changed = false;
   }
 
-  private static final int version = 1;
+  private static final int VERSION = 2;
 
   public void writeToFile(PrintWriter out) throws IOException {
     printSubclassSpecificData(out);
-    out.println(version);
+    out.println(VERSION);
     // version 1
     out.println(name);
     out.println(category);
@@ -162,11 +165,18 @@ public class Animal implements Cloneable {
       out.println(attributeInfos.get(i).testable ? 1 : 0);
       out.println(attributeInfos.get(i).title);
     }
+    // version 2
+    out.println(things.size());
+    for (java.util.Map.Entry<String, Integer> entry : things.entrySet()) {
+      out.println(entry.getKey());
+      out.println(entry.getValue());
+    }
     out.println("-- End of Animal --");
     changed = false;
   }
 
   protected void printSubclassSpecificData(PrintWriter out) throws IOException {
+    // nothing to do in this class
   }
 
   private static int parseInt(String line, int lineNr) throws IOException {
@@ -222,11 +232,11 @@ public class Animal implements Cloneable {
         line = in.readLine();
         lineNr++;
         testEmpty(line);
-        boolean addedAtStep = (line.equals("1"));
+        boolean addedAtStep = ("1".equals(line));
         line = in.readLine();
         lineNr++;
         testEmpty(line);
-        boolean testable = (line.equals("1"));
+        boolean testable = ("1".equals(line));
         line = in.readLine();
         lineNr++;
         testEmpty(line);
@@ -239,11 +249,29 @@ public class Animal implements Cloneable {
         attributes.add(value);
       }
     }
+    things.clear();
+    if (version > 1) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      int thingCount = parseInt(line, lineNr);
+      for (int i = 0; i < thingCount; ++i) {
+        line = in.readLine();
+        lineNr++;
+        testEmpty(line);
+        String thing = line;
+        line = in.readLine();
+        lineNr++;
+        testEmpty(line);
+        int thingNr = parseInt(line, lineNr);
+        things.put(thing, thingNr);
+      }
+    }
     do {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-    } while (!line.equals("-- End of Animal --"));
+    } while (!"-- End of Animal --".equals(line));
     changed = false;
     return lineNr;
   }
@@ -301,7 +329,7 @@ public class Animal implements Cloneable {
     String oldName = this.name;
     this.name = name;
     changed = true;
-    for (NameListener l : listeners)
+    for (Listener l : listeners)
       l.nameChanged(oldName, name);
   }
 
@@ -324,38 +352,78 @@ public class Animal implements Cloneable {
     changed = true;
   }
 
-  public Object clone() {
-    try {
-      Animal clone = (Animal) super.clone();
-      clone.attributes = new ArrayList<Object>();
-      for (int i = 0; i < attributes.size(); ++i) {
-        Object o = attributes.get(i);
-        if (o instanceof String) {
-          clone.attributes.add(new String(o.toString()));
-        }
-        else if (o instanceof DiceSpecification) {
-          clone.attributes.add(((DiceSpecification) o).clone());
-        }
-        else if (o instanceof SpeedData) {
-          clone.attributes.add(((SpeedData) o).clone());
-        }
-        else if (o instanceof Integer) {
-          clone.attributes.add(((Integer) o).intValue());
-        }
-        else
-          clone.attributes.add(o);
+  public Object clone() throws CloneNotSupportedException {
+    Animal clone = (Animal) super.clone();
+    clone.attributes = new ArrayList<Object>();
+    for (int i = 0; i < attributes.size(); ++i) {
+      Object o = attributes.get(i);
+      if (o instanceof String) {
+        clone.attributes.add(o.toString());
       }
-      clone.attributeInfos = new ArrayList<AttributeMetaInfo>();
-      for (int i = 0; i < attributeInfos.size(); ++i) {
-        clone.attributeInfos.add((AttributeMetaInfo) attributeInfos.get(i)
-            .clone());
+      else if (o instanceof DiceSpecification) {
+        clone.attributes.add(((DiceSpecification) o).clone());
       }
-      clone.changed = false;
-      return clone;
+      else if (o instanceof SpeedData) {
+        clone.attributes.add(((SpeedData) o).clone());
+      }
+      else if (o instanceof Integer) {
+        clone.attributes.add(((Integer) o).intValue());
+      }
+      else
+        clone.attributes.add(o);
     }
-    catch (CloneNotSupportedException e) {
-      return null;
+    clone.attributeInfos = new ArrayList<AttributeMetaInfo>();
+    for (int i = 0; i < attributeInfos.size(); ++i) {
+      clone.attributeInfos.add((AttributeMetaInfo) attributeInfos.get(i)
+          .clone());
     }
+    clone.things = new java.util.HashMap<String, Integer>();
+    clone.things.putAll(things);
+    clone.changed = false;
+    return clone;
+  }
+  
+  private java.util.Map<String, Integer> things 
+    = new java.util.HashMap<String, Integer>();
+  
+  public String[] getThings() {
+    String[] thingArray = new String[things.size()];
+    thingArray = things.keySet().toArray(thingArray);
+    return thingArray;
+  }
+  
+  public int getThingCount(String thing) {
+    if (things.containsKey(thing)) {
+      return things.get(thing);
+    }
+    else {
+      return 0;
+    }
+  }
+  
+  public void addThing(String thing) {
+    if (things.containsKey(thing)) {
+      things.put(thing, things.get(thing).intValue() + 1);
+    }
+    else {
+      things.put(thing, 1);
+    }
+    changed = true;
+  }
+  
+  public void removeThing(String thing) {
+    if (!things.containsKey(thing)) return;
+    int count = things.get(thing);
+    if (count == 1) {
+      things.remove(thing);
+    }
+    else {
+      things.put(thing, count - 1);
+    }
+    for (Listener listener : listeners) {
+      listener.thingRemoved(thing);
+    }
+    changed = true;
   }
 
 }

@@ -24,7 +24,6 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Frame;
-import java.awt.HeadlessException;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -54,15 +53,13 @@ import dsa.model.data.Looks;
 import dsa.model.data.Region;
 import dsa.model.data.Regions;
 
-public class HeroWizard extends BGDialog {
+public final class HeroWizard extends BGDialog {
 
-  public HeroWizard(Frame owner) throws HeadlessException {
+  public HeroWizard(Frame owner) {
     super(owner, "Helden erstellen", true);
     initialize();
     this.setLocationRelativeTo(owner);
   }
-
-  private JPanel wizardPane;
 
   private CardLayout cards;
 
@@ -87,13 +84,13 @@ public class HeroWizard extends BGDialog {
   private String name;
 
   private class FirstPage extends JPanel {
-    private JTree typesTree;
+    private final JTree typesTree;
 
-    private JComboBox sexCombo;
+    private final JComboBox sexCombo;
 
-    private JScrollPane scrollPane;
+    private final JScrollPane scrollPane;
 
-    private JComboBox regCombo;
+    private final JComboBox regCombo;
 
     private boolean listen = true;
 
@@ -103,28 +100,7 @@ public class HeroWizard extends BGDialog {
       // typesTree.setPreferredSize(new java.awt.Dimension(400, 400));
       typesTree.addTreeSelectionListener(new TreeSelectionListener() {
         public void valueChanged(TreeSelectionEvent e) {
-          if (!listen) return;
-          regCombo.setSelectedIndex(0);
-          regMod = "Keine";
-          if (typesTree.isSelectionEmpty()
-              || (typesTree.getSelectionPath() == null)) {
-            nextButton.setEnabled(false);
-            characterType = null;
-            return;
-          }
-          TreeNode node = ((TreeNode) typesTree.getSelectionPath()
-              .getLastPathComponent());
-          if (node.isLeaf()) {
-            characterType = CharacterTypes.getInstance().getType(
-                node.toString());
-            nextButton.setEnabled(true);
-            regCombo.setEnabled(characterType.isRegionModifiable());
-          }
-          else {
-            nextButton.setEnabled(false);
-            characterType = null;
-            regCombo.setEnabled(false);
-          }
+          treeSelectionChanged();
         }
       });
       scrollPane = new JScrollPane(typesTree);
@@ -194,6 +170,31 @@ public class HeroWizard extends BGDialog {
       regMod = "Keine";
       regCombo.setEnabled(false);
       // typesTree.invalidate();
+    }
+
+    private void treeSelectionChanged() {
+      if (!listen) return;
+      regCombo.setSelectedIndex(0);
+      regMod = "Keine";
+      if (typesTree.isSelectionEmpty()
+          || (typesTree.getSelectionPath() == null)) {
+        nextButton.setEnabled(false);
+        characterType = null;
+        return;
+      }
+      TreeNode node = ((TreeNode) typesTree.getSelectionPath()
+          .getLastPathComponent());
+      if (node.isLeaf()) {
+        characterType = CharacterTypes.getInstance().getType(
+            node.toString());
+        nextButton.setEnabled(true);
+        regCombo.setEnabled(characterType.isRegionModifiable());
+      }
+      else {
+        nextButton.setEnabled(false);
+        characterType = null;
+        regCombo.setEnabled(false);
+      }
     }
   }
 
@@ -532,11 +533,9 @@ public class HeroWizard extends BGDialog {
     }
 
     private void removeIncreases() {
-      for (int i = 0; i < properties.length; ++i) {
-        properties[i] = origProperties[i];
-        PropertyLabel.resetNecessaryBadIncreases();
-        setLabels();
-      }
+      System.arraycopy(origProperties, 0, properties, 0, origProperties.length);
+      PropertyLabel.resetNecessaryBadIncreases();
+      setLabels();
     }
 
     private void setLabels() {
@@ -658,9 +657,10 @@ public class HeroWizard extends BGDialog {
   private String language;
 
   private class ThirdPage extends JPanel {
-    private dsa.gui.dialogs.NameSelectionPanel panel;
+    private final dsa.gui.dialogs.NameSelectionPanel panel;
 
     public ThirdPage() {
+      super();
       setLayout(null);
       panel = new dsa.gui.dialogs.NameSelectionPanel();
       panel.setLocation(5, 5);
@@ -711,7 +711,7 @@ public class HeroWizard extends BGDialog {
   }
 
   private void setInitialMoney(Hero hero) {
-    String stand = hero.getStand().toLowerCase();
+    String stand = hero.getStand().toLowerCase(java.util.Locale.GERMAN);
     DiceSpecification money = null;
     int currency = 0;
     if (stand.contains("unfrei")) {
@@ -885,6 +885,8 @@ public class HeroWizard extends BGDialog {
       hero.changeTalentValue("Musizieren", 1);
       hero.changeTalentValue("Tanzen", 1);
       break;
+    default:
+      assert(false);
     }
     JOptionPane.showMessageDialog(this, msg, "Göttergeschenk",
         JOptionPane.INFORMATION_MESSAGE);

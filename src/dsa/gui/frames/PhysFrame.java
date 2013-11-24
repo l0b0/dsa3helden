@@ -25,6 +25,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Locale;
 
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -321,18 +322,18 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       typeField.setBounds(135, 37, 310, 16);
       typeField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
-          UpdateType();
+          updateType();
         }
 
         public void removeUpdate(DocumentEvent e) {
-          UpdateType();
+          updateType();
         }
 
         public void changedUpdate(DocumentEvent e) {
-          UpdateType();
+          updateType();
         }
 
-        private void UpdateType() {
+        private void updateType() {
           if (disableChanges) return;
           currentHero.setType(typeField.getText());
         }
@@ -449,7 +450,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     NameSelectionDialog dialog = new NameSelectionDialog(this, true);
     dialog.setLocationRelativeTo(this);
     dialog.setCharacterName(getNameField().getText());
-    dialog.setSex(currentHero.getSex().toLowerCase().startsWith("w"));
+    dialog.setSex(currentHero.getSex().toLowerCase(Locale.GERMAN).startsWith("w"));
     dialog.setVisible(true);
     String name = dialog.getCharacterName();
     if (name != null) {
@@ -530,8 +531,8 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private SpinnerNumberModel getSpinnerNumberModel() {
     if (spinnerNumberModel == null) {
       spinnerNumberModel = new SpinnerNumberModel();
-      spinnerNumberModel.setMinimum(new Integer(0));
-      spinnerNumberModel.setStepSize(new Integer(1));
+      spinnerNumberModel.setMinimum(Integer.valueOf(0));
+      spinnerNumberModel.setStepSize(Integer.valueOf(1));
     }
     return spinnerNumberModel;
   }
@@ -567,7 +568,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private SpinnerNumberModel getSpinnerNumberModel1() {
     if (spinnerNumberModel1 == null) {
       spinnerNumberModel1 = new SpinnerNumberModel();
-      spinnerNumberModel1.setMinimum(new Integer(0));
+      spinnerNumberModel1.setMinimum(Integer.valueOf(0));
     }
     return spinnerNumberModel1;
   }
@@ -603,7 +604,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private SpinnerNumberModel getSpinnerNumberModel2() {
     if (spinnerNumberModel2 == null) {
       spinnerNumberModel2 = new SpinnerNumberModel();
-      spinnerNumberModel2.setMinimum(new Integer(0));
+      spinnerNumberModel2.setMinimum(Integer.valueOf(0));
     }
     return spinnerNumberModel2;
   }
@@ -657,7 +658,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   }
 
   private class HairSelector implements ActionListener {
-    private String hair;
+    private final String hair;
 
     public HairSelector(String hair) {
       this.hair = hair;
@@ -757,21 +758,23 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getStandCombo().setSelectedItem(currentHero.getStand());
       getBirthplaceField().setText(currentHero.getBirthPlace());
       getBirthdayField().setText(currentHero.getBirthday());
-      getAgeSpinner().getModel().setValue(new Integer(currentHero.getAge()));
+      getAgeSpinner().getModel().setValue(Integer.valueOf(currentHero.getAge()));
       int height = 170;
       try {
         height = Integer.parseInt(currentHero.getHeight());
       }
       catch (NumberFormatException e) {
+        height = 170;
       }
-      getHeightSpinner().getModel().setValue(new Integer(height));
+      getHeightSpinner().getModel().setValue(Integer.valueOf(height));
       int weight = 70;
       try {
         weight = Integer.parseInt(currentHero.getWeight());
       }
       catch (NumberFormatException e) {
+        weight = 70;
       }
-      getWeightSpinner().getModel().setValue(new Integer(weight));
+      getWeightSpinner().getModel().setValue(Integer.valueOf(weight));
       getHairField().setText(currentHero.getHairColor());
       getEyeCombo().setSelectedItem(currentHero.getEyeColor());
       getTitleField().setText(currentHero.getTitle());
@@ -785,9 +788,9 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getStandCombo().setSelectedItem("");
       getBirthplaceField().setText("");
       getBirthdayField().setText("");
-      getAgeSpinner().getModel().setValue(new Integer(20));
-      getHeightSpinner().getModel().setValue(new Integer(170));
-      getWeightSpinner().getModel().setValue(new Integer(70));
+      getAgeSpinner().getModel().setValue(Integer.valueOf(20));
+      getHeightSpinner().getModel().setValue(Integer.valueOf(170));
+      getWeightSpinner().getModel().setValue(Integer.valueOf(70));
       getHairField().setText("");
       getEyeCombo().setSelectedItem("");
       getTitleField().setText("");

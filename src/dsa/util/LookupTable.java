@@ -21,22 +21,22 @@ package dsa.util;
 
 import java.util.LinkedList;
 
-abstract class Node {
+abstract class AbstractNode {
   public abstract boolean isLeaf();
 
-  public abstract Node nextNode(Character ch);
+  public abstract AbstractNode nextNode(Character ch);
 
   public abstract String getItem(boolean remove);
 
-  public abstract void appendNode(Node node, char ch);
+  public abstract void appendNode(AbstractNode node, char ch);
 }
 
-class LeafNode extends Node {
+class LeafNode extends AbstractNode {
   public boolean isLeaf() {
     return true;
   }
 
-  public Node nextNode(Character ch) {
+  public AbstractNode nextNode(Character ch) {
     return null;
   }
 
@@ -47,30 +47,33 @@ class LeafNode extends Node {
       return items.peek();
   }
 
-  public void appendNode(Node node, char ch) {
+  public void appendNode(AbstractNode node, char ch) {
+    // leaf nodes do not append!
+    assert(false);
   }
 
-  public void addItem(String item) {
+  public final void addItem(String item) {
     items.addLast(item);
   }
 
   public LeafNode(String item, boolean printOnlyOnce) {
+    super();
     this.items = new LinkedList<String>();
     addItem(item);
     this.removeAtGet = printOnlyOnce;
   }
 
-  private LinkedList<String> items;
+  private final LinkedList<String> items;
 
-  private boolean removeAtGet;
+  private final boolean removeAtGet;
 }
 
-class IntermediateNode extends Node {
+class IntermediateNode extends AbstractNode {
   public boolean isLeaf() {
     return false;
   }
 
-  public Node nextNode(Character ch) {
+  public AbstractNode nextNode(Character ch) {
     return nextNodes.get(ch);
   }
 
@@ -78,15 +81,16 @@ class IntermediateNode extends Node {
     return null;
   }
 
-  public void appendNode(Node node, char ch) {
+  public void appendNode(AbstractNode node, char ch) {
     nextNodes.put(new Character(ch), node);
   }
 
   public IntermediateNode() {
-    nextNodes = new java.util.HashMap<Character, Node>();
+    super();
+    nextNodes = new java.util.HashMap<Character, AbstractNode>();
   }
 
-  private java.util.HashMap<Character, Node> nextNodes;
+  private final java.util.HashMap<Character, AbstractNode> nextNodes;
 }
 
 public class LookupTable {
@@ -98,7 +102,7 @@ public class LookupTable {
 
   public LookupTable(char triggerKey) {
     startNode = new IntermediateNode();
-    Node firstNode = new IntermediateNode();
+    AbstractNode firstNode = new IntermediateNode();
     startNode.appendNode(firstNode, triggerKey);
     this.triggerKey = new Character(triggerKey);
   }
@@ -119,12 +123,12 @@ public class LookupTable {
     if (triggerKey != null && key.indexOf(triggerKey.charValue()) != -1) {
       return AddItemResult.KeyIncludesTriggerKey;
     }
-    Node currentNode = startNode;
+    AbstractNode currentNode = startNode;
     if (triggerKey != null) currentNode = startNode.nextNode(triggerKey);
     for (int i = 0; i < key.length() - 1; ++i) {
       if (currentNode.isLeaf()) return AddItemResult.KeyStartIsKey;
       char ch = key.charAt(i);
-      Node nextNode = currentNode.nextNode(new Character(ch));
+      AbstractNode nextNode = currentNode.nextNode(new Character(ch));
       if (nextNode == null) {
         nextNode = new IntermediateNode();
         currentNode.appendNode(nextNode, ch);
@@ -133,7 +137,7 @@ public class LookupTable {
     }
     if (currentNode.isLeaf()) return AddItemResult.KeyStartIsKey;
     char ch = key.charAt(key.length() - 1);
-    Node nextNode = currentNode.nextNode(new Character(ch));
+    AbstractNode nextNode = currentNode.nextNode(new Character(ch));
     if (nextNode != null) {
       if (nextNode.isLeaf()) {
         ((LeafNode) nextNode).addItem(item);
@@ -163,7 +167,7 @@ public class LookupTable {
 
   private class LookupPerformerImpl implements LookupPerformer {
 
-    public void restart() {
+    public final void restart() {
       currentNode = LookupTable.this.startNode;
     }
 
@@ -189,14 +193,14 @@ public class LookupTable {
       restart();
     }
 
-    private Node currentNode;
+    private AbstractNode currentNode;
   }
 
-  public LookupPerformer GetLookupPerformer() {
+  public LookupPerformer getLookupPerformer() {
     return new LookupPerformerImpl();
   }
 
-  private Node startNode;
+  private AbstractNode startNode;
 
-  private Character triggerKey;
+  private final Character triggerKey;
 }

@@ -20,8 +20,15 @@
 package dsa.util;
 
 import java.awt.Component;
-import java.io.*;
-import java.util.Vector;
+import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.PushbackInputStream;
+import java.util.ArrayList;
 
 import javax.swing.ProgressMonitorInputStream;
 
@@ -44,49 +51,59 @@ public class FileTransformer {
     PushbackInputStream in = new PushbackInputStream(new BufferedInputStream(
         new ProgressMonitorInputStream(component, message, new FileInputStream(
             input))));
-    PrintWriter out = new PrintWriter(
-        new BufferedWriter(new FileWriter(output)));
-
     try {
-      Character ch;
-      int retCode;
-      Vector<Character> charBuffer = new Vector<Character>();
-      charBuffer.ensureCapacity(20);
-      LookupTable.LookupPerformer lookuper = lookupTable.GetLookupPerformer();
-      while ((retCode = in.read()) != -1) {
-        ch = new Character((char) retCode);
-        LookupTable.LookupPerformer.NextCharResult result = lookuper
-            .nextChar(ch);
-        if (result != LookupTable.LookupPerformer.NextCharResult.Continue) {
-          if (result == LookupTable.LookupPerformer.NextCharResult.Hit) {
-            String text = lookuper.getItem();
-            out.print(text != null ? text : "");
-          }
-          else {
-            for (int i = 0; i < charBuffer.size(); ++i) {
-              out.print(charBuffer.get(i));
+      
+      PrintWriter out = new PrintWriter(
+          new BufferedWriter(new FileWriter(output)));
+  
+      try {
+        Character ch;
+        int retCode;
+        ArrayList<Character> charBuffer = new ArrayList<Character>();
+        charBuffer.ensureCapacity(20);
+        LookupTable.LookupPerformer lookuper = lookupTable.getLookupPerformer();
+        while ((retCode = in.read()) != -1) {
+          ch = new Character((char) retCode);
+          LookupTable.LookupPerformer.NextCharResult result = lookuper
+              .nextChar(ch);
+          if (result != LookupTable.LookupPerformer.NextCharResult.Continue) {
+            if (result == LookupTable.LookupPerformer.NextCharResult.Hit) {
+              String text = lookuper.getItem();
+              out.print(text != null ? text : "");
             }
-            if (charBuffer.size() > 0)
-              in.unread(retCode); // may be the start of a new token
-            else
-              out.print(ch);
+            else {
+              for (int i = 0; i < charBuffer.size(); ++i) {
+                out.print(charBuffer.get(i));
+              }
+              if (charBuffer.size() > 0)
+                in.unread(retCode); // may be the start of a new token
+              else
+                out.print(ch);
+            }
+            charBuffer.clear();
+            lookuper.restart();
           }
-          charBuffer.clear();
-          lookuper.restart();
+          else
+            charBuffer.add(ch);
         }
-        else
-          charBuffer.add(ch);
+        out.flush();
       }
-      out.flush();
+      finally {
+        if (out != null) {
+          out.close();
+        }
+      }
     }
     finally {
-      in.close();
-      out.close();
+      if (in != null) {
+        in.close();
+      }
     }
   }
 
   private LookupTable lookupTable;
 
-  private File input, output;
+  private final File input;
+  private final File output;
 
 }

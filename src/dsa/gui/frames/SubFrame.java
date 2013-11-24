@@ -24,9 +24,16 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
-import java.io.*;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -112,12 +119,14 @@ public class SubFrame extends JFrame {
 
   private Rectangle normalBounds;
 
-  private boolean rolledUp = false;
+  // private final boolean rolledUp = false;
 
   public SubFrame() {
+    super();
   }
 
   public SubFrame(String title) {
+    super(title);
     setTitle(title);
     Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
     int x = prefs.getInt(title + "x", 50);
@@ -136,7 +145,7 @@ public class SubFrame extends JFrame {
     this.setBounds(normalBounds.x, normalBounds.y, normalBounds.width,
         normalBounds.height);
     addWindowListener(new WindowAdapter() {
-      private void SaveBounds() {
+      private void saveBounds() {
         Rectangle r = getBounds();
         String title = getTitle();
         Preferences prefs = Preferences
@@ -149,11 +158,11 @@ public class SubFrame extends JFrame {
       }
 
       public void windowClosing(WindowEvent e) {
-        SaveBounds();
+        saveBounds();
       }
 
       public void windowClosed(WindowEvent e) {
-        SaveBounds();
+        saveBounds();
       }
     });
     addComponentListener(new ComponentAdapter() {
@@ -161,10 +170,10 @@ public class SubFrame extends JFrame {
         Rectangle r = getBounds();
         normalBounds.x = r.x;
         normalBounds.y = r.y;
-        if (!rolledUp) {
+        //if (!rolledUp) {
           normalBounds.width = r.width;
           normalBounds.height = r.height;
-        }
+        //}
       }
 
       public void componentMoved(ComponentEvent e) {

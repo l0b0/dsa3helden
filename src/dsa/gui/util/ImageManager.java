@@ -30,13 +30,10 @@ public class ImageManager {
   }
 
   private static ImageManager getInstance() {
-    if (sInstance == null) {
-      sInstance = new ImageManager();
-    }
     return sInstance;
   }
 
-  private static ImageManager sInstance = null;
+  private static ImageManager sInstance = new ImageManager();
 
   private ImageManager() {
     images = new HashMap<String, ImageIcon>();

@@ -40,7 +40,7 @@ import dsa.util.Directories;
 /**
  * 
  */
-public class PrintingDialog extends BGDialog {
+public final class PrintingDialog extends BGDialog {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -128,29 +128,14 @@ public class PrintingDialog extends BGDialog {
 
   class MyTextFieldListener implements DocumentListener {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.DocumentEvent)
-     */
     public void insertUpdate(DocumentEvent e) {
       updateButtons();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.DocumentEvent)
-     */
     public void removeUpdate(DocumentEvent e) {
       updateButtons();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.DocumentEvent)
-     */
     public void changedUpdate(DocumentEvent e) {
       updateButtons();
     }
@@ -314,13 +299,18 @@ public class PrintingDialog extends BGDialog {
 
   class TransformerHelper implements Runnable {
 
-    public File input;
+    private final File input;
 
-    public File output;
+    private final File output;
 
     private int task = 0;
 
     private String errorMsg;
+    
+    public TransformerHelper(File input, File output) {
+      this.input = input;
+      this.output = output;
+    }
 
     public void run() {
       if (task == 0) {
@@ -359,7 +349,6 @@ public class PrintingDialog extends BGDialog {
    * 
    */
   protected void transform() {
-    TransformerHelper helper = new TransformerHelper();
     File input = new File(getJTextField().getText());
     File output = new File(getOutputField().getText());
     if (output.exists()) {
@@ -369,9 +358,8 @@ public class PrintingDialog extends BGDialog {
         return;
       }
     }
+    TransformerHelper helper = new TransformerHelper(input, output);
     getDisplayButton().setEnabled(false);
-    helper.input = input;
-    helper.output = output;
     (new Thread(helper)).start();
   }
 

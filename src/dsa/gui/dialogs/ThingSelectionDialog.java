@@ -30,19 +30,22 @@ import javax.swing.event.ListSelectionListener;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
+import dsa.model.data.Animal;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public class ThingSelectionDialog extends dsa.gui.dialogs.SelectionDialogBase {
+public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectionDialog {
 
   public ThingSelectionDialog(javax.swing.JFrame owner) {
     this(owner, true);
+    initialize();
   }
 
   public ThingSelectionDialog(javax.swing.JFrame owner, boolean allThings) {
     super(owner, "Gegenstand hinzufügen", new ThingsTable(false, allThings),
         "AusrüstungSelector");
     this.allThings = allThings;
+    initialize();
     fillTable();
   }
 
@@ -77,16 +80,16 @@ public class ThingSelectionDialog extends dsa.gui.dialogs.SelectionDialogBase {
     });
   }
 
-  private JButton addButton;
+  private JButton newButton;
 
   private JButton deleteButton;
 
   private JButton getNewButton() {
-    if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setToolTipText("Neuen Gegenstand anlegen");
-      addButton.setBounds(315, 5, 40, 25);
-      addButton.addActionListener(new ActionListener() {
+    if (newButton == null) {
+      newButton = new JButton(ImageManager.getIcon("increase"));
+      newButton.setToolTipText("Neuen Gegenstand anlegen");
+      newButton.setBounds(315, 5, 40, 25);
+      newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this);
           dialog.setVisible(true);
@@ -95,7 +98,7 @@ public class ThingSelectionDialog extends dsa.gui.dialogs.SelectionDialogBase {
         }
       });
     }
-    return addButton;
+    return newButton;
   }
 
   private JButton getDeleteButton() {
@@ -123,6 +126,14 @@ public class ThingSelectionDialog extends dsa.gui.dialogs.SelectionDialogBase {
         .getAllCharacters()) {
       while (c.getThingCount(thing) > 0)
         c.removeThing(thing);
+      while (c.getThingInWarehouseCount(thing) > 0) 
+        c.removeThingFromWarehouse(thing);
+      for (int i = 0; i < c.getNrOfAnimals(); ++i) {
+        Animal a = c.getAnimal(i);
+        while (a.getThingCount(thing) > 0) {
+          a.removeThing(thing);
+        }
+      }
     }
     ((ThingsTable) mTable).removeSelectedThing();
     Things.getInstance().removeThing(thing);

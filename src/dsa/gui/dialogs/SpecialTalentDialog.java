@@ -103,13 +103,14 @@ public class SpecialTalentDialog extends BGDialog {
       getSecondPropertyBox().addItem(text);
       getThirdPropertyBox().addItem(text);
     }
-    JComboBox talentBox = getTalentBox();
+    talentBox = getTalentBox();
     for (dsa.model.talents.Talent t : dsa.model.data.Talents.getInstance()
         .getTalentsInCategory("Berufe / Sonstiges")) {
       talentBox.addItem(t.getName());
     }
     talentBox.removeItem("Jagen (Falle)");
     talentBox.removeItem("Jagen (Pirsch)");
+    talentBox.removeItem("Mirakel");
     talentBox.addItem(otherTalentString);
     talentBox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -134,32 +135,7 @@ public class SpecialTalentDialog extends BGDialog {
     });
     getOkButton().addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String tName = getTalentBox().getSelectedItem().toString();
-        if (tName.equals(otherTalentString)) {
-          String name = nameField.getText();
-          if (name.equals("")) {
-            JOptionPane.showMessageDialog(SpecialTalentDialog.this,
-                "Das Talent muss einen Namen haben.", "Fehler",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-          }
-          if (Talents.getInstance().getTalent(name) != null) {
-            JOptionPane.showMessageDialog(SpecialTalentDialog.this,
-                "Ein Talent dieses Namens gibt es schon.", "Fehler",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-          }
-          createTalent(name);
-          Talents.getInstance().addUserTalent(talent);
-        }
-        else if (Talents.getInstance().isUserTalent(tName)) {
-          Talents.getInstance().removeUserTalent(tName);
-          createTalent(tName);
-          Talents.getInstance().addUserTalent(talent);
-        }
-        else {
-          talent = Talents.getInstance().getTalent(tName);
-        }
+        if (!createTalent()) return;
         closedByOK = true;
         dispose();
       }
@@ -185,6 +161,36 @@ public class SpecialTalentDialog extends BGDialog {
     });
     talentSelected();
   }
+  
+  private boolean createTalent() {
+    String tName = getTalentBox().getSelectedItem().toString();
+    if (tName.equals(otherTalentString)) {
+      String name = nameField.getText();
+      if (name.equals("")) {
+        JOptionPane.showMessageDialog(SpecialTalentDialog.this,
+            "Das Talent muss einen Namen haben.", "Fehler",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+      if (Talents.getInstance().getTalent(name) != null) {
+        JOptionPane.showMessageDialog(SpecialTalentDialog.this,
+            "Ein Talent dieses Namens gibt es schon.", "Fehler",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+      createTalent(name);
+      Talents.getInstance().addUserTalent(talent);
+    }
+    else if (Talents.getInstance().isUserTalent(tName)) {
+      Talents.getInstance().removeUserTalent(tName);
+      createTalent(tName);
+      Talents.getInstance().addUserTalent(talent);
+    }
+    else {
+      talent = Talents.getInstance().getTalent(tName);
+    }
+    return true;
+  }
 
   private boolean closedByOK;
 
@@ -192,11 +198,11 @@ public class SpecialTalentDialog extends BGDialog {
 
   private JButton removeButton = null;
 
-  public boolean WasClosedByOK() {
+  public boolean wasClosedByOK() {
     return closedByOK;
   }
 
-  public String GetTalent() {
+  public String getTalent() {
     return talent.getName();
   }
 

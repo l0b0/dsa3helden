@@ -19,14 +19,15 @@
  */
 package dsa.model.characters;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.*;
 
 import javax.swing.JOptionPane;
 
 import dsa.model.DataFactory;
-import dsa.util.Observable;
+import dsa.util.AbstractObservable;
 
 /**
  * @author joerg
@@ -34,22 +35,21 @@ import dsa.util.Observable;
  * To change the template for this generated type comment go to
  * Window>Preferences>Java>Code Generation>Code and Comments
  */
-public class Group extends Observable<CharactersObserver> {
+public class Group extends AbstractObservable<CharactersObserver> {
 
-  private ArrayList<Hero> characters = null;
+  private final ArrayList<Hero> characters;
 
-  private ArrayList<String> filePaths = null;
+  private final ArrayList<String> filePaths;
 
   private Hero activeHero = null;
 
   private boolean changed;
 
-  private GroupOptions options;
+  private final GroupOptions options;
 
-  private static Group instance = null;
+  private static Group instance = new Group();
 
   public static Group getInstance() {
-    if (instance == null) instance = new Group();
     return instance;
   }
 
@@ -135,6 +135,7 @@ public class Group extends Observable<CharactersObserver> {
   }
 
   private Group() {
+    super();
     characters = new ArrayList<Hero>();
     filePaths = new ArrayList<String>();
     options = new GroupOptions();
@@ -192,7 +193,7 @@ public class Group extends Observable<CharactersObserver> {
     }
     line = file.readLine();
     testEmpty(line);
-    while (!line.equals("--")) {
+    while (line != null && !line.equals("--")) {
       try {
         Hero hero = DataFactory.getInstance()
             .createHeroFromFile(new File(line));
@@ -223,7 +224,7 @@ public class Group extends Observable<CharactersObserver> {
     if (version >= 3) {
       options.readFromFile(file, 0);
     }
-    while (!line.equals("-End Characters-")) {
+    while (line != null && !line.equals("-End Characters-")) {
       line = file.readLine();
       testEmpty(line);
     }

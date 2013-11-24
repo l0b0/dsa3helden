@@ -85,8 +85,6 @@ public class NameSelectionPanel extends JPanel {
     setBounds(0, 0, 365, 240);
   }
 
-  private String name = null;
-
   public void setCharacterName(String name) {
     resultField.setText(name);
   }
@@ -144,11 +142,11 @@ public class NameSelectionPanel extends JPanel {
     listen = true;
   }
 
-  private NameGenerator nameGenerator = null;
+  private AbstractNameGenerator nameGenerator = null;
 
-  private Random random = new Random(System.currentTimeMillis());
+  private final Random random = new Random(System.currentTimeMillis());
 
-  abstract class NameGenerator {
+  abstract class AbstractNameGenerator {
     abstract void initializeComponents();
 
     abstract void sexChanged();
@@ -183,8 +181,9 @@ public class NameSelectionPanel extends JPanel {
     }
   }
 
-  class DefaultNameGenerator extends NameGenerator {
+  class DefaultNameGenerator extends AbstractNameGenerator {
     public DefaultNameGenerator(String region) {
+      super();
       this.names = Names.getInstance().getRegionNames(region);
     }
 
@@ -227,7 +226,7 @@ public class NameSelectionPanel extends JPanel {
     private RegionNames names;
   }
 
-  class MohaNameGenerator extends NameGenerator {
+  class MohaNameGenerator extends AbstractNameGenerator {
     public void initializeComponents() {
       nobleBox.setSelected(false);
       nobleBox.setEnabled(false);
@@ -266,9 +265,10 @@ public class NameSelectionPanel extends JPanel {
     private RegionNames names = Names.getInstance().getRegionNames("Mohas");
   }
 
-  class ParentNameGenerator extends NameGenerator {
+  class ParentNameGenerator extends AbstractNameGenerator {
     public ParentNameGenerator(String region, boolean maleParent,
         String maleAttr, String femaleAttr) {
+      super();
       this.names = Names.getInstance().getRegionNames(region);
       this.parentMale = maleParent;
       this.maleAttr = maleAttr;
@@ -327,7 +327,7 @@ public class NameSelectionPanel extends JPanel {
     private boolean parentMale;
   }
 
-  class NivesenNameGenerator extends NameGenerator {
+  class NivesenNameGenerator extends AbstractNameGenerator {
     public void initializeComponents() {
       nobleBox.setSelected(false);
       nobleBox.setEnabled(false);
@@ -373,7 +373,7 @@ public class NameSelectionPanel extends JPanel {
     private RegionNames names = Names.getInstance().getRegionNames("Nivesen");
   }
 
-  class ThorwalerNameGenerator extends NameGenerator {
+  class ThorwalerNameGenerator extends AbstractNameGenerator {
     public void initializeComponents() {
       nobleBox.setSelected(false);
       nobleBox.setEnabled(false);
@@ -422,8 +422,9 @@ public class NameSelectionPanel extends JPanel {
     private RegionNames names = Names.getInstance().getRegionNames("Thorwal");
   }
 
-  class NorthNameGenerator extends NameGenerator {
+  class NorthNameGenerator extends AbstractNameGenerator {
     public NorthNameGenerator(String region) {
+      super();
       names = Names.getInstance().getRegionNames(region);
     }
 
@@ -471,7 +472,7 @@ public class NameSelectionPanel extends JPanel {
     private RegionNames names;
   }
 
-  class LFNameGenerator extends NameGenerator {
+  class LFNameGenerator extends AbstractNameGenerator {
     public void initializeComponents() {
       nobleBox.setSelected(false);
       nobleBox.setEnabled(true);
@@ -524,7 +525,7 @@ public class NameSelectionPanel extends JPanel {
         "Liebliches Feld");
   }
 
-  class AlmadaNameGenerator extends NameGenerator {
+  class AlmadaNameGenerator extends AbstractNameGenerator {
     public void initializeComponents() {
       nobleBox.setSelected(false);
       nobleBox.setEnabled(true);
@@ -576,7 +577,7 @@ public class NameSelectionPanel extends JPanel {
     private RegionNames names = Names.getInstance().getRegionNames("Almada");
   }
 
-  class MaraskanNameGenerator extends NameGenerator {
+  class MaraskanNameGenerator extends AbstractNameGenerator {
     public void initializeComponents() {
       nobleBox.setSelected(false);
       nobleBox.setEnabled(false);
@@ -640,7 +641,7 @@ public class NameSelectionPanel extends JPanel {
 
   boolean listen = false;
 
-  private NameGenerator getNameGenerator() {
+  private AbstractNameGenerator getNameGenerator() {
     String region = regionBox.getSelectedItem().toString();
     if (region.equals("Gareth")) {
       return new DefaultNameGenerator("Gareth");

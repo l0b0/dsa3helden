@@ -19,23 +19,27 @@
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
-import java.io.*;
-
 import dsa.util.Optional;
 
 public class Weapons {
 
-  private static Weapons instance = null;
+  private static Weapons instance = new Weapons();
 
-  private ArrayList<LinkedList<Weapon>> weapons;
+  private final ArrayList<LinkedList<Weapon>> weapons;
 
   public static Weapons getInstance() {
-    if (instance == null) instance = new Weapons();
     return instance;
   }
 
@@ -54,6 +58,7 @@ public class Weapons {
             return weapon;
           }
           catch (NumberFormatException e) {
+            continue;
           }
         }
       }
@@ -110,13 +115,11 @@ public class Weapons {
   public static String[] getAvailableCategories() {
     String[] categories = new String[sCategories.length - 2];
     categories[0] = sCategories[0];
-    for (int i = 3; i < sCategories.length; ++i) {
-      categories[i - 2] = sCategories[i];
-    }
+    System.arraycopy(sCategories, 3, categories, 1, sCategories.length - 3);
     return categories;
   }
 
-  private static Optional<Integer> NullInt = Optional.NullInt;
+  private static final Optional<Integer> NULL_INT = Optional.NULL_INT;
 
   public void loadUserDefinedWeapons(String filename) throws IOException {
     File file = new File(filename);
@@ -161,8 +164,7 @@ public class Weapons {
 
   private int parseInt(String line, int lineNr) throws IOException {
     try {
-      int value = Integer.parseInt(line);
-      return value;
+      return Integer.parseInt(line);
     }
     catch (NumberFormatException e) {
       throw new IOException("Zeile " + lineNr + ": " + line
@@ -175,98 +177,111 @@ public class Weapons {
       weapons.get(i).clear();
     }
     BufferedReader in = new BufferedReader(new FileReader(filename));
-    int lineNr = 0;
-    String line = in.readLine();
-    lineNr++;
-    while (line != null) {
-      int category = parseInt(line, lineNr);
-      if ((category < 0) || (category > 19)) {
-        throw new IOException(lineNr + " Kategorie falsch.");
-      }
-      line = in.readLine();
+    try {
+      int lineNr = 0;
+      String line = in.readLine();
       lineNr++;
-      if (line == null) throw new IOException("EOF");
-      String name = line;
-      line = in.readLine();
-      lineNr++;
-      if (line == null) throw new IOException("EOF");
-      int w6d = 1, constd = 0;
-      if (line.trim().equals("speziell")) {
-        w6d = 0;
-        constd = 0;
-      }
-      else {
-        StringTokenizer wt = new StringTokenizer(line, "W+");
-        if (wt.countTokens() > 2) {
-          throw new IOException(lineNr + " Schaden d. Waffe falsch!");
+      while (line != null) {
+        int category = parseInt(line, lineNr);
+        if ((category < 0) || (category > 19)) {
+          throw new IOException(lineNr + " Kategorie falsch.");
         }
-        w6d = parseInt(wt.nextToken(), lineNr);
-        if (wt.hasMoreTokens()) {
-          constd = parseInt(wt.nextToken(), lineNr);
+        line = in.readLine();
+        lineNr++;
+        if (line == null) throw new IOException("EOF");
+        String name = line;
+        line = in.readLine();
+        lineNr++;
+        if (line == null) throw new IOException("EOF");
+        int w6d = 1, constd = 0;
+        if (line.trim().equals("speziell")) {
+          w6d = 0;
+          constd = 0;
         }
-      }
-      line = in.readLine();
-      lineNr++;
-      Optional<Integer> kkzuschlag = NullInt;
-      if (!((line.trim().equals("-")) || (line.startsWith("(")))) {
-        kkzuschlag = new Optional<Integer>(parseInt(line, lineNr));
-      }
-      line = in.readLine();
-      lineNr++; // WV oder Reichweite
-      line = in.readLine();
-      lineNr++;
-      int bf = 0;
-      if (line.trim().equals("-"))
-        bf = 0;
-      else {
-        bf = parseInt(line, lineNr);
-      }
-      line = in.readLine();
-      lineNr++; // Gewicht
-      int weight = 0;
-      weight = parseInt(line, lineNr);
-      line = in.readLine();
-      lineNr++;
-      if (line == null)
-        throw new IOException("Unerwartetes Dateieende in " + filename);
-      boolean twoHanded = line.trim().equals("1");
-      boolean projectile = Weapons.isProjectileCategory(category);
-      int nrOfDists = Weapon.Distance.values().length;
-      int[] distances = new int[nrOfDists];
-      int[] distMods = new int[nrOfDists];
-      if (projectile) {
+        else {
+          StringTokenizer wt = new StringTokenizer(line, "W+");
+          if (wt.countTokens() > 2) {
+            throw new IOException(lineNr + " Schaden d. Waffe falsch!");
+          }
+          w6d = parseInt(wt.nextToken(), lineNr);
+          if (wt.hasMoreTokens()) {
+            constd = parseInt(wt.nextToken(), lineNr);
+          }
+        }
+        line = in.readLine();
+        lineNr++;
+        Optional<Integer> kkzuschlag = NULL_INT;
+        if (line == null)
+          throw new IOException("Unerwartetes Dateieende in " + filename);
+        if (!((line.trim().equals("-")) || (line.charAt(0) == '('))) {
+          kkzuschlag = new Optional<Integer>(parseInt(line, lineNr));
+        }
+        line = in.readLine();
+        lineNr++; // WV oder Reichweite
+        line = in.readLine();
+        lineNr++;
+        int bf = 0;
+        if (line == null)
+          throw new IOException("Unerwartetes Dateieende in " + filename);
+        if (line.trim().equals("-"))
+          bf = 0;
+        else {
+          bf = parseInt(line, lineNr);
+        }
+        line = in.readLine();
+        lineNr++; // Gewicht
+        if (line == null)
+          throw new IOException("Unerwartetes Dateieende in " + filename);
+        int weight = 0;
+        weight = parseInt(line, lineNr);
         line = in.readLine();
         lineNr++;
         if (line == null)
           throw new IOException("Unerwartetes Dateieende in " + filename);
-        StringTokenizer st = new StringTokenizer(line, "/");
-        if (st.countTokens() != nrOfDists) {
-          throw new IOException("Zeile " + lineNr + ": Falsches Format!");
+        boolean twoHanded = line.trim().equals("1");
+        boolean projectile = Weapons.isProjectileCategory(category);
+        int nrOfDists = Weapon.Distance.values().length;
+        int[] distances = new int[nrOfDists];
+        int[] distMods = new int[nrOfDists];
+        if (projectile) {
+          line = in.readLine();
+          lineNr++;
+          if (line == null)
+            throw new IOException("Unerwartetes Dateieende in " + filename);
+          StringTokenizer st = new StringTokenizer(line, "/");
+          if (st.countTokens() != nrOfDists) {
+            throw new IOException("Zeile " + lineNr + ": Falsches Format!");
+          }
+          for (int i = 0; i < nrOfDists; ++i) {
+            distances[i] = parseInt(st.nextToken(), lineNr);
+          }
+          line = in.readLine();
+          lineNr++;
+          if (line == null)
+            throw new IOException("Unerwartetes Dateieende in " + filename);
+          st = new StringTokenizer(line, "/");
+          if (st.countTokens() != nrOfDists) {
+            throw new IOException("Zeile " + lineNr + ": Falsches Format!");
+          }
+          for (int i = 0; i < nrOfDists; ++i) {
+            distMods[i] = parseInt(st.nextToken(), lineNr);
+          }
         }
-        for (int i = 0; i < nrOfDists; ++i) {
-          distances[i] = parseInt(st.nextToken(), lineNr);
+        Weapon weapon = new Weapon(w6d, constd, category, name, bf, kkzuschlag,
+            weight, false, twoHanded, projectile);
+        if (projectile) {
+          weapon.setDistanceMods(distMods);
+          weapon.setDistances(distances);
         }
+        weapons.get(category).addLast(weapon);
         line = in.readLine();
         lineNr++;
-        if (line == null)
-          throw new IOException("Unerwartetes Dateieende in " + filename);
-        st = new StringTokenizer(line, "/");
-        if (st.countTokens() != nrOfDists) {
-          throw new IOException("Zeile " + lineNr + ": Falsches Format!");
-        }
-        for (int i = 0; i < nrOfDists; ++i) {
-          distMods[i] = parseInt(st.nextToken(), lineNr);
-        }
       }
-      Weapon weapon = new Weapon(w6d, constd, category, name, bf, kkzuschlag,
-          weight, false, twoHanded, projectile);
-      if (projectile) {
-        weapon.setDistanceMods(distMods);
-        weapon.setDistances(distances);
+    }
+    finally {
+      if (in != null) {
+        in.close();
       }
-      weapons.get(category).addLast(weapon);
-      line = in.readLine();
-      lineNr++;
     }
   }
 

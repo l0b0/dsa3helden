@@ -41,10 +41,10 @@ public class Thing {
 
   private String category;
 
-  private boolean isUserDefined;
+  private boolean mIsUserDefined;
 
   public Thing() {
-    this("-", Optional.NullInt, Currency.K, 0, "", false);
+    this("-", Optional.NULL_INT, Currency.K, 0, "", false);
   }
 
   public Thing(String name, Optional<Integer> value, Currency currency,
@@ -54,7 +54,7 @@ public class Thing {
     this.currency = currency;
     this.weight = weight;
     this.category = category;
-    this.isUserDefined = userDefined;
+    this.mIsUserDefined = userDefined;
   }
 
   public Currency getCurrency() {
@@ -74,26 +74,25 @@ public class Thing {
   }
 
   public boolean isUserDefined() {
-    return isUserDefined;
+    return mIsUserDefined;
   }
 
-  private static final int fileVersion = 2;
+  private static final int FILE_VERSION = 2;
 
   public void writeToStream(PrintWriter out) throws IOException {
-    out.println(fileVersion);
+    out.println(FILE_VERSION);
     out.println(name);
     out.println(value);
     out.println(currency.ordinal());
     out.println(weight);
-    out.println(isUserDefined ? 1 : 0);
+    out.println(mIsUserDefined ? 1 : 0);
     out.println(category);
     out.println("-- End of Thing --");
   }
 
   private static int parseInt(String line, int lineNr) throws IOException {
     try {
-      int value = Integer.parseInt(line);
-      return value;
+      return Integer.parseInt(line);
     }
     catch (NumberFormatException e) {
       throw new IOException("Zeile " + lineNr + ": " + line
@@ -117,8 +116,8 @@ public class Thing {
     line = in.readLine();
     lineNr++;
     testEmpty(line);
-    if (line.trim().equals("-")) {
-      value = Optional.NullInt;
+    if (line != null && line.trim().equals("-")) {
+      value = Optional.NULL_INT;
     }
     else {
       value = new Optional<Integer>(parseInt(line, lineNr));
@@ -135,30 +134,30 @@ public class Thing {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      isUserDefined = parseInt(line, lineNr) == 1;
+      mIsUserDefined = parseInt(line, lineNr) == 1;
       line = in.readLine();
       lineNr++;
       testEmpty(line);
       category = line;
     }
     else {
-      isUserDefined = false;
+      mIsUserDefined = false;
       category = "";
     }
     do {
       line = in.readLine();
       lineNr++;
-    } while (!line.equals("-- End of Thing --"));
+    } while (line != null && !"-- End of Thing --".equals(line));
     if (Things.getInstance().getThing(name) == null) {
-      isUserDefined = true;
+      mIsUserDefined = true;
       String basename = getName();
-      String name = basename;
+      String thingName = basename;
       int nameAppendix = 0;
-      while (Things.getInstance().getThing(name) != null) {
+      while (Things.getInstance().getThing(thingName) != null) {
         nameAppendix++;
-        name = basename + nameAppendix;
+        thingName = basename + nameAppendix;
       }
-      this.name = name;
+      this.name = thingName;
       Things.getInstance().addThing(this);
     }
     return lineNr;

@@ -52,8 +52,8 @@ public class SpecialTalent implements Talent {
     return mIncreases;
   }
 
-  private String mName;
+  private final String mName;
 
-  private int mIncreases;
+  private final int mIncreases;
 
 }

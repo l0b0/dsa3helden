@@ -19,7 +19,10 @@
  */
 package dsa.model.data;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.StringTokenizer;
 
@@ -30,29 +33,29 @@ import dsa.model.characters.Property;
 
 public class CharacterType {
 
-  private String maleName;
+  private final String maleName;
 
-  private String femaleName;
+  private final String femaleName;
 
-  private boolean malePossible;
+  private final boolean malePossible;
 
-  private boolean femalePossible;
+  private final boolean femalePossible;
 
-  private int[] requirements;
+  private final int[] requirements;
 
-  private String[] hairColors;
+  private final String[] hairColors;
 
-  private String[] origins;
+  private final String[] origins;
 
-  private DiceSpecification height;
+  private final DiceSpecification height;
 
-  private int weightLoss;
+  private final int weightLoss;
 
-  private boolean regionModifiable;
+  private final boolean regionModifiable;
 
-  private String defaultNameRegion;
+  private final String defaultNameRegion;
 
-  private File prototypeFile = null;
+  private final File prototypeFile;
 
   CharacterType(File file) throws IOException {
     int lineNr = 0;
@@ -64,146 +67,153 @@ public class CharacterType {
     }
     String fileName = file.getName();
     BufferedReader in = new BufferedReader(new FileReader(file));
-    maleName = in.readLine();
-    lineNr++;
-    if (maleName == null)
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    malePossible = !maleName.equals("-");
-    femaleName = in.readLine();
-    lineNr++;
-    if (femaleName == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    femalePossible = !femaleName.equals("-");
-    requirements = new int[Property.values().length];
-    String line = in.readLine();
-    lineNr++;
-    if (line == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    StringTokenizer t = new StringTokenizer(line);
-    if (t.countTokens() != requirements.length / 2) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Falsche Zahl Werte!");
-    }
-    int i = 0;
-    while (t.hasMoreTokens()) {
-      try {
-        requirements[i] = Integer.parseInt(t.nextToken());
-        if (requirements[i] < -14 || requirements[i] > 14) {
-          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-              + ": Ungültige Voraussetzung!");
-        }
-      }
-      catch (NumberFormatException e) {
-        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-            + ": Voraussetzung falsch!");
-      }
-      ++i;
-    }
-    line = in.readLine();
-    lineNr++;
-    if (line == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    t = new StringTokenizer(line);
-    if (t.countTokens() != requirements.length / 2) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Falsche Zahl Werte!");
-    }
-    while (t.hasMoreTokens()) {
-      try {
-        requirements[i] = Integer.parseInt(t.nextToken());
-        if (requirements[i] < -14 || requirements[i] > 14) {
-          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-              + ": Ungültige Voraussetzung!");
-        }
-      }
-      catch (NumberFormatException e) {
-        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-            + ": Voraussetzung falsch!");
-      }
-      ++i;
-    }
-    // fix for different bad properties order
-    int temp = requirements[7]; // AG
-    requirements[7] = requirements[8]; // HA
-    requirements[8] = requirements[10]; // TA
-    requirements[10] = temp;
-    hairColors = new String[20];
-    for (int j = 0; j < 20; ++j) {
-      hairColors[j] = in.readLine();
+    try {
+      maleName = in.readLine();
       lineNr++;
-      if (hairColors[j] == null) {
+      if (maleName == null)
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Unerwartetes Dateiende!");
+      malePossible = !maleName.equals("-");
+      femaleName = in.readLine();
+      lineNr++;
+      if (femaleName == null) {
         throw new IOException("Datei " + fileName + ", Zeile " + lineNr
             + ": Unerwartetes Dateiende!");
       }
-    }
-    origins = new String[20];
-    for (int j = 0; j < 20; ++j) {
-      origins[j] = in.readLine();
+      femalePossible = !femaleName.equals("-");
+      requirements = new int[Property.values().length];
+      String line = in.readLine();
       lineNr++;
-      if (origins[j] == null) {
+      if (line == null) {
         throw new IOException("Datei " + fileName + ", Zeile " + lineNr
             + ": Unerwartetes Dateiende!");
       }
-    }
-    line = in.readLine();
-    lineNr++;
-    if (line == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    try {
-      height = DiceSpecification.parse(line);
-    }
-    catch (NumberFormatException e) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Größe hat falsches Format!");
-    }
-    line = in.readLine();
-    lineNr++;
-    if (line == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    try {
-      weightLoss = Integer.parseInt(line);
-    }
-    catch (NumberFormatException e) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Gewichtsabzug hat falsches Format!");
-    }
-    line = in.readLine();
-    lineNr++;
-    if (line == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    regionModifiable = line.trim().equals("1");
-    defaultNameRegion = in.readLine();
-    lineNr++;
-    if (defaultNameRegion == null) {
-      throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-          + ": Unerwartetes Dateiende!");
-    }
-    line = in.readLine();
-    lineNr++;
-    if (line != null && !line.trim().equals("")) {
+      StringTokenizer t = new StringTokenizer(line);
+      if (t.countTokens() != requirements.length / 2) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Falsche Zahl Werte!");
+      }
+      int i = 0;
+      while (t.hasMoreTokens()) {
+        try {
+          requirements[i] = Integer.parseInt(t.nextToken());
+          if (requirements[i] < -14 || requirements[i] > 14) {
+            throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+                + ": Ungültige Voraussetzung!");
+          }
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+              + ": Voraussetzung falsch!");
+        }
+        ++i;
+      }
+      line = in.readLine();
+      lineNr++;
+      if (line == null) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Unerwartetes Dateiende!");
+      }
+      t = new StringTokenizer(line);
+      if (t.countTokens() != requirements.length / 2) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Falsche Zahl Werte!");
+      }
+      while (t.hasMoreTokens()) {
+        try {
+          requirements[i] = Integer.parseInt(t.nextToken());
+          if (requirements[i] < -14 || requirements[i] > 14) {
+            throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+                + ": Ungültige Voraussetzung!");
+          }
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+              + ": Voraussetzung falsch!");
+        }
+        ++i;
+      }
+      // fix for different bad properties order
+      int temp = requirements[7]; // AG
+      requirements[7] = requirements[8]; // HA
+      requirements[8] = requirements[10]; // TA
+      requirements[10] = temp;
+      hairColors = new String[20];
+      for (int j = 0; j < 20; ++j) {
+        hairColors[j] = in.readLine();
+        lineNr++;
+        if (hairColors[j] == null) {
+          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+              + ": Unerwartetes Dateiende!");
+        }
+      }
+      origins = new String[20];
+      for (int j = 0; j < 20; ++j) {
+        origins[j] = in.readLine();
+        lineNr++;
+        if (origins[j] == null) {
+          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+              + ": Unerwartetes Dateiende!");
+        }
+      }
+      line = in.readLine();
+      lineNr++;
+      if (line == null) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Unerwartetes Dateiende!");
+      }
       try {
-        talentReducement = Integer.parseInt(line);
+        height = DiceSpecification.parse(line);
       }
       catch (NumberFormatException e) {
         throw new IOException("Datei " + fileName + ", Zeile " + lineNr
-            + ": Talentabzug hat falsches Format!");
+            + ": Größe hat falsches Format!");
+      }
+      line = in.readLine();
+      lineNr++;
+      if (line == null) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Unerwartetes Dateiende!");
+      }
+      try {
+        weightLoss = Integer.parseInt(line);
+      }
+      catch (NumberFormatException e) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Gewichtsabzug hat falsches Format!");
+      }
+      line = in.readLine();
+      lineNr++;
+      if (line == null) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Unerwartetes Dateiende!");
+      }
+      regionModifiable = line.trim().equals("1");
+      defaultNameRegion = in.readLine();
+      lineNr++;
+      if (defaultNameRegion == null) {
+        throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+            + ": Unerwartetes Dateiende!");
+      }
+      line = in.readLine();
+      lineNr++;
+      if (line != null && !line.trim().equals("")) {
+        try {
+          talentReducement = Integer.parseInt(line);
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Datei " + fileName + ", Zeile " + lineNr
+              + ": Talentabzug hat falsches Format!");
+        }
+      }
+      else
+        talentReducement = 0;
+    }
+    finally {
+      if (in != null) {
+        in.close();
       }
     }
-    else
-      talentReducement = 0;
   }
 
   private int talentReducement;
@@ -241,7 +251,9 @@ public class CharacterType {
   }
 
   public int[] getRequirements() {
-    return requirements;
+    int[] result = new int[requirements.length];
+    System.arraycopy(requirements, 0, result, 0, requirements.length);
+    return result;
   }
 
   public int getWeightLoss() {

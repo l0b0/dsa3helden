@@ -135,6 +135,7 @@ public class PropertyLabel extends JLabel {
     }
 
     public void mouseMoved(MouseEvent e) {
+      // no special action
     }
   };
 
@@ -185,11 +186,11 @@ public class PropertyLabel extends JLabel {
       isGood = good;
     }
 
-    public boolean isGood;
+    private final boolean isGood;
   }
 
   private static class PropertyTransfer implements Transferable {
-    private static final String propertyType = DataFlavor.javaJVMLocalObjectMimeType
+    private static final String PROPERTY_TYPE = DataFlavor.javaJVMLocalObjectMimeType
         + ";class=java.lang.Integer";
 
     private static DataFlavor goodPropertyFlavor = null;
@@ -201,15 +202,15 @@ public class PropertyLabel extends JLabel {
       this.value = value;
     }
 
-    private boolean isGood;
+    private final boolean isGood;
 
-    private int value;
+    private final int value;
 
     public static DataFlavor getFlavor(boolean good) {
       if (good) {
         if (goodPropertyFlavor == null) {
           try {
-            goodPropertyFlavor = new PropertyFlavor(propertyType, true);
+            goodPropertyFlavor = new PropertyFlavor(PROPERTY_TYPE, true);
           }
           catch (ClassNotFoundException e) {
             throw new InternalError();
@@ -220,7 +221,7 @@ public class PropertyLabel extends JLabel {
       else {
         if (badPropertyFlavor == null) {
           try {
-            badPropertyFlavor = new PropertyFlavor(propertyType, false);
+            badPropertyFlavor = new PropertyFlavor(PROPERTY_TYPE, false);
           }
           catch (ClassNotFoundException e) {
             throw new InternalError();
@@ -258,7 +259,7 @@ public class PropertyLabel extends JLabel {
       isGood = good;
     }
 
-    private boolean isGood;
+    private final boolean isGood;
 
     protected Transferable createTransferable(JComponent c) {
       if (!(c instanceof PropertyLabel)) throw new InternalError();
@@ -286,7 +287,7 @@ public class PropertyLabel extends JLabel {
       try {
         Object o = t.getTransferData(PropertyTransfer.getFlavor(isGood));
         if (o == null) return false;
-        targetValue = new Integer(((PropertyLabel) comp).getValue());
+        targetValue = Integer.valueOf(((PropertyLabel) comp).getValue());
         ((PropertyLabel) comp).setValue((Integer) o);
         return true;
       }

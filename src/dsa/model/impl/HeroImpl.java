@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Foobar; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.impl;
 
@@ -50,19 +50,20 @@ import dsa.model.data.Things;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.model.talents.Talent;
-import dsa.util.Observable;
+import dsa.util.AbstractObservable;
 
 /**
  * 
  */
-public class HeroImpl extends Observable<CharacterObserver> implements Hero,
-    Cloneable {
+public final class HeroImpl extends AbstractObservable<CharacterObserver>
+    implements Hero, Cloneable {
 
   private boolean changed = false;
 
   private int talentIncreasesPerStep;
 
   public HeroImpl() {
+    super();
     properties = new EnumMap<Property, CurrentAndDefaultData>(Property.class);
     properties.put(MU, new CurrentAndDefaultData());
     properties.put(KL, new CurrentAndDefaultData());
@@ -85,20 +86,21 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     energies.put(AU, new EnergyData(true));
     energies.put(KO, new EnergyData(true));
     talents = new HashMap<String, TalentData>();
-    name = type = "";
+    name = "";
+    type = "";
     ap = 0;
     changed = false;
     overallTalentIncreaseTries = 0;
     talentIncreasesPerStep = 30;
-    hasLEIncreaseTry = false;
-    hasExtraAEIncrease = false;
+    mHasLEIncreaseTry = false;
+    mHasExtraAEIncrease = false;
     fixedLEIncrease = 0;
     fixedAEIncrease = 0;
     mrBonus = 0;
     overallSpellIncreaseTries = 0;
     spellIncreasesPerStep = 0;
     spellToTalentMoves = 0;
-    hasGreatMeditation = false;
+    mHasGreatMeditation = false;
     money.add(0);
     money.add(0);
     currencies.add(0);
@@ -127,91 +129,90 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
 
   int spellIncreasesPerStep;
 
-  boolean hasGreatMeditation;
+  boolean mHasGreatMeditation;
 
-  public void addTalent(String name) {
-    talents.put(name, new TalentData());
-    talents.get(name).increasesPerStep = Talents.getInstance().getTalent(name)
-        .getMaxIncreasePerStep();
+  private static final String HUNT1 = "Jagen (Falle)";
+
+  private static final String HUNT2 = "Jagen (Pirsch)";
+
+  public void addTalent(String talentName) {
+    talents.put(talentName, new TalentData());
+    talents.get(talentName).increasesPerStep = Talents.getInstance().getTalent(
+        talentName).getMaxIncreasePerStep();
     for (CharacterObserver o : observers)
-      o.talentAdded(name);
+      o.talentAdded(talentName);
     checkForHuntingTalents();
-    if (!name.equals("Jagen (Falle)") && !name.equals("Jagen (Pirsch)"))
-      changed = true;
+    if (!talentName.equals(HUNT1) && !talentName.equals(HUNT2)) changed = true;
   }
 
-  public void removeTalent(String name) {
-    talents.remove(name);
+  public void removeTalent(String talentName) {
+    if (!talents.containsKey(talentName)) return;
+    talents.remove(talentName);
     for (CharacterObserver o : observers)
-      o.talentRemoved(name);
+      o.talentRemoved(talentName);
     changed = true;
   }
 
-  public Object clone() {
-    try {
-      HeroImpl hero = (HeroImpl) super.clone();
-      hero.properties = new EnumMap<Property, CurrentAndDefaultData>(
-          Property.class);
-      Iterator<Property> propIt = properties.keySet().iterator();
-      while (propIt.hasNext()) {
-        Property property = propIt.next();
-        CurrentAndDefaultData newData = (CurrentAndDefaultData) properties.get(
-            property).clone();
-        hero.properties.put(property, newData);
-      }
-      hero.energies = new EnumMap<Energy, EnergyData>(Energy.class);
-      Iterator<Energy> enerIt = energies.keySet().iterator();
-      while (enerIt.hasNext()) {
-        Energy energy = enerIt.next();
-        EnergyData newData = (EnergyData) energies.get(energy).clone();
-        hero.energies.put(energy, newData);
-      }
-      calcKO();
-      hero.talents = new HashMap<String, TalentData>();
-      Iterator<String> talentIt = talents.keySet().iterator();
-      while (talentIt.hasNext()) {
-        String talent = talentIt.next();
-        TalentData newData = (TalentData) talents.get(talent).clone();
-        hero.talents.put(talent, newData);
-      }
-      hero.armours = new TreeSet<String>();
-      hero.armours.addAll(armours);
-      hero.weapons = new HashMap<String, Integer>();
-      hero.weapons.putAll(weapons);
-      hero.currencies = new ArrayList<Integer>();
-      hero.currencies.addAll(currencies);
-      hero.money = new ArrayList<Integer>();
-      hero.money.addAll(money);
-      hero.fightingTalentsInDocument = new ArrayList<String>();
-      hero.fightingTalentsInDocument.addAll(fightingTalentsInDocument);
-      hero.rituals = new ArrayList<String>();
-      hero.rituals.addAll(rituals);
-      hero.derivedValueChanges = new ArrayList<Integer>();
-      hero.derivedValueChanges.addAll(derivedValueChanges);
-      hero.atParts = new HashMap<String, Integer>();
-      hero.atParts.putAll(atParts);
-      hero.things = new HashMap<String, Integer>();
-      hero.things.putAll(things);
-      hero.bankCurrencies = new ArrayList<Integer>();
-      hero.bankCurrencies.addAll(bankCurrencies);
-      hero.bankMoney = new ArrayList<Integer>();
-      hero.bankMoney.addAll(bankMoney);
-      hero.shields = new ArrayList<String>();
-      hero.shields.addAll(shields);
-      hero.thingsInWarehouse = new HashMap<String, Integer>();
-      hero.thingsInWarehouse.putAll(thingsInWarehouse);
-      hero.clothes = new ArrayList<String>();
-      hero.clothes.addAll(clothes);
-      hero.observers = new java.util.LinkedList<CharacterObserver>();
-      hero.bfs = new HashMap<String, Integer>();
-      hero.bfs.putAll(bfs);
-      hero.shieldBFs = new HashMap<String, Integer>();
-      hero.shieldBFs.putAll(shieldBFs);
-      return hero;
+  public Object clone() throws CloneNotSupportedException {
+    HeroImpl hero = (HeroImpl) super.clone();
+    hero.properties = new EnumMap<Property, CurrentAndDefaultData>(
+        Property.class);
+    Iterator<Property> propIt = properties.keySet().iterator();
+    while (propIt.hasNext()) {
+      Property property = propIt.next();
+      CurrentAndDefaultData newData = (CurrentAndDefaultData) properties.get(
+          property).clone();
+      hero.properties.put(property, newData);
     }
-    catch (CloneNotSupportedException e) {
-      throw new InternalError();
+    hero.energies = new EnumMap<Energy, EnergyData>(Energy.class);
+    Iterator<Energy> enerIt = energies.keySet().iterator();
+    while (enerIt.hasNext()) {
+      Energy energy = enerIt.next();
+      EnergyData newData = (EnergyData) energies.get(energy).clone();
+      hero.energies.put(energy, newData);
     }
+    calcKO();
+    hero.talents = new HashMap<String, TalentData>();
+    Iterator<String> talentIt = talents.keySet().iterator();
+    while (talentIt.hasNext()) {
+      String talent = talentIt.next();
+      TalentData newData = (TalentData) talents.get(talent).clone();
+      hero.talents.put(talent, newData);
+    }
+    hero.armours = new TreeSet<String>();
+    hero.armours.addAll(armours);
+    hero.weapons = new HashMap<String, Integer>();
+    hero.weapons.putAll(weapons);
+    hero.currencies = new ArrayList<Integer>();
+    hero.currencies.addAll(currencies);
+    hero.money = new ArrayList<Integer>();
+    hero.money.addAll(money);
+    hero.fightingTalentsInDocument = new ArrayList<String>();
+    hero.fightingTalentsInDocument.addAll(fightingTalentsInDocument);
+    hero.rituals = new ArrayList<String>();
+    hero.rituals.addAll(rituals);
+    hero.derivedValueChanges = new ArrayList<Integer>();
+    hero.derivedValueChanges.addAll(derivedValueChanges);
+    hero.atParts = new HashMap<String, Integer>();
+    hero.atParts.putAll(atParts);
+    hero.things = new HashMap<String, Integer>();
+    hero.things.putAll(things);
+    hero.bankCurrencies = new ArrayList<Integer>();
+    hero.bankCurrencies.addAll(bankCurrencies);
+    hero.bankMoney = new ArrayList<Integer>();
+    hero.bankMoney.addAll(bankMoney);
+    hero.shields = new ArrayList<String>();
+    hero.shields.addAll(shields);
+    hero.thingsInWarehouse = new HashMap<String, Integer>();
+    hero.thingsInWarehouse.putAll(thingsInWarehouse);
+    hero.clothes = new ArrayList<String>();
+    hero.clothes.addAll(clothes);
+    hero.observers = new java.util.LinkedList<CharacterObserver>();
+    hero.bfs = new HashMap<String, Integer>();
+    hero.bfs.putAll(bfs);
+    hero.shieldBFs = new HashMap<String, Integer>();
+    hero.shieldBFs.putAll(shieldBFs);
+    return hero;
   }
 
   /*
@@ -256,7 +257,11 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
    * @see dsa.data.Hero#GetCurrentEnergy(dsa.data.Energy)
    */
   public int getCurrentEnergy(Energy energy) {
-    return energies.get(energy).currentValue;
+    int value = energies.get(energy).currentValue;
+    if (energy == Energy.AU) {
+      value += auDifference;
+    }
+    return value;
   }
 
   /*
@@ -340,6 +345,10 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     if (energy == LE) {
       setCurrentEnergy(AU, value + getCurrentProperty(KK));
       calcKO();
+    }
+    else if (energy == AU
+        && (energies.get(Energy.AU).currentValue + auDifference < 0)) {
+      auDifference = -energies.get(Energy.AU).currentValue;
     }
     for (CharacterObserver o : observers)
       o.currentEnergyChanged(energy);
@@ -432,6 +441,10 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       changeCurrentEnergy(Energy.AU, mod);
       calcKO();
     }
+    else if (energy == Energy.AU
+        && (energies.get(Energy.AU).currentValue + auDifference < 0)) {
+      auDifference = -energies.get(Energy.AU).currentValue;
+    }
     for (CharacterObserver o : observers)
       o.currentEnergyChanged(energy);
     changed = true;
@@ -453,20 +466,22 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     }
     changed = true;
   }
-  
+
+  private static final String MIRAKEL = "Mirakel";
+
   void checkForMirakel() {
     if (hasEnergy(Energy.KE)) {
-      if (!hasTalent("Mirakel")) {
-        addTalent("Mirakel");
+      if (!hasTalent(MIRAKEL)) {
+        addTalent(MIRAKEL);
       }
-      int value = (int) Math.round((float)getStep() / 2.0f);
-      setDefaultTalentValue("Mirakel", value);
+      int value = (int) Math.round((float) getStep() / 2.0f);
+      setDefaultTalentValue(MIRAKEL, value);
     }
     else {
-      if (hasTalent("Mirakel")) {
-        removeTalent("Mirakel");
+      if (hasTalent(MIRAKEL)) {
+        removeTalent(MIRAKEL);
       }
-    }    
+    }
   }
 
   void calcKO() {
@@ -511,8 +526,8 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
    * 
    * @see dsa.data.Hero#SetAP(int)
    */
-  public void setAP(int AP) {
-    ap = AP;
+  public void setAP(int someAP) {
+    ap = someAP;
     checkForMirakel();
     changed = true;
   }
@@ -529,9 +544,9 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     if (fullStep) {
       hasGoodPropertyChangeTry = true;
       hasBadPropertyChangeTry = true;
-      hasLEIncreaseTry = true;
-      hasAEIncreaseTry = true;
-      canMeditate = hasGreatMeditation;
+      mHasLEIncreaseTry = true;
+      mHasAEIncreaseTry = true;
+      canMeditate = mHasGreatMeditation;
     }
     overallSpellIncreaseTries += spellIncreasesPerStep;
     overallSpellOrTalentIncreaseTries += spellToTalentMoves;
@@ -555,12 +570,12 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       }
       hasGoodPropertyChangeTry = true;
       hasBadPropertyChangeTry = true;
-      hasLEIncreaseTry = true;
-      hasAEIncreaseTry = true;
+      mHasLEIncreaseTry = true;
+      mHasAEIncreaseTry = true;
       overallSpellIncreaseTries += spellIncreasesPerStep;
       overallSpellOrTalentIncreaseTries += spellToTalentMoves;
       overallSpellIncreaseTries -= spellToTalentMoves;
-      canMeditate = hasGreatMeditation;
+      canMeditate = mHasGreatMeditation;
       checkForMirakel();
       for (CharacterObserver o : observers)
         o.stepIncreased();
@@ -615,6 +630,8 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       return -20;
   }
 
+  private static final String SEELE = "Heilkunde, Seele";
+
   /*
    * (non-Javadoc)
    * 
@@ -626,19 +643,18 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       int delta = value - getDefaultTalentValue(talent);
       talents.get(talent).defaultValue = value;
       talents.get(talent).currentValue += delta;
-      if (!talent.equals("Jagen (Falle)") && !talent.equals("Jagen (Pirsch)"))
+      if (!talent.equals(HUNT1) && !talent.equals(HUNT2))
         checkForHuntingTalents();
       for (CharacterObserver o : observers) {
         o.defaultTalentChanged(talent);
         o.currentTalentChanged(talent);
       }
-      if (talent.equals("Heilkunde, Seele")) {
+      if (talent.equals(SEELE)) {
         for (CharacterObserver o : observers)
           o.derivedValueChanged(Hero.DerivedValue.MR);
       }
     }
-    if (!talent.equals("Jagen (Falle)") && !talent.equals("Jagen (Pirsch)"))
-      changed = true;
+    if (!talent.equals(HUNT1) && !talent.equals(HUNT2)) changed = true;
   }
 
   /**
@@ -650,65 +666,65 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     if (hasTalent("Wildnisleben") && hasTalent("Fährtensuchen")) {
       // Falle
       if (hasTalent("Fallenstellen")) {
-        if (!hasTalent("Jagen (Falle)")) addTalent("Jagen (Falle)");
+        if (!hasTalent(HUNT1)) addTalent(HUNT1);
         int defaultValue = getDefaultTalentValue("Wildnisleben")
             + getDefaultTalentValue("Fährtensuchen")
             + getDefaultTalentValue("Fallenstellen");
-        defaultValue = (int) Math.floor(defaultValue / 4);
+        defaultValue = (int) Math.floor(defaultValue / 4.0f);
         int currentValue = getCurrentTalentValue("Wildnisleben")
             + getCurrentTalentValue("Fährtensuchen")
             + getCurrentTalentValue("Fallenstellen");
-        currentValue = (int) Math.floor(currentValue / 4);
+        currentValue = (int) Math.floor(currentValue / 4.0f);
         if (hasTalent("Tierkunde")) {
           int tierkundeDefault = getDefaultTalentValue("Tierkunde");
           defaultValue += (tierkundeDefault > 10) ? (int) Math
-              .floor((tierkundeDefault - 10) / 2) : 0;
+              .floor((tierkundeDefault - 10) / 2.0f) : 0;
           int tierkundeCurrent = getCurrentTalentValue("Tierkunde");
           currentValue += (tierkundeCurrent > 10) ? (int) Math
-              .floor((tierkundeCurrent - 10) / 2) : 0;
+              .floor((tierkundeCurrent - 10) / 2.0f) : 0;
         }
-        setDefaultTalentValue("Jagen (Falle)", defaultValue);
-        setCurrentTalentValue("Jagen (Falle)", currentValue);
+        setDefaultTalentValue(HUNT1, defaultValue);
+        setCurrentTalentValue(HUNT1, currentValue);
       }
       // Pirsch
       if (hasTalent("Schleichen")) {
-        if (!hasTalent("Jagen (Pirsch)")) addTalent("Jagen (Pirsch)");
+        if (!hasTalent(HUNT2)) addTalent(HUNT2);
         int defaultValue = getDefaultTalentValue("Wildnisleben")
             + getDefaultTalentValue("Fährtensuchen")
             + getDefaultTalentValue("Schleichen");
-        defaultValue = (int) Math.floor(defaultValue / 4);
+        defaultValue = (int) Math.floor(defaultValue / 4.0f);
         int currentValue = getCurrentTalentValue("Wildnisleben")
             + getCurrentTalentValue("Fährtensuchen")
             + getCurrentTalentValue("Schleichen");
-        currentValue = (int) Math.floor(currentValue / 4);
+        currentValue = (int) Math.floor(currentValue / 4.0f);
         int defaultBonus = 0;
         int currentBonus = 0;
         if (hasTalent("Schußwaffen")) {
           int swDefault = getDefaultTalentValue("Schußwaffen");
           defaultBonus = (swDefault > 10) ? (int) Math
-              .floor((swDefault - 10) / 2) : 0;
+              .floor((swDefault - 10) / 2.0f) : 0;
           int swCurrent = getCurrentTalentValue("Schu�waffen");
           currentBonus = (swCurrent > 10) ? (int) Math
-              .floor((swCurrent - 10) / 2) : 0;
+              .floor((swCurrent - 10) / 2.0f) : 0;
         }
         if (hasTalent("Wurfwaffen")) {
           int wwDefault = getDefaultTalentValue("Wurfwaffen");
           defaultBonus = Math.max(defaultBonus, wwDefault > 10 ? (int) Math
-              .floor((wwDefault - 10) / 3) : 0);
+              .floor((wwDefault - 10) / 3.0f) : 0);
           int wwCurrent = getCurrentTalentValue("Wurfwaffen");
           currentBonus = Math.max(currentBonus, wwCurrent > 10 ? (int) Math
-              .floor((wwCurrent - 10) / 3) : 0);
+              .floor((wwCurrent - 10) / 3.0f) : 0);
         }
         if (hasTalent("Speere und Stäbe")) {
           int ssDefault = getDefaultTalentValue("Speere und Stäbe");
           int ssCurrent = getCurrentTalentValue("Speere und Stäbe");
           defaultBonus = Math.max(defaultBonus, ssDefault > 10 ? (int) Math
-              .floor((ssDefault - 10) / 3) : 0);
+              .floor((ssDefault - 10) / 3.0f) : 0);
           currentBonus = Math.max(currentBonus, ssCurrent > 10 ? (int) Math
-              .floor((ssCurrent - 10) / 3) : 0);
+              .floor((ssCurrent - 10) / 3.0f) : 0);
         }
-        setDefaultTalentValue("Jagen (Pirsch)", defaultValue + defaultBonus);
-        setCurrentTalentValue("Jagen (Pirsch)", currentValue + currentBonus);
+        setDefaultTalentValue(HUNT2, defaultValue + defaultBonus);
+        setCurrentTalentValue(HUNT2, currentValue + currentBonus);
       }
     }
     changed = wasChanged;
@@ -727,13 +743,12 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
         checkForHuntingTalents();
       for (CharacterObserver o : observers)
         o.currentTalentChanged(talent);
-      if (talent.equals("Heilkunde, Seele")) {
+      if (talent.equals(SEELE)) {
         for (CharacterObserver o : observers)
           o.derivedValueChanged(Hero.DerivedValue.MR);
       }
     }
-    if (!talent.equals("Jagen (Falle)") && !talent.equals("Jagen (Pirsch)"))
-      changed = true;
+    if (!talent.equals(HUNT1) && !talent.equals(HUNT2)) changed = true;
   }
 
   /*
@@ -798,21 +813,17 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   int mrBonus;
 
   private class CurrentAndDefaultData implements Cloneable {
-    public int currentValue;
+    int currentValue;
 
-    public int defaultValue;
+    int defaultValue;
 
     public CurrentAndDefaultData() {
-      currentValue = defaultValue = 0;
+      currentValue = 0;
+      defaultValue = 0;
     }
 
-    public Object clone() {
-      try {
-        return super.clone();
-      }
-      catch (CloneNotSupportedException e) {
-        throw new InternalError();
-      }
+    public Object clone() throws CloneNotSupportedException {
+      return super.clone();
     }
   };
 
@@ -825,13 +836,13 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   private int ap;
 
   private class EnergyData extends CurrentAndDefaultData {
-    public boolean available;
+    boolean available;
 
     public EnergyData(boolean available) {
       this.available = available;
     }
 
-    public Object clone() {
+    public Object clone() throws CloneNotSupportedException {
       return super.clone();
     }
   };
@@ -839,20 +850,20 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   private Map<Energy, EnergyData> energies;
 
   private class TalentData extends CurrentAndDefaultData {
-    public int remainingIncreases;
+    int remainingIncreases;
 
-    public int remainingTries;
+    int remainingTries;
 
     public TalentData() {
       remainingIncreases = 0;
       remainingTries = 3;
     }
 
-    public Object clone() {
+    public Object clone() throws CloneNotSupportedException {
       return super.clone();
     }
 
-    public int increasesPerStep;
+    int increasesPerStep;
   };
 
   private Map<String, TalentData> talents;
@@ -974,7 +985,7 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       o.currentTalentChanged(talent);
     for (CharacterObserver o : observers)
       o.defaultTalentChanged(talent);
-    if (talent.equals("Heilkunde, Seele")) {
+    if (talent.equals(SEELE)) {
       for (CharacterObserver o : observers)
         o.derivedValueChanged(Hero.DerivedValue.MR);
     }
@@ -984,7 +995,6 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   private static String getRelativePath(String absolutePath, File f)
       throws IOException {
     File abs = new File(absolutePath);
-    if (abs == null) return absolutePath;
     if (abs.getParentFile() == null) return absolutePath;
     if (f.getParentFile() == null) return absolutePath;
     String p1 = abs.getParentFile().getCanonicalPath();
@@ -1018,7 +1028,7 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return path;
   }
 
-  static final int fileVersion = 32;
+  static final int FILE_VERSION = 33;
 
   private static String getAbsolutePath(String relativePath, File f)
       throws IOException {
@@ -1040,212 +1050,225 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
    */
   public void storeToFile(File f, File realFile) throws IOException {
     PrintWriter file = new PrintWriter(new java.io.FileWriter(f));
-    file.println(fileVersion); // version
-    file.println(name);
-    file.println(type);
-    file.println(ap);
-    for (Property property : properties.keySet()) {
-      CurrentAndDefaultData data = properties.get(property);
-      file.println(property.name());
-      file.println(data.currentValue);
-      file.println(data.defaultValue);
-    }
-    file.println("--");
-    for (Energy energy : energies.keySet()) {
-      if (energy == KO) continue; // is not stored, transient
-      EnergyData data = energies.get(energy);
-      file.println(energy.name());
-      file.println(data.currentValue);
-      file.println(data.defaultValue);
-      file.println(data.available ? 1 : 0);
-    }
-    file.println("--");
-    for (String talent : talents.keySet()) {
-      TalentData data = talents.get(talent);
-      file.println(talent);
-      file.println(data.currentValue);
-      file.println(data.defaultValue);
-      file.println(data.remainingIncreases);
-      file.println(data.remainingTries);
-      file.println(data.increasesPerStep);
-    }
-    file.println("--");
-    // version 2
-    file.println(getAbsolutePath(printingTemplateFile, f));
-    // version 3
-    file.println(birthPlace);
-    file.println(eyeColor);
-    file.println(hairColor);
-    file.println(skinColor);
-    file.println(height);
-    file.println(weight);
-    file.println(sex);
-    file.println(birthday);
-    file.println(stand);
-    file.println(god);
-    file.println(age);
-    // version 4
-    file.println(overallTalentIncreaseTries);
-    file.println(talentIncreasesPerStep);
-    file.println(hasLEIncreaseTry ? 1 : 0);
-    file.println(hasExtraAEIncrease ? 1 : 0);
-    file.println(fixedLEIncrease);
-    file.println(fixedAEIncrease);
-    file.println(mrBonus);
-    file.println(hasAEIncreaseTry ? 1 : 0);
-    // version 5
-    file.println(overallSpellIncreaseTries);
-    file.println(spellIncreasesPerStep);
-    file.println(spellToTalentMoves);
-    file.println(hasGreatMeditation ? 1 : 0);
-    // version 6
-    file.println(hasGoodPropertyChangeTry ? 1 : 0);
-    file.println(hasBadPropertyChangeTry ? 1 : 0);
-    // version 8
-    file.println(money.size());
-    for (int i = 0; i < money.size(); ++i) {
-      file.println(currencies.get(i));
-      file.println(money.get(i));
-    }
-    // version 9
-    file.println(nativeTongue);
-    // version 10
-    file.println(overallSpellOrTalentIncreaseTries);
-    file.println(canMeditate ? 1 : 0);
-    file.println(beModification);
-    file.println(armours.size());
-    for (String name : armours) {
-      Armour armour = Armours.getInstance().getArmour(name);
-      file.println(name + ";" + armour.getRS() + ";" + armour.getBE() + ";"
-          + armour.getWeight());
-    }
-    // version 11
-    int nrOfWeapons = 0;
-    for (Integer t : weapons.values())
-      nrOfWeapons += t;
-    file.println(nrOfWeapons);
-    for (String name : weapons.keySet()) {
-      Weapon weapon = Weapons.getInstance().getWeapon(name);
-      for (int i = 0; i < weapons.get(name); ++i) {
-        weapon.writeToStream(file);
-      }
-    }
-    // version 12
-    int nrOfThings = 0;
-    for (Integer t : things.values()) {
-      nrOfThings += t;
-    }
-    file.println(nrOfThings);
-    for (String name : things.keySet()) {
-      Thing thing = Things.getInstance().getThing(name);
-      for (int i = 0; i < things.get(name); ++i) {
-        thing.writeToStream(file);
-      }
-    }
-    // version 13
-    file.println(getRelativePath(bgFile, realFile));
-    file.println(getAbsolutePath(bgEditor, realFile));
-    file.println(1); // use external editor, now always true
-    file.println(notes);
-    file.println("-- End Notes --");
-    // version 14
-    file.println(getRelativePath(picture, realFile));
-    // version 15
-    file.println(atParts.size());
-    for (String name : atParts.keySet()) {
+    try {
+      file.println(FILE_VERSION); // version
       file.println(name);
-      file.println(atParts.get(name));
-    }
-    // version 16
-    for (DerivedValue dv : DerivedValue.values()) {
-      file.println(derivedValueChanges.get(dv.ordinal()));
-    }
-    // version 17
-    file.println(fightingTalentsInDocument.size());
-    for (String ft : fightingTalentsInDocument) {
-      file.println(ft);
-    }
-    // version 18
-    file.println(skin);
-    file.println(title);
-    // version 19
-    file.println(rituals.size());
-    for (String s : rituals)
-      file.println(s);
-    // version 20
-    file.println(getRelativePath(printFile, realFile));
-    // version 21
-    file.println(animals.size());
-    for (int i = 0; i < animals.size(); ++i) {
-      animals.get(i).writeToFile(file);
-    }
-    // version 22
-    file.println(bankMoney.size());
-    for (int i = 0; i < bankMoney.size(); ++i) {
-      file.println(bankCurrencies.get(i));
-      file.println(bankMoney.get(i));
-    }
-    // version 23
-    file.println(shields.size());
-    for (int i = 0; i < shields.size(); ++i) {
-      file.println(shields.get(i));
-    }
-    // version 24
-    file.println(soulAnimal);
-    file.println(element);
-    file.println(academy);
-    file.println(magicSpecialization);
-    // version 25
-    int nrOfThings2 = 0;
-    for (Integer t : thingsInWarehouse.values()) {
-      nrOfThings2 += t;
-    }
-    file.println(nrOfThings2);
-    for (String name : thingsInWarehouse.keySet()) {
-      Thing thing = Things.getInstance().getThing(name);
-      for (int i = 0; i < thingsInWarehouse.get(name); ++i) {
+      file.println(type);
+      file.println(ap);
+      for (Property property : properties.keySet()) {
+        CurrentAndDefaultData data = properties.get(property);
+        file.println(property.name());
+        file.println(data.currentValue);
+        file.println(data.defaultValue);
+      }
+      file.println("--");
+      for (Energy energy : energies.keySet()) {
+        if (energy == KO) continue; // is not stored, transient
+        EnergyData data = energies.get(energy);
+        file.println(energy.name());
+        file.println(data.currentValue);
+        file.println(data.defaultValue);
+        file.println(data.available ? 1 : 0);
+      }
+      file.println("--");
+      for (String talent : talents.keySet()) {
+        TalentData data = talents.get(talent);
+        file.println(talent);
+        file.println(data.currentValue);
+        file.println(data.defaultValue);
+        file.println(data.remainingIncreases);
+        file.println(data.remainingTries);
+        file.println(data.increasesPerStep);
+      }
+      file.println("--");
+      // version 2
+      file.println(getAbsolutePath(printingTemplateFile, f));
+      // version 3
+      file.println(birthPlace);
+      file.println(eyeColor);
+      file.println(hairColor);
+      file.println(skinColor);
+      file.println(height);
+      file.println(weight);
+      file.println(sex);
+      file.println(birthday);
+      file.println(stand);
+      file.println(god);
+      file.println(age);
+      // version 4
+      file.println(overallTalentIncreaseTries);
+      file.println(talentIncreasesPerStep);
+      file.println(mHasLEIncreaseTry ? 1 : 0);
+      file.println(mHasExtraAEIncrease ? 1 : 0);
+      file.println(fixedLEIncrease);
+      file.println(fixedAEIncrease);
+      file.println(mrBonus);
+      file.println(mHasAEIncreaseTry ? 1 : 0);
+      // version 5
+      file.println(overallSpellIncreaseTries);
+      file.println(spellIncreasesPerStep);
+      file.println(spellToTalentMoves);
+      file.println(mHasGreatMeditation ? 1 : 0);
+      // version 6
+      file.println(hasGoodPropertyChangeTry ? 1 : 0);
+      file.println(hasBadPropertyChangeTry ? 1 : 0);
+      // version 8
+      file.println(money.size());
+      for (int i = 0; i < money.size(); ++i) {
+        file.println(currencies.get(i));
+        file.println(money.get(i));
+      }
+      // version 9
+      file.println(nativeTongue);
+      // version 10
+      file.println(overallSpellOrTalentIncreaseTries);
+      file.println(canMeditate ? 1 : 0);
+      file.println(beModification);
+      file.println(armours.size());
+      for (String armourName : armours) {
+        Armour armour = Armours.getInstance().getArmour(armourName);
+        file.println(armourName + ";" + armour.getRS() + ";" + armour.getBE()
+            + ";" + armour.getWeight());
+      }
+      // version 11
+      int nrOfWeapons = 0;
+      for (Integer t : weapons.values())
+        nrOfWeapons += t;
+      file.println(nrOfWeapons);
+      for (String weaponName : weapons.keySet()) {
+        Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
+        if (weapon == null) {
+          weapon = new Weapon(1, 0, 5, weaponName, 1,
+              new dsa.util.Optional<Integer>(14), 50, true, false, false);
+        }
+        for (int i = 0; i < weapons.get(weaponName); ++i) {
+          weapon.writeToStream(file);
+        }
+      }
+      // version 12
+      int nrOfThings = 0;
+      for (Integer t : things.values()) {
+        nrOfThings += t;
+      }
+      file.println(nrOfThings);
+      for (String thingName : things.keySet()) {
+        Thing thing = Things.getInstance().getThing(thingName);
+        for (int i = 0; i < things.get(thingName); ++i) {
+          thing.writeToStream(file);
+        }
+      }
+      // version 13
+      file.println(getRelativePath(bgFile, realFile));
+      file.println(getAbsolutePath(bgEditor, realFile));
+      file.println(1); // use external editor, now always true
+      file.println(notes);
+      file.println("-- End Notes --");
+      // version 14
+      file.println(getRelativePath(picture, realFile));
+      // version 15
+      file.println(atParts.size());
+      for (String atName : atParts.keySet()) {
+        file.println(atName);
+        file.println(atParts.get(atName));
+      }
+      // version 16
+      for (DerivedValue dv : DerivedValue.values()) {
+        file.println(derivedValueChanges.get(dv.ordinal()));
+      }
+      // version 17
+      file.println(fightingTalentsInDocument.size());
+      for (String ft : fightingTalentsInDocument) {
+        file.println(ft);
+      }
+      // version 18
+      file.println(skin);
+      file.println(title);
+      // version 19
+      file.println(rituals.size());
+      for (String s : rituals)
+        file.println(s);
+      // version 20
+      file.println(getRelativePath(printFile, realFile));
+      // version 21
+      file.println(animals.size());
+      for (int i = 0; i < animals.size(); ++i) {
+        animals.get(i).writeToFile(file);
+      }
+      // version 22
+      file.println(bankMoney.size());
+      for (int i = 0; i < bankMoney.size(); ++i) {
+        file.println(bankCurrencies.get(i));
+        file.println(bankMoney.get(i));
+      }
+      // version 23
+      file.println(shields.size());
+      for (int i = 0; i < shields.size(); ++i) {
+        file.println(shields.get(i));
+      }
+      // version 24
+      file.println(soulAnimal);
+      file.println(element);
+      file.println(academy);
+      file.println(magicSpecialization);
+      // version 25
+      int nrOfThings2 = 0;
+      for (Integer t : thingsInWarehouse.values()) {
+        nrOfThings2 += t;
+      }
+      file.println(nrOfThings2);
+      for (String thingName : thingsInWarehouse.keySet()) {
+        Thing thing = Things.getInstance().getThing(thingName);
+        for (int i = 0; i < thingsInWarehouse.get(thingName); ++i) {
+          thing.writeToStream(file);
+        }
+      }
+      // version 26
+      file.println(clothes.size());
+      for (String clothesName : clothes) {
+        Thing thing = Things.getInstance().getThing(clothesName);
         thing.writeToStream(file);
       }
+      // version 27
+      file.println(fightMode);
+      file.println(firstHandWeapon);
+      file.println(secondHandItem);
+      // version 28
+      file.println(at1Bonus);
+      file.println(at2Bonus);
+      file.println(mIsGrounded ? 1 : 0);
+      // version 29
+      file.println(bfs.size());
+      for (String n : bfs.keySet()) {
+        file.println(n);
+        file.println(bfs.get(n));
+      }
+      // version 30
+      file.println(shieldBFs.size());
+      for (String n : shieldBFs.keySet()) {
+        file.println(n);
+        file.println(shieldBFs.get(n));
+      }
+      // version 31
+      file.println(dazed ? "1" : "0");
+      // version 32
+      file.println(extraMarkers);
+      // version 33
+      file.println(useAUForFight ? "1" : "0");
+      file.println(auDifference);
+      file.println("-End Hero-");
+      changed = false;
+      file.flush();
     }
-    // version 26
-    file.println(clothes.size());
-    for (String name : clothes) {
-      Thing thing = Things.getInstance().getThing(name);
-      thing.writeToStream(file);
+    finally {
+      if (file != null) {
+        file.close();
+      }
     }
-    // version 27
-    file.println(fightMode);
-    file.println(firstHandWeapon);
-    file.println(secondHandItem);
-    // version 28
-    file.println(at1Bonus);
-    file.println(at2Bonus);
-    file.println(isGrounded ? 1 : 0);
-    // version 29
-    file.println(bfs.size());
-    for (String n : bfs.keySet()) {
-      file.println(n);
-      file.println(bfs.get(n));
-    }
-    // version 30
-    file.println(shieldBFs.size());
-    for (String n : shieldBFs.keySet()) {
-      file.println(n);
-      file.println(shieldBFs.get(n));
-    }
-    // version 31
-    file.println(dazed ? "1" : "0");
-    // version 32
-    file.println(extraMarkers);
-    file.println("-End Hero-");
-    changed = false;
-    file.flush();
   }
 
   private int parseInt(String line, int lineNr) throws IOException {
     try {
-      int value = Integer.parseInt(line);
-      return value;
+      return Integer.parseInt(line);
     }
     catch (NumberFormatException e) {
       throw new IOException("Zeile " + lineNr + ": " + line
@@ -1276,52 +1299,725 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     line = file.readLine();
     testEmpty(line);
     ap = parseInt(line, lineNr);
-    lineNr++;
-    line = file.readLine();
-    testEmpty(line);
-    while (!line.equals("--")) {
-      Property property = Property.valueOf(line);
-      CurrentAndDefaultData data = new CurrentAndDefaultData();
+    lineNr = readProperties(file, lineNr);
+    lineNr = readEnergies(file, lineNr);
+    lineNr = readTalents(file, lineNr, version);
+    if (version > 1) {
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      data.currentValue = parseInt(line, lineNr);
+      printingTemplateFile = getAbsolutePath(line, f);
+    }
+    if (version > 2) {
+      lineNr = readVersion3Data(file, lineNr);
+    }
+    if (version > 3) {
+      lineNr = readVersion4Data(file, lineNr);
+    }
+    if (version > 4) {
+      lineNr = readVersion5Data(file, lineNr);
+    }
+    if (version > 6) {
+      lineNr = readVersion7Data(file, lineNr);
+    }
+    if (version > 7) {
+      lineNr = readMoney(file, lineNr);
+    }
+    if (version > 8) {
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      data.defaultValue = parseInt(line, lineNr);
-      properties.put(property, data);
+      nativeTongue = line;
+    }
+    if (version > 9) {
+      lineNr = readVersion10Data(file, lineNr);
+    }
+    if (version > 10) {
+      lineNr = readWeapons(file, lineNr);
+    }
+    if (version > 11) {
+      lineNr = readThings(file, lineNr);
+    }
+    if (version > 12) {
+      lineNr = readVersion13Data(f, file, lineNr);
+    }
+    if (version > 13) {
       lineNr++;
       line = file.readLine();
       testEmpty(line);
+      picture = getAbsolutePath(line, f);
+    }
+    atParts.clear();
+    if (version > 14) {
+      lineNr = readATParts(file, lineNr);
+    }
+    lineNr = readDVValueChanges(file, lineNr, version);
+    fightingTalentsInDocument.clear();
+    if (version > 16) {
+      lineNr = readFightingTalentsInDocument(file, lineNr);
+    }
+    if (version > 17) {
+      lineNr = readVersion18Data(file, lineNr);
+    }
+    else
+      skin = "";
+    lineNr = readRituals(file, lineNr, version);
+    if (version > 19) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      printFile = getAbsolutePath(line, f);
+    }
+    else
+      printFile = "";
+    animals.clear();
+    if (version > 20) {
+      lineNr = readAnimals(file, lineNr);
+    }
+    lineNr = readBank(file, lineNr, version);
+    shields.clear();
+    if (version > 22) {
+      lineNr = readShields(file, lineNr);
+    }
+    if (version > 23) {
+      lineNr = readVersion24Data(file, lineNr);
+    }
+    else {
+      soulAnimal = "";
+      element = "";
+      academy = "";
+      magicSpecialization = "";
+    }
+    thingsInWarehouse.clear();
+    if (version > 24) {
+      lineNr = readWarehouse(file, lineNr);
+    }
+    clothes.clear();
+    if (version > 25) {
+      lineNr = readClothes(file, lineNr);
+    }
+    if (version > 26) {
+      lineNr = readFightData(file, lineNr);
+    }
+    if (version > 27) {
+      lineNr = readFightData2(file, lineNr);
+    }
+    else {
+      at1Bonus = 0;
+      at2Bonus = 0;
+      mIsGrounded = false;
+    }
+    lineNr = readBFs(file, lineNr, version);
+    lineNr = readShieldBFs(file, lineNr, version);
+    if (version > 30) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      dazed = "1".equals(line);
+    }
+    else
+      dazed = false;
+    if (version > 31) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      extraMarkers = parseInt(line, lineNr);
+    }
+    else
+      extraMarkers = 0;
+    if (version > 32) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      useAUForFight = parseInt(line, lineNr) == 1;
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      auDifference = parseInt(line, lineNr);
+    }
+    else {
+      useAUForFight = false;
+      auDifference = 0;
     }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    while (!line.equals("--")) {
-      Energy energy = Energy.valueOf(line);
-      EnergyData data = new EnergyData(false);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      data.currentValue = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      data.defaultValue = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      data.available = (parseInt(line, lineNr) == 1);
-      energies.put(energy, data);
-      lineNr++;
+    while (line != null && !line.equals("-End Hero-")) {
       line = file.readLine();
       testEmpty(line);
     }
+    setDefaultEnergy(AU, getDefaultProperty(KK) + getDefaultEnergy(LE));
+    setCurrentEnergy(AU, getCurrentProperty(KK) + getCurrentEnergy(LE));
+    checkForHuntingTalents();
+    checkForMirakel();
+    calcKO();
+    changed = false;
+  }
+
+  private int readShieldBFs(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    if (version > 29) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int nrOfEntries = parseInt(line, lineNr);
+      for (int i = 0; i < nrOfEntries; ++i) {
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        String shieldName = line;
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        int bf = parseInt(line, lineNr);
+        shieldBFs.put(shieldName, bf);
+      }
+    }
+    else {
+      for (String shieldName : shields) {
+        Shield s = Shields.getInstance().getShield(shieldName);
+        shieldBFs.put(shieldName, s.getBF());
+      }
+    }
+    return lineNr;
+  }
+
+  private int readBFs(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    if (version > 28) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int nrOfEntries = parseInt(line, lineNr);
+      for (int i = 0; i < nrOfEntries; ++i) {
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        String weaponName = line;
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        int bf = parseInt(line, lineNr);
+        bfs.put(weaponName, bf);
+      }
+    }
+    else {
+      for (String weaponName : weapons.keySet()) {
+        Weapon w = Weapons.getInstance().getWeapon(weaponName);
+        int bf = w != null ? w.getBF() : 0;
+        for (int i = 0; i < weapons.get(weaponName); ++i) {
+          bfs.put(weaponName + " " + (i + 1), bf);
+        }
+      }
+    }
+    return lineNr;
+  }
+
+  private int readFightData2(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    while (!line.equals("--")) {
+    at1Bonus = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    at2Bonus = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    mIsGrounded = line != null && line.trim().equals("1");
+    return lineNr;
+  }
+
+  private int readFightData(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    fightMode = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    firstHandWeapon = line;
+    if (firstHandWeapon.equals("null")) firstHandWeapon = null;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    secondHandItem = line;
+    if (secondHandItem.equals("null")) secondHandItem = null;
+    return lineNr;
+  }
+
+  private int readClothes(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfClothes = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfClothes; ++i) {
+      Thing thing = new Thing();
+      lineNr = thing.readFromStream(file, lineNr);
+      clothes.add(thing.getName());
+    }
+    return lineNr;
+  }
+
+  private int readWarehouse(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfThings = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfThings; ++i) {
+      Thing thing = new Thing();
+      lineNr = thing.readFromStream(file, lineNr);
+      addThingToWarehouse(thing.getName());
+    }
+    return lineNr;
+  }
+
+  private int readVersion24Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    line = file.readLine();
+    lineNr++;
+    testEmpty(line);
+    soulAnimal = line;
+    line = file.readLine();
+    lineNr++;
+    testEmpty(line);
+    element = line;
+    line = file.readLine();
+    lineNr++;
+    testEmpty(line);
+    academy = line;
+    line = file.readLine();
+    lineNr++;
+    testEmpty(line);
+    magicSpecialization = line;
+    return lineNr;
+  }
+
+  private int readShields(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    line = file.readLine();
+    lineNr++;
+    testEmpty(line);
+    int nrOfShields = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfShields; ++i) {
+      line = file.readLine();
+      lineNr++;
+      testEmpty(line);
+      shields.add(line);
+    }
+    return lineNr;
+  }
+
+  private int readBank(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    if (version > 21) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int nrOfCurrencies = parseInt(line, lineNr);
+      bankMoney.clear();
+      bankCurrencies.clear();
+      for (int i = 0; i < nrOfCurrencies; ++i) {
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        int currency = parseInt(line, lineNr);
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        int value = parseInt(line, lineNr);
+        bankMoney.add(value);
+        bankCurrencies.add(currency);
+      }
+    }
+    else {
+      bankMoney.clear();
+      bankCurrencies.clear();
+      bankMoney.add(0);
+      bankMoney.add(0);
+      bankCurrencies.add(0);
+      bankCurrencies.add(1);
+    }
+    return lineNr;
+  }
+
+  private int readAnimals(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfAnimals = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfAnimals; ++i) {
+      Animal animal = new Animal("");
+      lineNr = animal.readFromFile(file, lineNr);
+      animals.add(animal);
+    }
+    return lineNr;
+  }
+
+  private int readRituals(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    rituals.clear();
+    if (version > 18) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int nrOfRituals = parseInt(line, lineNr);
+      for (int i = 0; i < nrOfRituals; ++i) {
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        rituals.add(line);
+      }
+    }
+    else {
+      rituals
+          .addAll(dsa.model.data.Rituals.getInstance().getStartRituals(type));
+    }
+    return lineNr;
+  }
+
+  private int readVersion18Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    skin = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    title = line;
+    return lineNr;
+  }
+
+  private int readFightingTalentsInDocument(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfFTs = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfFTs; ++i) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      fightingTalentsInDocument.add(line);
+    }
+    return lineNr;
+  }
+
+  private int readDVValueChanges(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    if (version > 15) {
+      for (DerivedValue dv : DerivedValue.values()) {
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        int value = parseInt(line, lineNr);
+        derivedValueChanges.set(dv.ordinal(), value);
+      }
+    }
+    else {
+      for (DerivedValue dv : DerivedValue.values()) {
+        derivedValueChanges.set(dv.ordinal(), 0);
+      }
+    }
+    return lineNr;
+  }
+
+  private int readATParts(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfATParts = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfATParts; ++i) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      String atName = line;
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int value = parseInt(line, lineNr);
+      atParts.put(atName, value);
+    }
+    return lineNr;
+  }
+
+  private int readVersion13Data(File f, BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    bgFile = getAbsolutePath(line, f);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    bgEditor = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    // useExternalBGEditor = (parseInt(line, lineNr) > 0); // obsolete
+    notes = "";
+    boolean inNotes = true;
+    while (inNotes) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      if (line == null || line.equals("-- End Notes --"))
+        inNotes = false;
+      else {
+        if (notes.length() > 0) notes += System.getProperty("line.separator");
+        notes += line;
+      }
+    }
+    return lineNr;
+  }
+
+  private int readThings(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    things.clear();
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfThings = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfThings; ++i) {
+      Thing thing = new Thing();
+      lineNr = thing.readFromStream(file, lineNr);
+      this.internalAddThing(thing.getName());
+    }
+    return lineNr;
+  }
+
+  private int readWeapons(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    weapons.clear();
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfWeapons = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfWeapons; ++i) {
+      Weapon weapon = new Weapon();
+      lineNr = weapon.readFromStream(file, lineNr);
+      internalAddWeapon(weapon.getName());
+    }
+    return lineNr;
+  }
+
+  private int readVersion10Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    overallSpellOrTalentIncreaseTries = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    canMeditate = (parseInt(line, lineNr) > 0);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    beModification = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfArmours = parseInt(line, lineNr);
+    armours.clear();
+    for (int i = 0; i < nrOfArmours; ++i) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      StringTokenizer tokenizer = new StringTokenizer(line, ";");
+      String armourName = tokenizer.nextToken();
+      if (dsa.model.data.Armours.getInstance().getArmour(armourName) == null) {
+        if (tokenizer.hasMoreTokens()) {
+          int be = 1;
+          int rs = 1;
+          int armourWeight = 100;
+          String temp = tokenizer.nextToken();
+          rs = parseInt(temp, lineNr);
+          temp = tokenizer.nextToken();
+          be = parseInt(temp, lineNr);
+          temp = tokenizer.nextToken();
+          armourWeight = parseInt(temp, lineNr);
+          Armours.getInstance().addArmour(
+              new dsa.model.data.Armour(armourName, rs, be, armourWeight));
+        }
+      }
+      armours.add(armourName);
+    }
+    return lineNr;
+  }
+
+  private int readMoney(BufferedReader file, int lineNr) throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    int nrOfCurrencies = parseInt(line, lineNr);
+    money.clear();
+    currencies.clear();
+    for (int i = 0; i < nrOfCurrencies; ++i) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int currency = parseInt(line, lineNr);
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int value = parseInt(line, lineNr);
+      money.add(value);
+      currencies.add(currency);
+    }
+    return lineNr;
+  }
+
+  private int readVersion7Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    hasGoodPropertyChangeTry = (parseInt(line, lineNr) > 0);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    hasBadPropertyChangeTry = (parseInt(line, lineNr) > 0);
+    return lineNr;
+  }
+
+  private int readVersion5Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    overallSpellIncreaseTries = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    spellIncreasesPerStep = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    spellToTalentMoves = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    mHasGreatMeditation = (parseInt(line, lineNr) > 0);
+    return lineNr;
+  }
+
+  private int readVersion4Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    overallTalentIncreaseTries = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    talentIncreasesPerStep = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    mHasLEIncreaseTry = (parseInt(line, lineNr) > 0);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    mHasExtraAEIncrease = (parseInt(line, lineNr) > 0);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    fixedLEIncrease = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    fixedAEIncrease = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    mrBonus = parseInt(line, lineNr);
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    mHasAEIncreaseTry = (parseInt(line, lineNr) > 0);
+    return lineNr;
+  }
+
+  private int readVersion3Data(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    birthPlace = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    eyeColor = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    hairColor = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    skinColor = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    height = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    weight = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    sex = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    birthday = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    stand = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    god = line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    age = parseInt(line, lineNr);
+    return lineNr;
+  }
+
+  private int readTalents(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    line = file.readLine();
+    testEmpty(line);
+    while (line != null && !line.equals("--")) {
       String talent = line;
       TalentData data = new TalentData();
       lineNr++;
@@ -1359,538 +2055,61 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       line = file.readLine();
       testEmpty(line);
     }
-    if (version > 1) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      printingTemplateFile = getAbsolutePath(line, f);
-    }
-    if (version > 2) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      birthPlace = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      eyeColor = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hairColor = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      skinColor = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      height = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      weight = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      sex = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      birthday = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      stand = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      god = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      age = parseInt(line, lineNr);
-    }
-    if (version > 3) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      overallTalentIncreaseTries = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      talentIncreasesPerStep = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hasLEIncreaseTry = (parseInt(line, lineNr) > 0);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hasExtraAEIncrease = (parseInt(line, lineNr) > 0);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      fixedLEIncrease = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      fixedAEIncrease = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      mrBonus = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hasAEIncreaseTry = (parseInt(line, lineNr) > 0);
-    }
-    if (version > 4) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      overallSpellIncreaseTries = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      spellIncreasesPerStep = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      spellToTalentMoves = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hasGreatMeditation = (parseInt(line, lineNr) > 0);
-    }
-    if (version > 6) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hasGoodPropertyChangeTry = (parseInt(line, lineNr) > 0);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      hasBadPropertyChangeTry = (parseInt(line, lineNr) > 0);
-    }
-    if (version > 7) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfCurrencies = parseInt(line, lineNr);
-      money.clear();
-      currencies.clear();
-      for (int i = 0; i < nrOfCurrencies; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int currency = parseInt(line, lineNr);
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int value = parseInt(line, lineNr);
-        money.add(value);
-        currencies.add(currency);
-      }
-    }
-    if (version > 8) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      nativeTongue = line;
-    }
-    if (version > 9) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      overallSpellOrTalentIncreaseTries = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      canMeditate = (parseInt(line, lineNr) > 0);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      beModification = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfArmours = parseInt(line, lineNr);
-      armours.clear();
-      for (int i = 0; i < nrOfArmours; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        StringTokenizer tokenizer = new StringTokenizer(line, ";");
-        String name = tokenizer.nextToken();
-        if (dsa.model.data.Armours.getInstance().getArmour(name) == null) {
-          if (tokenizer.hasMoreTokens()) {
-            int be = 1;
-            int rs = 1;
-            int weight = 100;
-            String temp = tokenizer.nextToken();
-            rs = parseInt(temp, lineNr);
-            temp = tokenizer.nextToken();
-            be = parseInt(temp, lineNr);
-            temp = tokenizer.nextToken();
-            weight = parseInt(temp, lineNr);
-            Armours.getInstance().addArmour(
-                new dsa.model.data.Armour(name, rs, be, weight));
-          }
-        }
-        armours.add(name);
-      }
-    }
-    if (version > 10) {
-      weapons.clear();
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfWeapons = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfWeapons; ++i) {
-        Weapon weapon = new Weapon();
-        lineNr = weapon.readFromStream(file, lineNr);
-        internalAddWeapon(weapon.getName());
-      }
-    }
-    if (version > 11) {
-      things.clear();
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfThings = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfThings; ++i) {
-        Thing thing = new Thing();
-        lineNr = thing.readFromStream(file, lineNr);
-        this.internalAddThing(thing.getName());
-      }
-    }
-    if (version > 12) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      bgFile = getAbsolutePath(line, f);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      bgEditor = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      // useExternalBGEditor = (parseInt(line, lineNr) > 0); // obsolete
-      notes = "";
-      boolean inNotes = true;
-      while (inNotes) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        if (line.equals("-- End Notes --"))
-          inNotes = false;
-        else {
-          if (notes.length() > 0)
-            notes += System.getProperty("line.separator");
-          notes += line;
-        }
-      }
-    }
-    if (version > 13) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      picture = getAbsolutePath(line, f);
-    }
-    atParts.clear();
-    if (version > 14) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfATParts = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfATParts; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        String name = line;
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int value = parseInt(line, lineNr);
-        atParts.put(name, value);
-      }
-    }
-    if (version > 15) {
-      for (DerivedValue dv : DerivedValue.values()) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int value = parseInt(line, lineNr);
-        derivedValueChanges.set(dv.ordinal(), value);
-      }
-    }
-    else {
-      for (DerivedValue dv : DerivedValue.values()) {
-        derivedValueChanges.set(dv.ordinal(), 0);
-      }
-    }
-    fightingTalentsInDocument.clear();
-    if (version > 16) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfFTs = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfFTs; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        fightingTalentsInDocument.add(line);
-      }
-    }
-    if (version > 17) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      skin = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      title = line;
-    }
-    else
-      skin = "";
-    rituals.clear();
-    if (version > 18) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfRituals = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfRituals; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        rituals.add(line);
-      }
-    }
-    else {
-      rituals
-          .addAll(dsa.model.data.Rituals.getInstance().getStartRituals(type));
-    }
-    if (version > 19) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      printFile = getAbsolutePath(line, f);
-    }
-    else
-      printFile = "";
-    animals.clear();
-    if (version > 20) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfAnimals = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfAnimals; ++i) {
-        Animal animal = new Animal("");
-        lineNr = animal.readFromFile(file, lineNr);
-        animals.add(animal);
-      }
-    }
-    if (version > 21) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfCurrencies = parseInt(line, lineNr);
-      bankMoney.clear();
-      bankCurrencies.clear();
-      for (int i = 0; i < nrOfCurrencies; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int currency = parseInt(line, lineNr);
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int value = parseInt(line, lineNr);
-        bankMoney.add(value);
-        bankCurrencies.add(currency);
-      }
-    }
-    else {
-      bankMoney.clear();
-      bankCurrencies.clear();
-      bankMoney.add(0);
-      bankMoney.add(0);
-      bankCurrencies.add(0);
-      bankCurrencies.add(1);
-    }
-    shields.clear();
-    if (version > 22) {
-      line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      int nrOfShields = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfShields; ++i) {
-        line = file.readLine();
-        lineNr++;
-        testEmpty(line);
-        shields.add(line);
-      }
-    }
-    if (version > 23) {
-      line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      soulAnimal = line;
-      line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      element = line;
-      line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      academy = line;
-      line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      magicSpecialization = line;
-    }
-    else {
-      soulAnimal = element = academy = magicSpecialization = "";
-    }
-    thingsInWarehouse.clear();
-    if (version > 24) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfThings = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfThings; ++i) {
-        Thing thing = new Thing();
-        lineNr = thing.readFromStream(file, lineNr);
-        addThingToWarehouse(thing.getName());
-      }
-    }
-    clothes.clear();
-    if (version > 25) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfClothes = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfClothes; ++i) {
-        Thing thing = new Thing();
-        lineNr = thing.readFromStream(file, lineNr);
-        clothes.add(thing.getName());
-      }
-    }
-    if (version > 26) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      fightMode = line;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      firstHandWeapon = line;
-      if (firstHandWeapon.equals("null")) firstHandWeapon = null;
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      secondHandItem = line;
-      if (secondHandItem.equals("null")) secondHandItem = null;
-    }
-    if (version > 27) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      at1Bonus = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      at2Bonus = parseInt(line, lineNr);
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      isGrounded = line.trim().equals("1");
-    }
-    else {
-      at1Bonus = at2Bonus = 0;
-      isGrounded = false;
-    }
-    if (version > 28) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfEntries = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfEntries; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        String name = line;
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int bf = parseInt(line, lineNr);
-        bfs.put(name, bf);
-      }
-    }
-    else {
-      for (String name : weapons.keySet()) {
-        Weapon w = Weapons.getInstance().getWeapon(name);
-        int bf = w != null ? w.getBF() : 0;
-        for (int i = 0; i < weapons.get(name); ++i) {
-          bfs.put(name + " " + (i + 1), bf);
-        }
-      }
-    }
-    if (version > 29) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      int nrOfEntries = parseInt(line, lineNr);
-      for (int i = 0; i < nrOfEntries; ++i) {
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        String name = line;
-        lineNr++;
-        line = file.readLine();
-        testEmpty(line);
-        int bf = parseInt(line, lineNr);
-        shieldBFs.put(name, bf);
-      }
-    }
-    else {
-      for (String name : shields) {
-        Shield s = Shields.getInstance().getShield(name);
-        shieldBFs.put(name, s.getBf());
-      }
-    }
-    if (version > 30) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      dazed = line.equals("1");
-    }
-    else
-      dazed = false;
-    if (version > 31) {
-      lineNr++;
-      line = file.readLine();
-      testEmpty(line);
-      extraMarkers = parseInt(line, lineNr);
-    }
-    else
-      extraMarkers = 0;
+    return lineNr;
+  }
+
+  private int readEnergies(BufferedReader file, int lineNr) throws IOException {
+    String line;
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    while (!line.equals("-End Hero-")) {
+    while (line != null && !line.equals("--")) {
+      Energy energy = Energy.valueOf(line);
+      EnergyData data = new EnergyData(false);
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      data.currentValue = parseInt(line, lineNr);
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      data.defaultValue = parseInt(line, lineNr);
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      data.available = (parseInt(line, lineNr) == 1);
+      energies.put(energy, data);
+      lineNr++;
       line = file.readLine();
       testEmpty(line);
     }
-    setDefaultEnergy(AU, getDefaultProperty(KK) + getDefaultEnergy(LE));
-    setCurrentEnergy(AU, getCurrentProperty(KK) + getCurrentEnergy(LE));
-    checkForHuntingTalents();
-    checkForMirakel();
-    calcKO();
-    changed = false;
+    lineNr++;
+    return lineNr;
+  }
+
+  private int readProperties(BufferedReader file, int lineNr)
+      throws IOException {
+    String line;
+    lineNr++;
+    line = file.readLine();
+    testEmpty(line);
+    while (line != null && !line.equals("--")) {
+      Property property = Property.valueOf(line);
+      CurrentAndDefaultData data = new CurrentAndDefaultData();
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      data.currentValue = parseInt(line, lineNr);
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      data.defaultValue = parseInt(line, lineNr);
+      properties.put(property, data);
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+    }
+    return lineNr;
   }
 
   public boolean isChanged() {
@@ -2176,22 +2395,22 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       return "legendär";
   }
 
-  boolean hasLEIncreaseTry;
+  boolean mHasLEIncreaseTry;
 
-  boolean hasAEIncreaseTry;
+  boolean mHasAEIncreaseTry;
 
-  boolean hasExtraAEIncrease;
+  boolean mHasExtraAEIncrease;
 
   int fixedLEIncrease;
 
   int fixedAEIncrease;
 
   public boolean hasLEIncreaseTry() {
-    return hasLEIncreaseTry;
+    return mHasLEIncreaseTry;
   }
 
   public boolean hasExtraAEIncrease() {
-    return hasExtraAEIncrease;
+    return mHasExtraAEIncrease;
   }
 
   public int getFixedLEIncrease() {
@@ -2226,8 +2445,8 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       value = (getCurrentProperty(Property.KL)
           + getCurrentProperty(Property.MU) + getStep())
           / 3 - 2 * getCurrentProperty(Property.AG) + mrBonus;
-      if (hasTalent("Heilkunde, Seele")) {
-        int talentValue = getCurrentTalentValue("Heilkunde, Seele");
+      if (hasTalent(SEELE)) {
+        int talentValue = getCurrentTalentValue(SEELE);
         if (talentValue > 10) value += talentValue - 10;
       }
     }
@@ -2274,8 +2493,8 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       int mr = (getDefaultProperty(Property.KL)
           + getDefaultProperty(Property.MU) + getStep())
           / 3 - 2 * getDefaultProperty(Property.AG) + mrBonus;
-      if (hasTalent("Heilkunde, Seele")) {
-        int talentValue = getDefaultTalentValue("Heilkunde, Seele");
+      if (hasTalent(SEELE)) {
+        int talentValue = getDefaultTalentValue(SEELE);
         if (talentValue > 10) mr += talentValue - 10;
       }
       return mr;
@@ -2331,23 +2550,23 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
             "Eine Sharizad darf nicht mehr als 30 ASP haben.");
       }
     }
-    hasLEIncreaseTry = false;
-    hasAEIncreaseTry = false;
+    mHasLEIncreaseTry = false;
+    mHasAEIncreaseTry = false;
     changeDefaultEnergy(Energy.LE, lePlus);
     changeDefaultEnergy(Energy.AE, aePlus);
   }
 
   public boolean hasAEIncreaseTry() {
-    return hasAEIncreaseTry;
+    return mHasAEIncreaseTry;
   }
 
   public void increaseLE(int lePlus) {
-    hasLEIncreaseTry = false;
+    mHasLEIncreaseTry = false;
     changeDefaultEnergy(Energy.LE, lePlus);
   }
 
   public void increaseAE(int aePlus) {
-    hasAEIncreaseTry = false;
+    mHasAEIncreaseTry = false;
     changeDefaultEnergy(Energy.AE, aePlus);
   }
 
@@ -2362,7 +2581,7 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   boolean canMeditate;
 
   public boolean hasGreatMeditation() {
-    return hasGreatMeditation
+    return mHasGreatMeditation
         && canMeditate
         && (overallSpellIncreaseTries + overallSpellOrTalentIncreaseTries) >= 10;
   }
@@ -2523,12 +2742,17 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
         .getTalentsInCategory("Sprachen");
     java.util.Iterator<Talent> iterator = languages.iterator();
     int usedPoints = 0;
+    boolean master = (getDefaultTalentValue("Sprachen Kennen") > 10);
     while (iterator.hasNext()) {
       Language language = (Language) iterator.next();
       if (this.hasTalent(language.getName())
           && !language.getName().equals(nativeTongue)) {
-        if (!language.isOld())
-          usedPoints += this.getDefaultTalentValue(language.getName());
+        if (!language.isOld()) {
+          usedPoints += getDefaultTalentValue(language.getName());
+          if (master && getDefaultTalentValue(language.getName()) > 1) {
+            usedPoints--;
+          }
+        }
       }
     }
     return this.getDefaultTalentValue("Sprachen Kennen") - usedPoints;
@@ -2539,12 +2763,17 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
         .getTalentsInCategory("Sprachen");
     java.util.Iterator<Talent> iterator = languages.iterator();
     int usedPoints = 0;
+    boolean master = (getDefaultTalentValue("Alte Sprachen") > 10);
     while (iterator.hasNext()) {
       Language language = (Language) iterator.next();
       if (this.hasTalent(language.getName())
           && !language.getName().equals(nativeTongue)) {
-        if (language.isOld())
+        if (language.isOld()) {
           usedPoints += this.getDefaultTalentValue(language.getName());
+          if (master && getDefaultTalentValue(language.getName()) > 1) {
+            usedPoints--;
+          }
+        }
       }
     }
     return this.getDefaultTalentValue("Alte Sprachen") - usedPoints;
@@ -2575,26 +2804,29 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return armours.toArray(temp);
   }
 
-  public void addArmour(String name) {
-    armours.add(name);
+  public void addArmour(String armourName) {
+    armours.add(armourName);
     changed = true;
     for (CharacterObserver observer : observers)
       observer.weightChanged();
   }
 
-  public void removeArmour(String name) {
-    armours.remove(name);
+  public void removeArmour(String armourName) {
+    if (!armours.contains(armourName)) return;
+    armours.remove(armourName);
     changed = true;
-    for (CharacterObserver observer : observers)
+    for (CharacterObserver observer : observers) {
+      observer.armourRemoved(armourName);
       observer.weightChanged();
+    }
   }
 
   int beModification = 0;
 
   public int getBE() {
     int be = 0;
-    for (String name : armours) {
-      Armour armour = Armours.getInstance().getArmour(name);
+    for (String armourName : armours) {
+      Armour armour = Armours.getInstance().getArmour(armourName);
       if (armour != null) be += armour.getBE();
     }
     return be - beModification > 0 ? be - beModification : 0;
@@ -2602,8 +2834,8 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
 
   public int getRS() {
     int rs = 0;
-    for (String name : armours) {
-      Armour armour = Armours.getInstance().getArmour(name);
+    for (String armourName : armours) {
+      Armour armour = Armours.getInstance().getArmour(armourName);
       if (armour != null) rs += armour.getRS();
     }
     return rs;
@@ -2620,49 +2852,49 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return weapons.keySet().toArray(temp);
   }
 
-  public String addWeapon(String name) {
-    String name2 = internalAddWeapon(name);
+  public String addWeapon(String weaponName) {
+    String name2 = internalAddWeapon(weaponName);
     changed = true;
     for (CharacterObserver observer : observers)
       observer.weightChanged();
     return name2;
   }
 
-  String internalAddWeapon(String name) {
+  String internalAddWeapon(String weaponName) {
     int count = 1;
-    String name2 = name;
+    String name2 = weaponName;
     while (weapons.containsKey(name2)) {
       ++count;
-      name2 = name + " " + count;
+      name2 = weaponName + " " + count;
     }
     weapons.put(name2, 1);
-    Weapon w = Weapons.getInstance().getWeapon(name);
+    Weapon w = Weapons.getInstance().getWeapon(weaponName);
     bfs.put(name2, w != null ? w.getBF() : 0);
     return name2;
   }
 
-  public void removeWeapon(String name) {
-    if (!weapons.containsKey(name)) return;
-    int count = weapons.get(name);
-    bfs.remove(name);
+  public void removeWeapon(String weaponName) {
+    if (!weapons.containsKey(weaponName)) return;
+    int count = weapons.get(weaponName);
+    bfs.remove(weaponName);
     if (count == 1) {
-      weapons.remove(name);
+      weapons.remove(weaponName);
       for (CharacterObserver observer : observers)
-        observer.weaponRemoved(name);
+        observer.weaponRemoved(weaponName);
     }
     else {
-      weapons.put(name, count - 1);
+      weapons.put(weaponName, count - 1);
     }
     changed = true;
     for (CharacterObserver observer : observers)
       observer.weightChanged();
   }
 
-  public int getWeaponCount(String name) {
-    if (!weapons.containsKey(name))
+  public int getWeaponCount(String weaponName) {
+    if (!weapons.containsKey(weaponName))
       return 0;
     else
-      return weapons.get(name);
+      return weapons.get(weaponName);
   }
 
   java.util.HashMap<String, Integer> things = new java.util.HashMap<String, Integer>();
@@ -2672,32 +2904,32 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return things.keySet().toArray(allThings);
   }
 
-  public void addThing(String name) {
-    internalAddThing(name);
+  public void addThing(String thingName) {
+    internalAddThing(thingName);
     changed = true;
     for (CharacterObserver observer : observers)
       observer.weightChanged();
   }
 
-  void internalAddThing(String name) {
-    if (!things.containsKey(name)) {
-      things.put(name, 1);
+  void internalAddThing(String thingName) {
+    if (!things.containsKey(thingName)) {
+      things.put(thingName, 1);
     }
     else {
-      things.put(name, things.get(name) + 1);
+      things.put(thingName, things.get(thingName) + 1);
     }
   }
 
-  public void removeThing(String name) {
-    if (!things.containsKey(name)) return;
-    int count = things.get(name);
+  public void removeThing(String thingName) {
+    if (!things.containsKey(thingName)) return;
+    int count = things.get(thingName);
     if (count == 1) {
-      things.remove(name);
+      things.remove(thingName);
       for (CharacterObserver o : observers)
-        o.thingRemoved(name);
+        o.thingRemoved(thingName, false);
     }
     else {
-      things.put(name, count - 1);
+      things.put(thingName, count - 1);
     }
     changed = true;
     for (CharacterObserver observer : observers)
@@ -2729,13 +2961,13 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return notes;
   }
 
-  public void setBGFile(String name) {
-    bgFile = name;
+  public void setBGFile(String fileName) {
+    bgFile = fileName;
     changed = true;
   }
 
-  public void setBGEditor(String name) {
-    bgEditor = name;
+  public void setBGEditor(String fileName) {
+    bgEditor = fileName;
     changed = true;
   }
 
@@ -2792,14 +3024,14 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   ArrayList<String> fightingTalentsInDocument = new ArrayList<String>();
 
   public List<String> getFightingTalentsInDocument() {
-    ArrayList<String> talents = new ArrayList<String>();
-    talents.addAll(fightingTalentsInDocument);
-    return talents;
+    ArrayList<String> result = new ArrayList<String>();
+    result.addAll(fightingTalentsInDocument);
+    return result;
   }
 
-  public void setFightingTalentsInDocument(List<String> talents) {
+  public void setFightingTalentsInDocument(List<String> someTalents) {
     fightingTalentsInDocument.clear();
-    fightingTalentsInDocument.addAll(talents);
+    fightingTalentsInDocument.addAll(someTalents);
     changed = true;
   }
 
@@ -2877,21 +3109,22 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return shields.toArray(dummy);
   }
 
-  public void addShield(String name) {
-    shields.add(name);
-    Shield shield = Shields.getInstance().getShield(name);
-    shieldBFs.put(name, shield.getBf());
+  public void addShield(String shieldName) {
+    shields.add(shieldName);
+    Shield shield = Shields.getInstance().getShield(shieldName);
+    shieldBFs.put(shieldName, shield.getBF());
     changed = true;
     for (CharacterObserver o : observers)
       o.weightChanged();
   }
 
-  public void removeShield(String name) {
-    shields.remove(name);
-    shieldBFs.remove(name);
+  public void removeShield(String shieldName) {
+    if (!shields.contains(shieldName)) return;
+    shields.remove(shieldName);
+    shieldBFs.remove(shieldName);
     changed = true;
     for (CharacterObserver o : observers)
-      o.shieldRemoved(name);
+      o.shieldRemoved(shieldName);
     for (CharacterObserver o : observers)
       o.weightChanged();
   }
@@ -2961,22 +3194,25 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
       return 0;
   }
 
-  public void removeThingFromWarehouse(String name) {
-    if (thingsInWarehouse.containsKey(name)) {
-      int count = thingsInWarehouse.get(name);
+  public void removeThingFromWarehouse(String thingName) {
+    if (thingsInWarehouse.containsKey(thingName)) {
+      int count = thingsInWarehouse.get(thingName);
       if (count > 1) {
-        thingsInWarehouse.put(name, count - 1);
+        thingsInWarehouse.put(thingName, count - 1);
       }
       else {
-        thingsInWarehouse.remove(name);
+        thingsInWarehouse.remove(thingName);
+        for (CharacterObserver o : observers) {
+          o.thingRemoved(thingName, true);
+        }
       }
       changed = true;
     }
   }
 
   public String[] getThingsInWarehouse() {
-    String[] things = new String[thingsInWarehouse.size()];
-    return thingsInWarehouse.keySet().toArray(things);
+    String[] thingArray = new String[thingsInWarehouse.size()];
+    return thingsInWarehouse.keySet().toArray(thingArray);
   }
 
   ArrayList<String> clothes = new ArrayList<String>();
@@ -3009,20 +3245,20 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
   }
 
   public boolean canDoGreatMeditation() {
-    return hasGreatMeditation;
+    return mHasGreatMeditation;
   }
 
   public void setCanDoGreatMeditation(boolean can) {
-    if (hasGreatMeditation == can) return;
-    hasGreatMeditation = can;
+    if (mHasGreatMeditation == can) return;
+    mHasGreatMeditation = can;
     changed = true;
     for (CharacterObserver o : observers)
       o.increaseTriesChanged();
   }
 
   public void setHasExtraAEIncrease(boolean extra) {
-    if (hasExtraAEIncrease == extra) return;
-    hasExtraAEIncrease = extra;
+    if (mHasExtraAEIncrease == extra) return;
+    mHasExtraAEIncrease = extra;
     changed = true;
   }
 
@@ -3096,9 +3332,9 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return firstHandWeapon;
   }
 
-  public void setFirstHandWeapon(String name) {
-    if (firstHandWeapon != null && firstHandWeapon.equals(name)) return;
-    firstHandWeapon = name;
+  public void setFirstHandWeapon(String weaponName) {
+    if (firstHandWeapon != null && firstHandWeapon.equals(weaponName)) return;
+    firstHandWeapon = weaponName;
     changed = true;
   }
 
@@ -3108,9 +3344,9 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     return secondHandItem;
   }
 
-  public void setSecondHandItem(String name) {
-    if (secondHandItem != null && secondHandItem.equals(name)) return;
-    secondHandItem = name;
+  public void setSecondHandItem(String itemName) {
+    if (secondHandItem != null && secondHandItem.equals(itemName)) return;
+    secondHandItem = itemName;
     changed = true;
   }
 
@@ -3140,15 +3376,15 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     }
   }
 
-  boolean isGrounded = false;
+  boolean mIsGrounded = false;
 
   public boolean isGrounded() {
-    return isGrounded;
+    return mIsGrounded;
   }
 
   public void setGrounded(boolean grounded) {
-    if (isGrounded != grounded) {
-      isGrounded = grounded;
+    if (mIsGrounded != grounded) {
+      mIsGrounded = grounded;
       changed = true;
     }
   }
@@ -3215,6 +3451,34 @@ public class HeroImpl extends Observable<CharacterObserver> implements Hero,
     if (extraMarkers == markers) return;
     extraMarkers = markers;
     changed = true;
+  }
+
+  boolean useAUForFight = false;
+
+  public boolean fightUsesAU() {
+    return useAUForFight;
+  }
+
+  public void setFightUsesAU(boolean useAU) {
+    if (useAUForFight != useAU) {
+      useAUForFight = useAU;
+      changed = true;
+    }
+  }
+
+  int auDifference = 0;
+
+  public void changeAU(int difference) {
+    if (difference != 0) {
+      auDifference += difference;
+      if (energies.get(Energy.AU).currentValue + auDifference < 0) {
+        auDifference = -energies.get(Energy.AU).currentValue;
+      }
+      for (CharacterObserver o : observers) {
+        o.currentEnergyChanged(Energy.AU);
+      }
+      changed = true;
+    }
   }
 
 }

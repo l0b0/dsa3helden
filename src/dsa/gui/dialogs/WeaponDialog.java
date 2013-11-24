@@ -37,7 +37,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JCheckBox;
 
-public class WeaponDialog extends BGDialog {
+public final class WeaponDialog extends BGDialog {
 
   private JPanel jContentPane = null;
 

@@ -50,8 +50,7 @@ public class DiceSpecification implements Cloneable {
   private DiceSpecification() {
   }
 
-  public static DiceSpecification parse(String text)
-      throws NumberFormatException {
+  public static DiceSpecification parse(String text) /*throws NumberFormatException*/ {
     DiceSpecification ds = new DiceSpecification();
     ds.fixedPoints = 0;
     ds.diceSize = 6;
@@ -60,7 +59,7 @@ public class DiceSpecification implements Cloneable {
     while (t.hasMoreTokens()) {
       String subElement = t.nextToken();
       if (subElement.indexOf('W') != -1) {
-        if (subElement.startsWith("W")) {
+        if (subElement.charAt(0) == 'W') {
           subElement = subElement.substring(1);
           ds.nrOfDices = 1;
           if (subElement.indexOf('-') != -1) {

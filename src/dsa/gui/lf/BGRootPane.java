@@ -37,27 +37,29 @@ public class BGRootPane extends JRootPane {
     setOpaque(true);
   }
 
-  private static Image bgImage = null;
+  private static Image bgImage = createBGImage();
+  
+  private static Image createBGImage() {
+    javax.swing.ImageIcon icon = new javax.swing.ImageIcon(
+        BGRootPane.class
+            .getResource("/de/javasoft/plaf/synthetica/walnut/images/backarea.png"));
+    return icon.getImage();    
+  }
 
   private static Image getBGImage() {
-    if (bgImage == null) {
-      javax.swing.ImageIcon icon = new javax.swing.ImageIcon(
-          BGRootPane.class
-              .getResource("/de/javasoft/plaf/synthetica/walnut/images/backarea.png"));
-      bgImage = icon.getImage();
-    }
     return bgImage;
   }
 
-  private static Image gripper = null;
+  private static Image gripper = createGripper();
+  
+  private static Image createGripper() {
+    javax.swing.ImageIcon icon = new javax.swing.ImageIcon(
+        BGRootPane.class
+            .getResource("/de/javasoft/plaf/synthetica/walnut/images/resizer.png"));
+    return icon.getImage();
+  }
 
   private static Image getGripper() {
-    if (gripper == null) {
-      javax.swing.ImageIcon icon = new javax.swing.ImageIcon(
-          BGRootPane.class
-              .getResource("/de/javasoft/plaf/synthetica/walnut/images/resizer.png"));
-      gripper = icon.getImage();
-    }
     return gripper;
   }
 

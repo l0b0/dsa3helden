@@ -19,24 +19,19 @@
  */
 package dsa.util;
 
-/**
- * @author joerg
- *
- * To change the template for this generated type comment go to
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
-public class Strings {
+public abstract class AbstractObservable<T extends Observer> {
 
-  public static String cutTo(String s, char ch) {
-    int index = s.indexOf(ch);
-    if (index != -1) {
-      return s.substring(0, index);
-    }
-    else {
-      return s;
-    }
+  protected java.util.LinkedList<T> observers;
+
+  public AbstractObservable() {
+    observers = new java.util.LinkedList<T>();
   }
-  
-  private Strings() {}
 
+  public void addObserver(T observer) {
+    observers.add(observer);
+  }
+
+  public void removeObserver(T observer) {
+    observers.remove(observer);
+  }
 }

@@ -30,6 +30,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Vector;
@@ -85,7 +86,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     super(title);
     setTitle(title);
     this.enableTests = enableTests;
-    talents = new Vector<Talent>();
+    talents = new ArrayList<Talent>();
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) currentHero.addHeroObserver(myCharacterObserver);
     Group.getInstance().addObserver(this);
@@ -112,12 +113,8 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
         }
       }
     });
-    loadSubclassState();
     initialize();
     // pack();
-  }
-
-  protected void loadSubclassState() {
   }
 
   protected void saveSubclassState() {
@@ -125,7 +122,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
 
   private boolean disableChange = false;
 
-  protected class ButtonCellRenderer implements TableCellRenderer {
+  protected static class ButtonCellRenderer implements TableCellRenderer {
     public ButtonCellRenderer(AbstractButton button,
         TableCellRenderer defaultRenderer) {
       mButton = button;
@@ -185,7 +182,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
   }
 
-  protected class NormalCellRenderer extends DefaultTableCellRenderer {
+  protected static class NormalCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
         boolean isSelected, boolean hasFocus, int row, int column) {
       Component comp = super.getTableCellRendererComponent(table, value,
@@ -195,7 +192,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
   }
 
-  private static Color BACKGROUND_GRAY = new Color(238, 238, 238);
+  private static final Color BACKGROUND_GRAY = new Color(238, 238, 238);
 
   protected class FormattedTextFieldCellEditor extends JFormattedTextField
       implements TableCellEditor {
@@ -206,9 +203,13 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
 
     private Object oldObject;
 
-    public int mColumn;
+    private int mColumn;
 
-    public String mTalent;
+    private String mTalent;
+    
+    public String getTalent() {
+      return mTalent;
+    }
 
     public Component getTableCellEditorComponent(JTable table, Object value,
         boolean isSelected, int row, int column) {
@@ -238,6 +239,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
           commitEdit();
         }
         catch (java.text.ParseException e) {
+          return false;
         }
         fireEditingStopped();
       }
@@ -250,11 +252,11 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
 
     protected void fireEditingCanceled() {
-      Object[] listeners = listenerList.getListenerList();
-      for (int i = listeners.length - 2; i >= 0; i -= 2) {
-        if (listeners[i] == CellEditorListener.class) {
+      Object[] listeners1 = listenerList.getListenerList();
+      for (int i = listeners1.length - 2; i >= 0; i -= 2) {
+        if (listeners1[i] == CellEditorListener.class) {
           if (event == null) event = new javax.swing.event.ChangeEvent(this);
-          ((CellEditorListener) listeners[i + 1]).editingCanceled(event);
+          ((CellEditorListener) listeners1[i + 1]).editingCanceled(event);
         }
       }
     }
@@ -277,13 +279,13 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
       listeners.remove(CellEditorListener.class, l);
     }
 
-    private EventListenerList listeners = new EventListenerList();
+    private final EventListenerList listeners = new EventListenerList();
 
     private javax.swing.event.ChangeEvent event = null;
 
   }
 
-  protected class DummyCellEditor implements TableCellEditor {
+  protected static class DummyCellEditor implements TableCellEditor {
 
     public Component getTableCellEditorComponent(JTable table, Object value,
         boolean isSelected, int row, int column) {
@@ -320,13 +322,13 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     return (column == getDefaultValueColumn());
   }
 
-  protected static Optional<Integer> NullInt = new Optional<Integer>();
+  protected static final Optional<Integer> NULL_INT = new Optional<Integer>();
 
   protected Class<?> getColumnClass(int column, Class<?> defaultValue) {
     if (column == getDefaultValueColumn())
-      return NullInt.getClass();
+      return NULL_INT.getClass();
     else if (column == getCurrentValueColumn())
-      return NullInt.getClass();
+      return NULL_INT.getClass();
     else
       return defaultValue;
   }
@@ -446,6 +448,10 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
   protected final void reupdateData() {
     updateData();
   }
+  
+  protected final void recreateUI() {
+    createUI();
+  }
 
   /**
    * 
@@ -459,10 +465,10 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
       if (!shallDisplay(talents.get(i))) continue;
       String talentName = talents.get(i).getName();
       if (currentHero != null && currentHero.hasTalent(talentName)) {
-        mModel.setValueAt(new Optional<Integer>(new Integer(currentHero
+        mModel.setValueAt(new Optional<Integer>(Integer.valueOf(currentHero
             .getDefaultTalentValue(talentName))), displayIndex,
             getDefaultValueColumn());
-        mModel.setValueAt(new Optional<Integer>(new Integer(currentHero
+        mModel.setValueAt(new Optional<Integer>(Integer.valueOf(currentHero
             .getCurrentTalentValue(talentName))), displayIndex,
             getCurrentValueColumn());
         boolean locked = ((Boolean) mModel.getValueAt(displayIndex,
@@ -473,12 +479,12 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
         }
         boolean canIncrease = locked || Group.getInstance().getGlobalUnlock()
             || (currentHero.getTalentIncreaseTries(talentName) > 0);
-        mModel.setValueAt(new Boolean(canIncrease), displayIndex,
+        mModel.setValueAt(canIncrease, displayIndex,
             getIncrColumn());
       }
       else {
-        mModel.setValueAt(NullInt, displayIndex, getDefaultValueColumn());
-        mModel.setValueAt(NullInt, displayIndex, getCurrentValueColumn());
+        mModel.setValueAt(NULL_INT, displayIndex, getDefaultValueColumn());
+        mModel.setValueAt(NULL_INT, displayIndex, getCurrentValueColumn());
         mModel.setValueAt(Boolean.FALSE, displayIndex, getLockColumn());
         boolean canIncrease = (currentHero != null)
             && canIncreaseUnknownTalents()
@@ -528,7 +534,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
    * 
    * 
    */
-  protected void createUI() {
+  private void createUI() {
     if (mSorter != null && mSorter.isSorting()) {
       saveSortingState();
     }
@@ -588,15 +594,18 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
 
     for (int i = 0; i < talents.size(); ++i) {
       if (!shallDisplay(talents.get(i))) continue;
-      String descr = talents.get(i).getName();
+      StringBuffer descr = new StringBuffer(talents.get(i).getName());
       if (enableTests && talents.get(i).canBeTested()) {
-        descr += " (";
+        descr.append(" (");
         NormalTalent normalTalent = (NormalTalent) talents.get(i);
-        descr += normalTalent.getFirstProperty() + "/"
-            + normalTalent.getSecondProperty() + "/"
-            + normalTalent.getThirdProperty() + ")";
+        descr.append(normalTalent.getFirstProperty());
+        descr.append('/');
+        descr.append(normalTalent.getSecondProperty());
+        descr.append('/');
+        descr.append(normalTalent.getThirdProperty());
+        descr.append(')');
       }
-      mModel.addRow(new Object[] { descr });
+      mModel.addRow(new Object[] { descr.toString() });
       mModel.setValueAt(Boolean.FALSE, mModel.getRowCount() - 1,
           getLockColumn());
       initSubclassSpecificData(mModel, i);
@@ -625,7 +634,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
       mTable.setSelectionForeground(Colors.getSelectedForeground());
       mTable.setSelectionBackground(Colors.getSelectedBackground());
       mTable.setDefaultRenderer(Object.class, new NormalCellRenderer());
-      mTable.setDefaultRenderer(Optional.NullInt.getClass(),
+      mTable.setDefaultRenderer(Optional.NULL_INT.getClass(),
           new NormalCellRenderer());
     }
     mScrollPane = new JScrollPane(mTable);
@@ -650,7 +659,7 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     mSorter.restoreState(this.getTitle(), prefs);
   }
 
-  protected void saveSortingState() {
+  protected final void saveSortingState() {
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
         .userNodeForPackage(dsa.gui.PackageID.class);
     mSorter.saveState(this.getTitle(), prefs);
@@ -679,13 +688,13 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     public void actionPerformed(ActionEvent e) {
       boolean wasEnabled = ((Boolean) mSorter.getValueAt(mButtonClickedRow,
           getLockColumn())).booleanValue();
-      mSorter.setValueAt(new Boolean(!wasEnabled), mButtonClickedRow,
+      mSorter.setValueAt(!wasEnabled, mButtonClickedRow,
           getLockColumn());
-      mSorter.setValueAt(new Boolean(!wasEnabled
+      mSorter.setValueAt(!wasEnabled
           || Group.getInstance().getGlobalUnlock()
           || ((currentHero != null) && currentHero
               .getTalentIncreaseTries((String) mSorter.getValueAt(
-                  mButtonClickedRow, getNameDummyColumn())) > 0)),
+                  mButtonClickedRow, getNameDummyColumn())) > 0),
           mButtonClickedRow, getIncrColumn());
       for (int column = 0; column < mTable.getColumnCount(); ++column)
         if (isLockedColumn(column))
@@ -785,15 +794,23 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
     return jContentPane;
   }
+  
+  protected boolean isTalentRelevant(String talent) {
+    return false;
+  }
 
   protected Hero currentHero = null;
 
-  protected Vector<Talent> talents;
+  protected ArrayList<Talent> talents;
 
   protected CharacterObserver myCharacterObserver = new MyCharacterObserver();
 
   private class MyCharacterObserver extends CharacterAdapter {
     public void defaultTalentChanged(String talent) {
+      if (isTalentRelevant(talent)) {
+        TalentFrame.this.updateData();
+        return;
+      }
       for (Talent test : talents)
         if (test.getName().equals(talent)) {
           TalentFrame.this.updateData();
@@ -802,6 +819,10 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
 
     public void currentTalentChanged(String talent) {
+      if (isTalentRelevant(talent)) {
+        TalentFrame.this.updateData();
+        return;
+      }
       for (Talent test : talents)
         if (test.getName().equals(talent)) {
           TalentFrame.this.updateData();
@@ -810,6 +831,10 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
 
     public void talentAdded(String talent) {
+      if (isTalentRelevant(talent)) {
+        TalentFrame.this.createUI();
+        return;
+      }
       for (Talent test : Talents.getInstance().getTalentsInCategory(getTitle())) {
         if (test.getName().equals(talent)) {
           TalentFrame.this.createUI();
@@ -819,6 +844,10 @@ public class TalentFrame extends SubFrame implements CharactersObserver {
     }
 
     public void talentRemoved(String talent) {
+      if (isTalentRelevant(talent)) {
+        TalentFrame.this.createUI();
+        return;
+      }
       for (Talent test : talents)
         if (test.getName().equals(talent)) {
           TalentFrame.this.createUI();

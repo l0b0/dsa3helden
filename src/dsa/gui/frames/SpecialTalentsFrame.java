@@ -50,7 +50,7 @@ public class SpecialTalentsFrame extends TalentFrame {
       newCharacter.addHeroObserver(myCharacterObserver);
     if (oldCharacter != null)
       oldCharacter.removeHeroObserver(myCharacterObserver);
-    createUI();
+    recreateUI();
   }
 
   protected boolean shallDisplay(Talent talent) {
@@ -108,12 +108,12 @@ public class SpecialTalentsFrame extends TalentFrame {
     dialog.setModal(true);
     dialog.setLocationRelativeTo(this);
     dialog.setVisible(true);
-    if (dialog.WasClosedByOK() && !currentHero.hasTalent(dialog.GetTalent())) {
-      currentHero.addTalent(dialog.GetTalent());
-      currentHero.setDefaultTalentValue(dialog.GetTalent(), 3);
-      currentHero.setCurrentTalentValue(dialog.GetTalent(), 3);
+    if (dialog.wasClosedByOK() && !currentHero.hasTalent(dialog.getTalent())) {
+      currentHero.addTalent(dialog.getTalent());
+      currentHero.setDefaultTalentValue(dialog.getTalent(), 3);
+      currentHero.setCurrentTalentValue(dialog.getTalent(), 3);
     }
-    else if (dialog.WasClosedByOK()) createUI();
+    else if (dialog.wasClosedByOK()) recreateUI();
   }
 
   private JButton getRemoveButton() {

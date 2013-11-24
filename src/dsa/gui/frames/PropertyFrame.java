@@ -32,7 +32,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
@@ -56,11 +56,11 @@ import dsa.model.characters.Property;
 /**
  * 
  */
-public class PropertyFrame extends SubFrame implements CharactersObserver {
+public final class PropertyFrame extends SubFrame implements CharactersObserver {
 
   private javax.swing.JPanel jContentPane = null;
 
-  private boolean goodProperties;
+  private final boolean goodProperties;
 
   /**
    * This is the default constructor
@@ -69,14 +69,14 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
     super(title);
     setTitle(title);
     this.goodProperties = goodProperties;
-    properties = new Vector<Property>();
-    defaultValues = new Vector<JFormattedTextField>();
-    currentValues = new Vector<JFormattedTextField>();
-    locks = new Vector<JToggleButton>();
-    tests = new Vector<JButton>();
+    properties = new ArrayList<Property>();
+    defaultValues = new ArrayList<JFormattedTextField>();
+    currentValues = new ArrayList<JFormattedTextField>();
+    locks = new ArrayList<JToggleButton>();
+    tests = new ArrayList<JButton>();
     // testAlls = new Vector<JButton>();
-    increases = new Vector<JButton>();
-    propertyDescriptions = new Vector<JLabel>();
+    increases = new ArrayList<JButton>();
+    propertyDescriptions = new ArrayList<JLabel>();
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) currentHero.addHeroObserver(myCharacterObserver);
     Group.getInstance().addObserver(this);
@@ -115,9 +115,9 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
     for (int i = 0; i < properties.size(); ++i) {
       if (currentHero != null) {
         defaultValues.get(displayIndex).setValue(
-            new Integer(currentHero.getDefaultProperty(properties.get(i))));
+            Integer.valueOf(currentHero.getDefaultProperty(properties.get(i))));
         currentValues.get(displayIndex).setValue(
-            new Integer(currentHero.getCurrentProperty(properties.get(i))));
+            Integer.valueOf(currentHero.getCurrentProperty(properties.get(i))));
         locks.get(displayIndex).setEnabled(true);
         // locks.get(i).setSelected(false);
         boolean locked = locks.get(displayIndex).isSelected();
@@ -252,7 +252,7 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
           new NumberFormatter(NumberFormat.getIntegerInstance()));
       // defaultValue.setColumns(3);
       defaultValue.setPreferredSize(new Dimension(25, lineHeight));
-      defaultValue.setValue(new Integer(0));
+      defaultValue.setValue(Integer.valueOf(0));
       defaultValues.add(defaultValue);
       layout.setConstraints(defaultValue, c);
       propertiesPanel.add(defaultValue);
@@ -261,7 +261,7 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
           new NumberFormatter(NumberFormat.getIntegerInstance()));
       // currentValue.setColumns(3);
       currentValue.setPreferredSize(new Dimension(25, lineHeight));
-      currentValue.setValue(new Integer(0));
+      currentValue.setValue(Integer.valueOf(0));
       currentValues.add(currentValue);
       layout.setConstraints(currentValue, c);
       propertiesPanel.add(currentValue);
@@ -335,8 +335,8 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
   }
 
   private class Locker implements ActionListener {
-    public Locker(Property property, Component talentValue, Component increaser) {
-      c1 = (JTextField) talentValue;
+    public Locker(Property property, JTextField talentValue, Component increaser) {
+      c1 = talentValue;
       c2 = increaser;
       this.property = property;
     }
@@ -357,11 +357,11 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
       }
     }
 
-    private JTextField c1;
+    private final JTextField c1;
 
-    private Component c2;
+    private final Component c2;
 
-    private Property property;
+    private final Property property;
   };
 
   private class PropertyChanger implements PropertyChangeListener {
@@ -408,7 +408,7 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
   private class Increaser implements ActionListener {
     public Increaser(Property property, JButton button, JToggleButton lock) {
       this.property = property;
-      this.button = button;
+      // this.button = button;
       this.lock = lock;
     }
 
@@ -436,7 +436,7 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
 
     private Property property;
 
-    private JButton button;
+    // private JButton button;
 
     private JToggleButton lock;
   };
@@ -464,24 +464,24 @@ public class PropertyFrame extends SubFrame implements CharactersObserver {
     return jContentPane;
   }
 
-  protected Hero currentHero = null;
+  private Hero currentHero = null;
 
-  private Vector<Property> properties;
+  private ArrayList<Property> properties;
 
-  private Vector<JLabel> propertyDescriptions;
+  private ArrayList<JLabel> propertyDescriptions;
 
-  private Vector<JFormattedTextField> defaultValues;
+  private ArrayList<JFormattedTextField> defaultValues;
 
-  private Vector<JFormattedTextField> currentValues;
+  private ArrayList<JFormattedTextField> currentValues;
 
-  private Vector<JToggleButton> locks;
+  private ArrayList<JToggleButton> locks;
 
-  private Vector<JButton> tests;
+  private ArrayList<JButton> tests;
 
   // private Vector<JButton> testAlls;
-  private Vector<JButton> increases;
+  private ArrayList<JButton> increases;
 
-  protected CharacterObserver myCharacterObserver = new MyCharacterObserver();
+  private CharacterObserver myCharacterObserver = new MyCharacterObserver();
 
   private class MyCharacterObserver extends CharacterAdapter {
     /*

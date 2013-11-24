@@ -38,7 +38,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.text.NumberFormatter;
 
 import dsa.gui.dialogs.SpellSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
@@ -46,10 +46,11 @@ import dsa.model.talents.Spell;
 import dsa.model.talents.Talent;
 import dsa.util.Optional;
 
-public class SpellFrame extends TalentFrame {
+public final class SpellFrame extends TalentFrame {
 
   public SpellFrame(String title) {
     super(title, true);
+    loadSubclassState();
   }
 
   protected boolean isColumnEditable(int column) {
@@ -105,18 +106,18 @@ public class SpellFrame extends TalentFrame {
 
   protected Class<?> getColumnClass(int column, Class<?> defaultValue) {
     if (column == getIncrCountColumn())
-      return NullInt.getClass();
+      return NULL_INT.getClass();
     else
       return super.getColumnClass(column, defaultValue);
   }
 
   protected void initSubclassSpecificData(DefaultTableModel model, int i) {
-    Talent talent = this.talents.elementAt(i);
+    Talent talent = this.talents.get(i);
     int displayIndex = model.getRowCount() - 1;
     if (!talent.isSpell()) {
       model.setValueAt("-", displayIndex, getCategoryColumn());
       model.setValueAt("-", displayIndex, getOriginColumn());
-      model.setValueAt(NullInt, displayIndex, getIncrCountColumn());
+      model.setValueAt(NULL_INT, displayIndex, getIncrCountColumn());
     }
     else {
       Spell spell = (Spell) talent;
@@ -150,7 +151,7 @@ public class SpellFrame extends TalentFrame {
       FormattedTextFieldCellEditor editor = (FormattedTextFieldCellEditor) e
           .getSource();
       if (currentHero != null) {
-        String talent = editor.mTalent;
+        String talent = editor.getTalent();
         Number number = (Number) editor.getValue();
         currentHero.setTalentIncreaseTriesPerStep(talent, number.intValue());
       }
@@ -183,7 +184,7 @@ public class SpellFrame extends TalentFrame {
     mCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         displayUnknownSpells = mCheckbox.isSelected();
-        createUI();
+        recreateUI();
       }
     });
     mCheckbox.setBounds(5, 5, 250, 18);
@@ -238,14 +239,14 @@ public class SpellFrame extends TalentFrame {
       this.dialog = dialog;
     }
 
-    public void ItemSelected(String item) {
+    public void itemSelected(String item) {
       currentHero.addTalent(item);
       currentHero.setDefaultTalentValue(item, -6);
       currentHero.setCurrentTalentValue(item, -6);
       dialog.updateTable();
     }
 
-    private SpellSelectionDialog dialog;
+    private final SpellSelectionDialog dialog;
   }
 
   protected void addSpell() {
@@ -291,7 +292,7 @@ public class SpellFrame extends TalentFrame {
     else if (currentHero == null)
       return false;
     else
-      return (currentHero.hasTalent(talent.getName()));
+      return currentHero.hasTalent(talent.getName());
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
@@ -303,7 +304,7 @@ public class SpellFrame extends TalentFrame {
         newCharacter.addHeroObserver(myCharacterObserver);
       if (oldCharacter != null)
         oldCharacter.removeHeroObserver(myCharacterObserver);
-      createUI();
+      recreateUI();
     }
   }
 

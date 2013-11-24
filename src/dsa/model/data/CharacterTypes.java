@@ -24,16 +24,17 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
 
 public class CharacterTypes {
 
-  private static CharacterTypes instance = null;
+  private static CharacterTypes instance = new CharacterTypes();
 
   public static CharacterTypes getInstance() {
-    if (instance == null) {
-      instance = new CharacterTypes();
-    }
     return instance;
   }
 
@@ -43,8 +44,7 @@ public class CharacterTypes {
 
   public TreeModel getAllTypes(boolean female) {
     TreeNode root = createTree(female ? femaleRoot : maleRoot);
-    DefaultTreeModel model = new DefaultTreeModel(root, true);
-    return model;
+    return new DefaultTreeModel(root, true);
   }
 
   private MutableTreeNode createTree(Node node) {
@@ -64,7 +64,7 @@ public class CharacterTypes {
   }
 
   private static class Node {
-    private String name;
+    private final String name;
 
     public String getName() {
       return name;
@@ -80,7 +80,7 @@ public class CharacterTypes {
       super(name);
     }
 
-    private java.util.ArrayList<Node> subNodes = new java.util.ArrayList<Node>();
+    private final java.util.ArrayList<Node> subNodes = new java.util.ArrayList<Node>();
 
     public void addNode(Node node) {
       subNodes.add(node);
@@ -115,7 +115,7 @@ public class CharacterTypes {
   }
 
   private class Type extends Node {
-    private CharacterType type;
+    private final CharacterType type;
 
     public CharacterType getType() {
       return type;

@@ -23,7 +23,6 @@ import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -43,30 +42,27 @@ public class NameSelectionDialog extends BGDialog {
 
   private NameSelectionPanel panel = null;
 
-  public NameSelectionDialog() throws HeadlessException {
+  public NameSelectionDialog() {
     super();
     initialize();
   }
 
-  public NameSelectionDialog(Frame owner) throws HeadlessException {
+  public NameSelectionDialog(Frame owner) {
     super(owner);
     initialize();
   }
 
-  public NameSelectionDialog(Frame owner, boolean modal)
-      throws HeadlessException {
+  public NameSelectionDialog(Frame owner, boolean modal) {
     super(owner, modal);
     initialize();
   }
 
-  public NameSelectionDialog(Frame owner, String title)
-      throws HeadlessException {
+  public NameSelectionDialog(Frame owner, String title) {
     super(owner, title);
     initialize();
   }
 
-  public NameSelectionDialog(Frame owner, String title, boolean modal)
-      throws HeadlessException {
+  public NameSelectionDialog(Frame owner, String title, boolean modal) {
     super(owner, title, modal);
     initialize();
   }
@@ -77,31 +73,28 @@ public class NameSelectionDialog extends BGDialog {
     initialize();
   }
 
-  public NameSelectionDialog(Dialog owner) throws HeadlessException {
+  public NameSelectionDialog(Dialog owner) {
     super(owner);
     initialize();
   }
 
-  public NameSelectionDialog(Dialog owner, boolean modal)
-      throws HeadlessException {
+  public NameSelectionDialog(Dialog owner, boolean modal) {
     super(owner, modal);
     initialize();
   }
 
-  public NameSelectionDialog(Dialog owner, String title)
-      throws HeadlessException {
+  public NameSelectionDialog(Dialog owner, String title) {
     super(owner, title);
     initialize();
   }
 
-  public NameSelectionDialog(Dialog owner, String title, boolean modal)
-      throws HeadlessException {
+  public NameSelectionDialog(Dialog owner, String title, boolean modal) {
     super(owner, title, modal);
     initialize();
   }
 
   public NameSelectionDialog(Dialog owner, String title, boolean modal,
-      GraphicsConfiguration gc) throws HeadlessException {
+      GraphicsConfiguration gc) {
     super(owner, title, modal, gc);
     initialize();
   }
@@ -117,8 +110,8 @@ public class NameSelectionDialog extends BGDialog {
     this.setContentPane(getJContentPane());
   }
 
-  public void setCharacterName(String name) {
-    getPanel().setCharacterName(name);
+  public void setCharacterName(String aName) {
+    getPanel().setCharacterName(aName);
   }
 
   public String getCharacterName() {
@@ -135,8 +128,8 @@ public class NameSelectionDialog extends BGDialog {
     return female;
   }
 
-  public void setSex(boolean female) {
-    getPanel().setSex(female);
+  public void setSex(boolean isFemale) {
+    getPanel().setSex(isFemale);
   }
 
   public String getNativeTongue() {

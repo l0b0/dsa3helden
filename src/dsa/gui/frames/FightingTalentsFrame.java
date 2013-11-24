@@ -88,9 +88,9 @@ public class FightingTalentsFrame extends TalentFrame {
 
   protected Class<?> getColumnClass(int column, Class<?> defaultValue) {
     if (column == getATColumn())
-      return NullInt.getClass();
+      return NULL_INT.getClass();
     else if (column == getPAColumn())
-      return NullInt.getClass();
+      return NULL_INT.getClass();
     else if (column == getATIncrColumn())
       return Boolean.class;
     else if (column == getPAIncrColumn())
@@ -124,10 +124,10 @@ public class FightingTalentsFrame extends TalentFrame {
 
   protected void updateSubclassSpecificData(DefaultTableModel model, int i,
       int displayIndex) {
-    Talent talent = this.talents.elementAt(i);
+    Talent talent = this.talents.get(i);
     if ((currentHero == null) || !talent.isFightingTalent()) {
-      model.setValueAt(NullInt, displayIndex, getATColumn());
-      model.setValueAt(NullInt, displayIndex, getPAColumn());
+      model.setValueAt(NULL_INT, displayIndex, getATColumn());
+      model.setValueAt(NULL_INT, displayIndex, getPAColumn());
       model.setValueAt(Boolean.FALSE, displayIndex, getATIncrColumn());
       model.setValueAt(Boolean.FALSE, displayIndex, getPAIncrColumn());
     }
@@ -135,7 +135,7 @@ public class FightingTalentsFrame extends TalentFrame {
       int at = currentHero.getCurrentDerivedValue(Hero.DerivedValue.FK)
           + currentHero.getCurrentTalentValue(talent.getName());
       model.setValueAt(new Optional<Integer>(at), displayIndex, getATColumn());
-      model.setValueAt(NullInt, displayIndex, getPAColumn());
+      model.setValueAt(NULL_INT, displayIndex, getPAColumn());
       model.setValueAt(Boolean.FALSE, displayIndex, getATIncrColumn());
       model.setValueAt(Boolean.FALSE, displayIndex, getPAIncrColumn());
     }
@@ -174,7 +174,7 @@ public class FightingTalentsFrame extends TalentFrame {
       reupdateData();
     }
 
-    private boolean mToAT;
+    private final boolean mToAT;
   }
 
   protected void addSubclassSpecificColumns(DefaultTableColumnModel tcm) {

@@ -22,7 +22,6 @@ package dsa.gui.lf;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
-import java.awt.HeadlessException;
 
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
@@ -30,26 +29,26 @@ import javax.swing.UIManager;
 
 public class BGDialog extends JDialog {
 
-  public BGDialog() throws HeadlessException {
+  public BGDialog() {
     super();
     // TODO Auto-generated constructor stub
   }
 
-  public BGDialog(Frame owner) throws HeadlessException {
+  public BGDialog(Frame owner) {
     super(owner);
     // TODO Auto-generated constructor stub
   }
 
-  public BGDialog(Frame owner, boolean modal) throws HeadlessException {
+  public BGDialog(Frame owner, boolean modal)  {
     super(owner, modal);
   }
 
-  public BGDialog(Frame owner, String title) throws HeadlessException {
+  public BGDialog(Frame owner, String title)  {
     super(owner, title);
   }
 
   public BGDialog(Frame owner, String title, boolean modal)
-      throws HeadlessException {
+       {
     super(owner, title, modal);
   }
 
@@ -58,25 +57,25 @@ public class BGDialog extends JDialog {
     super(owner, title, modal, gc);
   }
 
-  public BGDialog(Dialog owner) throws HeadlessException {
+  public BGDialog(Dialog owner)  {
     super(owner);
   }
 
-  public BGDialog(Dialog owner, boolean modal) throws HeadlessException {
+  public BGDialog(Dialog owner, boolean modal)  {
     super(owner, modal);
   }
 
-  public BGDialog(Dialog owner, String title) throws HeadlessException {
+  public BGDialog(Dialog owner, String title)  {
     super(owner, title);
   }
 
   public BGDialog(Dialog owner, String title, boolean modal)
-      throws HeadlessException {
+       {
     super(owner, title, modal);
   }
 
   public BGDialog(Dialog owner, String title, boolean modal,
-      GraphicsConfiguration gc) throws HeadlessException {
+      GraphicsConfiguration gc)  {
     super(owner, title, modal, gc);
   }
 

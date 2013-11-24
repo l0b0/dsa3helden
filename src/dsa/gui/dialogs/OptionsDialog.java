@@ -45,7 +45,17 @@ import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
-public class OptionsDialog extends BGDialog {
+public final class OptionsDialog extends BGDialog {
+
+  private static final class ZipFileFilter extends FileFilter {
+    public boolean accept(File f) {
+      return f.getName().endsWith(".zip") || f.isDirectory();
+    }
+
+    public String getDescription() {
+      return "Skins (*.zip)";
+    }
+  }
 
   private JPanel jContentPane = null;
 
@@ -179,76 +189,67 @@ public class OptionsDialog extends BGDialog {
   }
 
   protected boolean savePreferences() {
-    try {
-      String lf = lfBox.getSelectedItem().toString();
-      if (lf.startsWith("Skin")) {
-        String name = skinField.getText();
-        if (name == null || name.equals("")) {
-          javax.swing.JOptionPane.showMessageDialog(this,
-              "Bitte ein Skin auswählen.", "Fehler",
-              javax.swing.JOptionPane.ERROR_MESSAGE);
-          return false;
-        }
-        LookAndFeels.setLookAndFeel(lf, name);
+    String lf = lfBox.getSelectedItem().toString();
+    if (lf.startsWith("Skin")) {
+      String name = skinField.getText();
+      if (name == null || name.equals("")) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+            "Bitte ein Skin auswählen.", "Fehler",
+            javax.swing.JOptionPane.ERROR_MESSAGE);
+        return false;
       }
-      else {
-        LookAndFeels.setLookAndFeel(lf);
-      }
-      Preferences prefs = Preferences.userNodeForPackage(PackageID.class);
-      prefs.putBoolean("BringWindowsToTop", fgBox.isSelected());
+      LookAndFeels.setLookAndFeel(lf, name);
+    }
+    else {
+      LookAndFeels.setLookAndFeel(lf);
+    }
+    Preferences prefs = Preferences.userNodeForPackage(PackageID.class);
+    prefs.putBoolean("BringWindowsToTop", fgBox.isSelected());
 
-      GroupOptions options = Group.getInstance().getOptions();
-      boolean changed = false;
-      changed = changed
-          || leftHandBox.isSelected() != options.isEarlyTwoHanded();
-      changed = changed
-          || aeBox.isSelected() != options.hasFastAERegeneration();
-      changed = changed
-          || fullStepBox.isSelected() != options.hasFullFirstStep();
-      changed = changed || markersBox.isSelected() != options.hasQvatMarkers();
-      changed = changed || paBasisBox.isSelected() != options.hasQvatPABasis();
-      changed = changed || koBox.isSelected() != options.hasQvatStunned();
-      changed = changed
-          || heavyClothesBox.isSelected() == options.hasHeavyClothes();
-      changed = changed || twohwBox.isSelected() != options.hasHard2HWeapons();
-      if (!changed) return true;
-      String[] values = { "Diese Gruppe", "Neu erstellte Gruppen",
-          "Diese Gruppe und neu erstellte Gruppen" };
-      Object result = JOptionPane.showInputDialog(this,
-          "Die Regeln speichern für ...", "Optionen",
-          JOptionPane.QUESTION_MESSAGE, null, values, values[0]);
-      if (result == values[0] || result == values[2]) {
-        options.setEarlyTwoHanded(leftHandBox.isSelected());
-        options.setFastAERegeneration(aeBox.isSelected());
-        options.setFullFirstStep(fullStepBox.isSelected());
-        options.setQvatMarkers(markersBox.isSelected());
-        options.setQvatPABasis(paBasisBox.isSelected());
-        options.setQvatStunned(koBox.isSelected());
-        options.setHeavyClothes(!heavyClothesBox.isSelected());
-        options.setHard2HWeapons(twohwBox.isSelected());
-        dsa.gui.util.OptionsChange.fireOptionsChanged();
-      }
-      if (result == values[1] || result == values[2]) {
-        prefs.putBoolean("EarlyLeftHanded", leftHandBox.isSelected());
-        prefs.putBoolean("HighAERegeneration", aeBox.isSelected());
-        prefs.putBoolean("QvatUseKO", koBox.isSelected());
-        prefs.putBoolean("HeavyClothes", !heavyClothesBox.isSelected());
-        prefs.putBoolean("Hard2HWeapons", twohwBox.isSelected());
-        Preferences.userNodeForPackage(Markers.class).putBoolean(
-            "QvatUseMarkers", markersBox.isSelected());
-        prefs = Preferences.userRoot().node("dsa/data/impl");
-        prefs.putBoolean("FullFirstStep", fullStepBox.isSelected());
-        prefs.putBoolean("QvatPaBasis", paBasisBox.isSelected());
-      }
-      return result != null;
+    GroupOptions options = Group.getInstance().getOptions();
+    boolean changed = false;
+    changed = changed
+        || leftHandBox.isSelected() != options.isEarlyTwoHanded();
+    changed = changed
+        || aeBox.isSelected() != options.hasFastAERegeneration();
+    changed = changed
+        || fullStepBox.isSelected() != options.hasFullFirstStep();
+    changed = changed || markersBox.isSelected() != options.hasQvatMarkers();
+    changed = changed || paBasisBox.isSelected() != options.hasQvatPABasis();
+    changed = changed || koBox.isSelected() != options.hasQvatStunned();
+    changed = changed
+        || heavyClothesBox.isSelected() == options.hasHeavyClothes();
+    changed = changed || twohwBox.isSelected() != options.hasHard2HWeapons();
+    if (!changed) return true;
+    String[] values = { "Diese Gruppe", "Neu erstellte Gruppen",
+        "Diese Gruppe und neu erstellte Gruppen" };
+    Object result = JOptionPane.showInputDialog(this,
+        "Die Regeln speichern für ...", "Optionen",
+        JOptionPane.QUESTION_MESSAGE, null, values, values[0]);
+    if (result == values[0] || result == values[2]) {
+      options.setEarlyTwoHanded(leftHandBox.isSelected());
+      options.setFastAERegeneration(aeBox.isSelected());
+      options.setFullFirstStep(fullStepBox.isSelected());
+      options.setQvatMarkers(markersBox.isSelected());
+      options.setQvatPABasis(paBasisBox.isSelected());
+      options.setQvatStunned(koBox.isSelected());
+      options.setHeavyClothes(!heavyClothesBox.isSelected());
+      options.setHard2HWeapons(twohwBox.isSelected());
+      dsa.gui.util.OptionsChange.fireOptionsChanged();
     }
-    catch (Exception e) {
-      e.printStackTrace();
-      javax.swing.JOptionPane.showMessageDialog(this,
-          "Das Look & Feel konnte nicht gewählt werden:\n" + e.getMessage(),
-          "Fehler", javax.swing.JOptionPane.ERROR_MESSAGE);
-      return false;
+    if (result == values[1] || result == values[2]) {
+      prefs.putBoolean("EarlyLeftHanded", leftHandBox.isSelected());
+      prefs.putBoolean("HighAERegeneration", aeBox.isSelected());
+      prefs.putBoolean("QvatUseKO", koBox.isSelected());
+      prefs.putBoolean("HeavyClothes", !heavyClothesBox.isSelected());
+      prefs.putBoolean("Hard2HWeapons", twohwBox.isSelected());
+      Preferences.userNodeForPackage(Markers.class).putBoolean(
+          "QvatUseMarkers", markersBox.isSelected());
+      prefs = Preferences.userRoot().node("dsa/data/impl");
+      prefs.putBoolean("FullFirstStep", fullStepBox.isSelected());
+      prefs.putBoolean("QvatPaBasis", paBasisBox.isSelected());
     }
+    return result != null;
   }
 
   private void updateData() {
@@ -413,15 +414,7 @@ public class OptionsDialog extends BGDialog {
         chooser.setCurrentDirectory(f2);
       }
     }
-    chooser.addChoosableFileFilter(new FileFilter() {
-      public boolean accept(File f) {
-        return f.getName().endsWith(".zip") || f.isDirectory();
-      }
-
-      public String getDescription() {
-        return "Skins (*.zip)";
-      }
-    });
+    chooser.addChoosableFileFilter(new ZipFileFilter());
     chooser.setMultiSelectionEnabled(false);
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
       Directories

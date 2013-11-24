@@ -36,7 +36,7 @@ import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.util.Optional;
 
-public class WeaponsTable extends BasicTable {
+public class WeaponsTable extends AbstractTable {
 
   protected int getNameColumn() {
     return 0;
@@ -66,13 +66,13 @@ public class WeaponsTable extends BasicTable {
     return 6;
   }
 
-  static Optional<Integer> NullInt = Optional.NullInt;
+  static final Optional<Integer> NULL_INT = Optional.NULL_INT;
 
   class MyTableModel extends DefaultTableModel {
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex != getNameColumn() && columnIndex != getTypeColumn()
           && columnIndex != getDamageColumn()) {
-        return NullInt.getClass();
+        return NULL_INT.getClass();
       }
       return super.getColumnClass(columnIndex);
     }
@@ -87,6 +87,7 @@ public class WeaponsTable extends BasicTable {
   boolean hasCount;
 
   public WeaponsTable(boolean withCount) {
+    super();
     hasCount = withCount;
     mModel = new MyTableModel();
     mModel.addColumn("Name");
@@ -125,8 +126,8 @@ public class WeaponsTable extends BasicTable {
     mTable.addMouseListener(new MouseAdapter() {
 
       public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && dcListener != null) {
-          dcListener.actionPerformed(new ActionEvent(this, 0, ""));
+        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
+          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
         }
       }
     });
@@ -168,7 +169,7 @@ public class WeaponsTable extends BasicTable {
         * weapon.getWeight());
     rowData[getTypeColumn()] = Weapons.getCategoryName(weapon.getType());
     if (weapon.getW6damage() == 0 && weapon.getConstDamage() == 0) {
-      rowData[getDamageColumn()] = NullInt;
+      rowData[getDamageColumn()] = NULL_INT;
     }
     else {
       rowData[getDamageColumn()] = weapon.getW6damage() + "W+"
@@ -184,9 +185,9 @@ public class WeaponsTable extends BasicTable {
   public void addUnknownWeapon(String name) {
     Object[] rowData = new Object[6];
     rowData[getNameColumn()] = name;
-    rowData[getBFColumn()] = NullInt;
-    rowData[getKKColumn()] = NullInt;
-    rowData[getWeightColumn()] = NullInt;
+    rowData[getBFColumn()] = NULL_INT;
+    rowData[getKKColumn()] = NULL_INT;
+    rowData[getWeightColumn()] = NULL_INT;
     rowData[getTypeColumn()] = "-";
     rowData[getDamageColumn()] = "-";
     mModel.addRow(rowData);

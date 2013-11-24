@@ -34,10 +34,86 @@ import java.util.prefs.Preferences;
  */
 public class FrameManagement {
 
-  private static FrameManagement instance = null;
+  private final class WindowSnapper extends ComponentAdapter {
+
+    boolean ud, lr;
+
+    boolean doSnap = true;
+
+    private void snap(Component frame, Component other) {
+      if (frame == other) return;
+      int threshold = 10;
+      Rectangle coords = frame.getBounds();
+      Rectangle otherCoords = other.getBounds();
+      // check whether right/left might be snapped
+      if ((coords.y >= otherCoords.y && coords.y <= otherCoords.y
+          + otherCoords.height)
+          || (coords.y + coords.height >= otherCoords.y && coords.y <= otherCoords.y)) {
+        // snap right border
+        if (Math.abs(coords.x + coords.width - otherCoords.x) < threshold) {
+          if (!lr) coords.x = otherCoords.x - coords.width;
+          lr = true;
+        }
+        // snap left border
+        else if (Math.abs(coords.x - (otherCoords.x + otherCoords.width)) < threshold) {
+          if (!lr) coords.x = otherCoords.x + otherCoords.width;
+          lr = true;
+        }
+      }
+      // check whether top/bottom might be snapped
+      if ((coords.x >= otherCoords.x && coords.x <= otherCoords.x
+          + otherCoords.width)
+          || (coords.x <= otherCoords.x && coords.x + coords.width >= otherCoords.x)) {
+        // snap upper border
+        if (Math.abs(coords.y - (otherCoords.y + otherCoords.height)) < threshold) {
+          if (!ud) coords.y = otherCoords.y + otherCoords.height;
+          ud = true;
+        }
+        // snap lower border
+        else if (Math.abs(coords.y + coords.height - otherCoords.y) < threshold) {
+          if (!ud) coords.y = otherCoords.y - coords.height;
+          ud = true;
+        }
+      }
+      frame.setBounds(coords);
+    }
+
+    private void snapComponent(Component c) {
+      lr = false;
+      ud = false;
+      doSnap = false;
+      for (SubFrame other : frames) {
+        snap(c, other);
+      }
+      snap(c, mainFrame);
+      doSnap = true;
+    }
+
+    public void componentMoved(ComponentEvent e) {
+      if (doSnap) {
+        Rectangle oldPos = positions.get(e.getComponent());
+        Rectangle newPos = e.getComponent().getBounds();
+        if (newPos.equals(oldPos)) return;
+        snapComponent(e.getComponent());
+        positions.put(e.getComponent(), e.getComponent().getBounds());
+      }
+    }
+
+    public void componentResized(ComponentEvent e) {
+      // if (doSnap) snapComponent(e.getComponent());
+      positions.put(e.getComponent(), e.getComponent().getBounds());
+    }
+  }
+
+  private static final class ApplicationCloser implements Runnable {
+    public void run() {
+      System.exit(0);
+    }
+  }
+
+  private static FrameManagement instance = new FrameManagement();
 
   public static FrameManagement getInstance() {
-    if (instance == null) instance = new FrameManagement();
     return instance;
   }
 
@@ -46,82 +122,13 @@ public class FrameManagement {
   private FrameManagement() {
     frames = new java.util.LinkedList<SubFrame>();
     positions = new HashMap<Component, Rectangle>();
-
-    windowSnapper = new ComponentAdapter() {
-      boolean ud, lr;
-
-      boolean doSnap = true;
-
-      private void snap(Component frame, Component other) {
-        if (frame == other) return;
-        int threshold = 10;
-        Rectangle coords = frame.getBounds();
-        Rectangle otherCoords = other.getBounds();
-        // check whether right/left might be snapped
-        if ((coords.y >= otherCoords.y && coords.y <= otherCoords.y
-            + otherCoords.height)
-            || (coords.y + coords.height >= otherCoords.y && coords.y <= otherCoords.y)) {
-          // snap right border
-          if (Math.abs(coords.x + coords.width - otherCoords.x) < threshold) {
-            if (!lr) coords.x = otherCoords.x - coords.width;
-            lr = true;
-          }
-          // snap left border
-          else if (Math.abs(coords.x - (otherCoords.x + otherCoords.width)) < threshold) {
-            if (!lr) coords.x = otherCoords.x + otherCoords.width;
-            lr = true;
-          }
-        }
-        // check whether top/bottom might be snapped
-        if ((coords.x >= otherCoords.x && coords.x <= otherCoords.x
-            + otherCoords.width)
-            || (coords.x <= otherCoords.x && coords.x + coords.width >= otherCoords.x)) {
-          // snap upper border
-          if (Math.abs(coords.y - (otherCoords.y + otherCoords.height)) < threshold) {
-            if (!ud) coords.y = otherCoords.y + otherCoords.height;
-            ud = true;
-          }
-          // snap lower border
-          else if (Math.abs(coords.y + coords.height - otherCoords.y) < threshold) {
-            if (!ud) coords.y = otherCoords.y - coords.height;
-            ud = true;
-          }
-        }
-        frame.setBounds(coords);
-      }
-
-      private void snapComponent(Component c) {
-        lr = false;
-        ud = false;
-        doSnap = false;
-        for (SubFrame other : frames) {
-          snap(c, other);
-        }
-        snap(c, mainFrame);
-        doSnap = true;
-      }
-
-      public void componentMoved(ComponentEvent e) {
-        if (doSnap) {
-          Rectangle oldPos = positions.get(e.getComponent());
-          Rectangle newPos = e.getComponent().getBounds();
-          if (newPos.equals(oldPos)) return;
-          snapComponent(e.getComponent());
-          positions.put(e.getComponent(), e.getComponent().getBounds());
-        }
-      }
-
-      public void componentResized(ComponentEvent e) {
-        // if (doSnap) snapComponent(e.getComponent());
-        positions.put(e.getComponent(), e.getComponent().getBounds());
-      }
-    };
+    windowSnapper = new WindowSnapper();
   }
 
-  private java.util.LinkedList<SubFrame> frames;
+  private final java.util.LinkedList<SubFrame> frames;
   private HashMap<Component, Rectangle> positions;
 
-  private ComponentListener windowSnapper;
+  private final ComponentListener windowSnapper;
 
   private boolean isExiting = false;
 
@@ -146,11 +153,7 @@ public class FrameManagement {
         frames.remove(e.getSource());
         positions.remove(e.getComponent());
         if (frames.size() == 0 && isExiting) {
-          javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              System.exit(0);
-            }
-          });
+          javax.swing.SwingUtilities.invokeLater(new ApplicationCloser());
         }
       }
 

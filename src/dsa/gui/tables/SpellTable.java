@@ -34,7 +34,7 @@ import javax.swing.table.TableColumn;
 import dsa.gui.util.TableSorter;
 import dsa.model.talents.Spell;
 
-public class SpellTable extends BasicTable {
+public class SpellTable extends AbstractTable {
 
   @Override
   protected int getNameColumn() {
@@ -49,7 +49,7 @@ public class SpellTable extends BasicTable {
     return 1;
   }
 
-  class MyTableModel extends DefaultTableModel {
+  static class MyTableModel extends DefaultTableModel {
     public boolean isCellEditable(int row, int column) {
       return false;
     }
@@ -82,8 +82,8 @@ public class SpellTable extends BasicTable {
     mTable.addMouseListener(new MouseAdapter() {
 
       public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && dcListener != null) {
-          dcListener.actionPerformed(new ActionEvent(this, 0, ""));
+        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
+          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
         }
       }
     });
@@ -107,5 +107,16 @@ public class SpellTable extends BasicTable {
     rowData[getOriginColumn()] = spell.getOrigin();
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
+  }
+
+  public void removeSelectedSpell() {
+    String selectedSpell = getSelectedItem();
+    for (int i = 0; i < mModel.getRowCount(); ++i) {
+      if (mModel.getValueAt(i, getNameColumn()).equals(selectedSpell)) {
+        mModel.removeRow(i);
+        setSelectedRow((i > 0) ? i - 1 : 0);
+        return;
+      }
+    }
   }
 }

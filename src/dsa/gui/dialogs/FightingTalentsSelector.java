@@ -27,7 +27,11 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import dsa.gui.lf.BGDialog;
 import dsa.model.data.Talents;
@@ -35,7 +39,7 @@ import dsa.model.talents.Talent;
 
 class FightingTalentsSelector extends BGDialog {
 
-  private boolean closedByOK;
+  private boolean wasClosedByOK;
 
   public FightingTalentsSelector(JDialog parent, List<String> preSelection) {
     super(parent);
@@ -44,7 +48,7 @@ class FightingTalentsSelector extends BGDialog {
   }
 
   public boolean closedByOK() {
-    return closedByOK;
+    return wasClosedByOK;
   }
 
   public List<String> getSelectedTalents() {
@@ -62,7 +66,7 @@ class FightingTalentsSelector extends BGDialog {
     okButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         getSelectionStatus();
-        closedByOK = true;
+        wasClosedByOK = true;
         dispose();
       }
     });
@@ -72,7 +76,7 @@ class FightingTalentsSelector extends BGDialog {
     cancelButton.setBounds(120, 5, 100, 25);
     cancelButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        closedByOK = false;
+        wasClosedByOK = false;
         dispose();
       }
     });
@@ -130,7 +134,7 @@ class FightingTalentsSelector extends BGDialog {
     }
   }
 
-  private ArrayList<JCheckBox> checkBoxes = new ArrayList<JCheckBox>();
+  private final ArrayList<JCheckBox> checkBoxes = new ArrayList<JCheckBox>();
 
-  private ArrayList<String> selection = new ArrayList<String>();
+  private final ArrayList<String> selection = new ArrayList<String>();
 }

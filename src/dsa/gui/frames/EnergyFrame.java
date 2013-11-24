@@ -33,7 +33,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
@@ -59,11 +59,9 @@ import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 
-public class EnergyFrame extends SubFrame implements CharactersObserver {
+public final class EnergyFrame extends SubFrame implements CharactersObserver {
 
   private javax.swing.JPanel jContentPane = null;
-
-  private boolean goodProperties;
 
   /**
    * This is the default constructor
@@ -71,13 +69,13 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
   public EnergyFrame(String title) {
     super(title);
     setTitle(title);
-    energies = new Vector<Energy>();
-    defaultValues = new Vector<JFormattedTextField>();
-    currentValues = new Vector<JFormattedTextField>();
-    locks = new Vector<JToggleButton>();
+    energies = new ArrayList<Energy>();
+    defaultValues = new ArrayList<JFormattedTextField>();
+    currentValues = new ArrayList<JFormattedTextField>();
+    locks = new ArrayList<JToggleButton>();
     // testAlls = new Vector<JButton>();
-    increases = new Vector<JButton>();
-    energyDescriptions = new Vector<JLabel>();
+    increases = new ArrayList<JButton>();
+    energyDescriptions = new ArrayList<JLabel>();
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) currentHero.addHeroObserver(myCharacterObserver);
     Group.getInstance().addObserver(this);
@@ -115,9 +113,9 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
     for (int i = 0; i < energies.size() - 2; ++i) {
       if ((currentHero != null) && currentHero.hasEnergy(energies.get(i))) {
         defaultValues.get(i).setValue(
-            new Integer(currentHero.getDefaultEnergy(energies.get(i))));
+            Integer.valueOf(currentHero.getDefaultEnergy(energies.get(i))));
         currentValues.get(i).setValue(
-            new Integer(currentHero.getCurrentEnergy(energies.get(i))));
+            Integer.valueOf(currentHero.getCurrentEnergy(energies.get(i))));
         locks.get(i).setEnabled(true);
         // locks.get(i).setSelected(false);
         boolean locked = locks.get(i).isSelected();
@@ -142,17 +140,19 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
     }
     if ((currentHero != null) && currentHero.hasEnergy(Energy.AU)) {
       defaultValues.get(Energy.AU.ordinal()).setValue(
-          new Integer(currentHero.getDefaultEnergy(Energy.AU)));
+          Integer.valueOf(currentHero.getDefaultEnergy(Energy.AU)));
       currentValues.get(Energy.AU.ordinal()).setValue(
-          new Integer(currentHero.getCurrentEnergy(Energy.AU)));
+          Integer.valueOf(currentHero.getCurrentEnergy(Energy.AU)));
+      currentValues.get(Energy.AU.ordinal()).setEditable(true);
       defaultValues.get(Energy.KO.ordinal()).setValue(
-          new Integer(currentHero.getDefaultEnergy(Energy.KO)));
+          Integer.valueOf(currentHero.getDefaultEnergy(Energy.KO)));
       currentValues.get(Energy.KO.ordinal()).setValue(
-          new Integer(currentHero.getCurrentEnergy(Energy.KO)));
+          Integer.valueOf(currentHero.getCurrentEnergy(Energy.KO)));
     }
     else {
       defaultValues.get(Energy.AU.ordinal()).setText("-");
       currentValues.get(Energy.AU.ordinal()).setText("-");
+      currentValues.get(Energy.AU.ordinal()).setEditable(false);
       defaultValues.get(Energy.KO.ordinal()).setText("-");
       currentValues.get(Energy.KO.ordinal()).setText("-");
     }
@@ -360,6 +360,8 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
     currentValue.setPreferredSize(new Dimension(25, lineHeight));
     // currentValue.setValue(new Integer(0));
     currentValue.setEditable(false);
+    currentValue.addPropertyChangeListener(new EnergyChanger(energies
+        .get(Energy.AU.ordinal()), true));
     currentValues.add(currentValue);
     layout.setConstraints(currentValue, c);
     energiesPanel.add(currentValue);
@@ -454,9 +456,9 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
     return new Dimension(0, 0);
   }
 
-  private class Locker implements ActionListener {
-    public Locker(Energy energy, Component talentValue, Component increaser) {
-      c1 = (javax.swing.JTextField) talentValue;
+  private static class Locker implements ActionListener {
+    public Locker(Energy energy, javax.swing.JTextField talentValue, Component increaser) {
+      c1 = talentValue;
       c2 = increaser;
       this.energy = energy;
     }
@@ -472,15 +474,16 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
         button.setIcon(ImageManager.getIcon("locked"));
       }
       if (energy == Energy.KE) {
-        c2.setEnabled(button.isSelected() || Group.getInstance().getGlobalUnlock());
+        c2.setEnabled(button.isSelected()
+            || Group.getInstance().getGlobalUnlock());
       }
     }
 
-    private javax.swing.JTextField c1;
+    private final javax.swing.JTextField c1;
 
-    private Component c2;
+    private final Component c2;
 
-    private Energy energy;
+    private final Energy energy;
   };
 
   private class EnergyChanger implements PropertyChangeListener {
@@ -493,10 +496,18 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
       if (EnergyFrame.this.disableChange) return;
       if (!evt.getPropertyName().equals("value")) return;
       if (currentHero != null) {
-        if (current)
-          currentHero.setCurrentEnergy(energy,
-              ((Number) ((JFormattedTextField) evt.getSource()).getValue())
-                  .intValue());
+        if (current) {
+          int value = ((Number) ((JFormattedTextField) evt.getSource())
+              .getValue()).intValue();
+          if (energy == Energy.AU) {
+            int oldValue = currentHero.getCurrentEnergy(energy);
+            int diff = value - oldValue;
+            currentHero.changeAU(diff);
+          }
+          else {
+            currentHero.setCurrentEnergy(energy, value);
+          }
+        }
         else
           currentHero.setDefaultEnergy(energy,
               ((Number) ((JFormattedTextField) evt.getSource()).getValue())
@@ -512,8 +523,8 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
   private class Increaser implements ActionListener {
     public Increaser(Energy energy, JButton button, JToggleButton lock) {
       this.energy = energy;
-      this.button = button;
-      this.lock = lock;
+      // this.button = button;
+      // this.lock = lock;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -582,9 +593,9 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
 
     private Energy energy;
 
-    private JButton button;
+    // private JButton button;
 
-    private JToggleButton lock;
+    // private JToggleButton lock;
   };
 
   /**
@@ -610,21 +621,21 @@ public class EnergyFrame extends SubFrame implements CharactersObserver {
     return jContentPane;
   }
 
-  protected Hero currentHero = null;
+  private Hero currentHero = null;
 
-  private Vector<Energy> energies;
+  private ArrayList<Energy> energies;
 
-  private Vector<JLabel> energyDescriptions;
+  private ArrayList<JLabel> energyDescriptions;
 
-  private Vector<JFormattedTextField> defaultValues;
+  private ArrayList<JFormattedTextField> defaultValues;
 
-  private Vector<JFormattedTextField> currentValues;
+  private ArrayList<JFormattedTextField> currentValues;
 
-  private Vector<JToggleButton> locks;
+  private ArrayList<JToggleButton> locks;
 
-  private Vector<JButton> increases;
+  private ArrayList<JButton> increases;
 
-  protected CharacterObserver myCharacterObserver = new MyCharacterObserver();
+  private CharacterObserver myCharacterObserver = new MyCharacterObserver();
 
   private void doKOProbe() {
     ProbeDialog dialog = new ProbeDialog(this, currentHero);

@@ -36,7 +36,7 @@ import dsa.model.data.Animals;
 
 import javax.swing.JTextField;
 
-public class AnimalSelectionDialog extends BGDialog {
+public final class AnimalSelectionDialog extends BGDialog {
 
   private JPanel jContentPane = null;
 
@@ -120,7 +120,7 @@ public class AnimalSelectionDialog extends BGDialog {
 
   boolean listenForRaces = true;
 
-  private static final String[] stepDescriptions = { "ungearbeitet",
+  private static final String[] STEP_DESCRIPTIONS = { "ungearbeitet",
       "unerfahren", "erprobt", "geschult" };
 
   private void fillStepCombo() {
@@ -134,7 +134,7 @@ public class AnimalSelectionDialog extends BGDialog {
     }
     else {
       for (int i = 0; i < steps; ++i) {
-        stepCombo.addItem(stepDescriptions[i]);
+        stepCombo.addItem(STEP_DESCRIPTIONS[i]);
       }
       stepCombo.setEnabled(true);
     }

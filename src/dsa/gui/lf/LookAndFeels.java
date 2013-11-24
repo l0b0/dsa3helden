@@ -35,6 +35,8 @@ import de.javasoft.plaf.synthetica.SyntheticaBlueSteelLookAndFeel;
 import de.javasoft.plaf.synthetica.SyntheticaSilverMoonLookAndFeel;
 
 public class LookAndFeels {
+  
+  private LookAndFeels() {}
 
   public static String[] getLookAndFeels() {
     ArrayList<String> names = new ArrayList<String>();
@@ -54,14 +56,12 @@ public class LookAndFeels {
 
   public static String getCurrentLookAndFeel() {
     Preferences prefs = Preferences.userNodeForPackage(LookAndFeels.class);
-    String choice = prefs.get("lastLookAndFeel", "Default (Walnut)");
-    return choice;
+    return prefs.get("lastLookAndFeel", "Default (Walnut)");
   }
 
   public static String getLastThemePack() {
     Preferences prefs = Preferences.userNodeForPackage(LookAndFeels.class);
-    String themePack = prefs.get("themePack", "themepack.zip");
-    return themePack;
+    return prefs.get("themePack", "themepack.zip");
   }
 
   public static void setLookAndFeel(String choice) {

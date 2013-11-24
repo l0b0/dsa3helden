@@ -19,37 +19,44 @@
  */
 package dsa.model.data;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.TreeMap;
-
-import java.io.*;
 
 public class Armours {
 
-  private static Armours instance;
+  private static Armours instance = new Armours();
 
-  private TreeMap<String, Armour> armours;
+  private final TreeMap<String, Armour> theArmours;
 
   public static Armours getInstance() {
-    if (instance == null) instance = new Armours();
     return instance;
   }
 
   public Armour getArmour(String name) {
-    return armours.containsKey(name) ? armours.get(name) : null;
+    return theArmours.containsKey(name) ? theArmours.get(name) : null;
   }
 
   public void addArmour(Armour armour) {
-    armours.put(armour.getName(), armour);
+    theArmours.put(armour.getName(), armour);
+  }
+  
+  public void removeArmour(String name) {
+    theArmours.remove(name);
   }
 
   public Armour[] getAllArmours() {
-    Armour[] temp = new Armour[armours.size()];
-    return armours.values().toArray(temp);
+    Armour[] temp = new Armour[theArmours.size()];
+    return theArmours.values().toArray(temp);
   }
 
   public void saveUserDefinedArmours(String filename) throws IOException {
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
-    for (Armour armour : armours.values()) {
+    for (Armour armour : theArmours.values()) {
       if (armour.isUserDefined()) {
         out.println(armour.getName());
         out.println(armour.getRS());
@@ -66,61 +73,68 @@ public class Armours {
   }
 
   public void loadFile(String filename) throws IOException {
-    armours.clear();
+    theArmours.clear();
     internalLoadFile(filename, false);
   }
   
   private void internalLoadFile(String filename, boolean userDefined) throws IOException {
     BufferedReader in = new BufferedReader(new FileReader(filename));
-    int lineNr = 0;
-    String line = in.readLine();
-    lineNr++;
-    while (line != null) {
-      String name = line;
-      line = in.readLine();
-      lineNr++; // rs
-      int rs = 1, be = 1;
-      if (line == null) throw new IOException("EOF statt RS!");
-      try {
-        rs = Integer.parseInt(line);
-      }
-      catch (NumberFormatException e) {
-        throw new IOException("Zeile " + lineNr + ": RS keine Zahl!");
-      }
-      if ((rs < 0) || (rs > 20)) {
-        throw new IOException("Zeile " + lineNr + ": RS falsch!");
-      }
-      line = in.readLine();
+    try {
+      int lineNr = 0;
+      String line = in.readLine();
       lineNr++;
-      if (line == null) throw new IOException("EOF statt BE!");
-      try {
-        be = Integer.parseInt(line);
+      while (line != null) {
+        String name = line;
+        line = in.readLine();
+        lineNr++; // rs
+        int rs = 1, be = 1;
+        if (line == null) throw new IOException("EOF statt RS!");
+        try {
+          rs = Integer.parseInt(line);
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Zeile " + lineNr + ": RS keine Zahl!");
+        }
+        if ((rs < 0) || (rs > 20)) {
+          throw new IOException("Zeile " + lineNr + ": RS falsch!");
+        }
+        line = in.readLine();
+        lineNr++;
+        if (line == null) throw new IOException("EOF statt BE!");
+        try {
+          be = Integer.parseInt(line);
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Zeile " + lineNr + ": BE keine Zahl!");
+        }
+        if ((be < 0) || (be > 20)) {
+          throw new IOException("Zeile " + lineNr + ": BE falsch!");
+        }
+        line = in.readLine();
+        lineNr++; // Gewicht
+        if (line == null) throw new IOException("EOF statt Gewicht!");
+        int weight = 0;
+        try {
+          weight = Integer.parseInt(line);
+        }
+        catch (NumberFormatException e) {
+          throw new IOException("Zeile " + lineNr + ": Gewicht keine Zahl!");
+        }
+        Armour armour = new Armour(name, rs, be, weight, userDefined);
+        theArmours.put(name, armour);
+        line = in.readLine();
+        lineNr++;
       }
-      catch (NumberFormatException e) {
-        throw new IOException("Zeile " + lineNr + ": BE keine Zahl!");
+    }
+    finally {
+      if (in != null) {
+        in.close();
       }
-      if ((be < 0) || (be > 20)) {
-        throw new IOException("Zeile " + lineNr + ": BE falsch!");
-      }
-      line = in.readLine();
-      lineNr++; // Gewicht
-      if (line == null) throw new IOException("EOF statt Gewicht!");
-      int weight = 0;
-      try {
-        weight = Integer.parseInt(line);
-      }
-      catch (NumberFormatException e) {
-        throw new IOException("Zeile " + lineNr + ": Gewicht keine Zahl!");
-      }
-      Armour armour = new Armour(name, rs, be, weight);
-      armours.put(name, armour);
-      line = in.readLine();
-      lineNr++;
     }
   }
 
   private Armours() {
-    armours = new TreeMap<String, Armour>();
+    theArmours = new TreeMap<String, Armour>();
   }
 
 }

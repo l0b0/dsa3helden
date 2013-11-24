@@ -28,7 +28,7 @@ public class Language implements Talent, dsa.model.talents.Language {
   public Language(String name, int max, boolean isOld) {
     this.name = name;
     this.max.put("Default", max);
-    this.isOld = isOld;
+    this.mIsOld = isOld;
   }
 
   public boolean canBeTested() {
@@ -51,7 +51,7 @@ public class Language implements Talent, dsa.model.talents.Language {
   }
 
   public boolean isOld() {
-    return isOld;
+    return mIsOld;
   }
 
   public String getName() {
@@ -74,10 +74,10 @@ public class Language implements Talent, dsa.model.talents.Language {
     return 0;
   }
 
-  private String name;
+  private final String name;
 
-  private java.util.HashMap<String, Integer> max = new HashMap<String, Integer>();
+  private final java.util.HashMap<String, Integer> max = new HashMap<String, Integer>();
 
-  private boolean isOld;
+  private final boolean mIsOld;
 
 }

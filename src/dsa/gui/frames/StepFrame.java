@@ -44,7 +44,7 @@ import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 
-public class StepFrame extends SubFrame implements CharactersObserver {
+public final class StepFrame extends SubFrame implements CharactersObserver {
 
   private JPanel jContentPane = null;
 
@@ -348,7 +348,7 @@ public class StepFrame extends SubFrame implements CharactersObserver {
 
   }
 
-  private MyCharacterObserver myCharacterObserver = new MyCharacterObserver();
+  private final MyCharacterObserver myCharacterObserver = new MyCharacterObserver();
 
   private JLabel jLabel4 = null;
 
@@ -386,7 +386,7 @@ public class StepFrame extends SubFrame implements CharactersObserver {
   }
 
   private void updateData() {
-    Hero currentHero = Group.getInstance().getActiveHero();
+    currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) {
       apField.setText("" + currentHero.getAP());
       stepField.setText("" + currentHero.getStep());

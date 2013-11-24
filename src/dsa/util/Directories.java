@@ -23,6 +23,8 @@ import java.io.File;
 import java.util.prefs.Preferences;
 
 public class Directories {
+  
+  private Directories() {}
 
   public static File getLastUsedDirectory(Object o, String key) {
     Preferences prefs = Preferences.userNodeForPackage(o.getClass());
@@ -51,14 +53,14 @@ public class Directories {
         File.pathSeparator);
     while (st.hasMoreTokens()) {
       String s = st.nextToken();
-      String p = s.toLowerCase();
+      String p = s.toLowerCase(java.util.Locale.GERMAN);
       if (p.endsWith("images") || p.endsWith("images" + File.separator)) {
         File file = new File(s);
         file = file.getParentFile();
         return file.getAbsolutePath() + File.separator;
       }
       else if (p.endsWith("heldenverwaltung.jar")) {
-        if (p.equals("heldenverwaltung.jar")) {
+        if ("heldenverwaltung.jar".equals(p)) {
           s = "." + File.separator + "heldenverwaltung.jar";
         }
         File file = new File(s);

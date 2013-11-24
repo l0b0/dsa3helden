@@ -30,12 +30,15 @@ import java.util.Calendar;
  */
 public class Dice {
 
-  private static Random random = null;
+  private static class RandomHolder {
+    static final Random RANDOM = new Random(Calendar.getInstance().getTimeInMillis());
+  }
 
   public static int roll(int max) {
-    if (random == null) {
-      random = new Random(Calendar.getInstance().getTimeInMillis());
-    }
-    return random.nextInt(max) + 1;
+    return RandomHolder.RANDOM.nextInt(max) + 1;
+  }
+  
+  private Dice() {
+    // nothing to do
   }
 }

@@ -29,10 +29,10 @@ import dsa.gui.dialogs.ErrorHandlingDialog;
 
 class ErrorReportStream extends PrintStream {
   
-  public void print(Object o) {
-    super.print(o);
-    if (o instanceof Exception) {
-      ErrorHandlingDialog dialog = new ErrorHandlingDialog((Exception) o);
+  public void print(Object object) {
+    super.print(object);
+    if (object instanceof Exception) {
+      final ErrorHandlingDialog dialog = new ErrorHandlingDialog((Exception) object);
       dialog.setModal(true);
       dialog.setVisible(true);
     }

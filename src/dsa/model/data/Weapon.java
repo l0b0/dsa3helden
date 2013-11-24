@@ -19,7 +19,9 @@
  */
 package dsa.model.data;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import dsa.util.Optional;
 
@@ -96,17 +98,19 @@ public class Weapon implements Cloneable {
   private int[] distances = new int[Distance.values().length];
 
   public void setDistanceMods(int[] distanceMods) {
-    this.distanceMods = distanceMods;
+    this.distanceMods = new int[distanceMods.length];
+    System.arraycopy(distanceMods, 0, this.distanceMods, 0, distanceMods.length);
   }
 
   public void setDistances(int[] distances) {
-    this.distances = distances;
+    this.distances = new int[distances.length];
+    System.arraycopy(distances, 0, this.distances, 0, distances.length);
   }
 
-  private static final int fileVersion = 4;
+  private static final int FILE_VERSION = 4;
 
   public void writeToStream(PrintWriter out) throws IOException {
-    out.println(fileVersion);
+    out.println(FILE_VERSION);
     out.println(name);
     out.println(w6damage);
     out.println(constDamage);
@@ -133,8 +137,7 @@ public class Weapon implements Cloneable {
 
   private int parseInt(String line, int lineNr) throws IOException {
     try {
-      int value = Integer.parseInt(line);
-      return value;
+      return Integer.parseInt(line);
     }
     catch (NumberFormatException e) {
       throw new IOException("Zeile " + lineNr + ": " + line
@@ -146,7 +149,7 @@ public class Weapon implements Cloneable {
     if (s == null) throw new IOException("Unerwartetes Dateiende!");
   }
 
-  private static Optional<Integer> NullInt = Optional.NullInt;
+  private static final Optional<Integer> NULL_INT = Optional.NULL_INT;
 
   public int readFromStream(BufferedReader in, int lineNr) throws IOException {
     String line = in.readLine();
@@ -180,11 +183,11 @@ public class Weapon implements Cloneable {
     line = in.readLine();
     lineNr++;
     testEmpty(line);
-    if (!line.trim().equals("-")) {
+    if (line != null && !line.trim().equals("-")) {
       kkBonus = new Optional<Integer>(parseInt(line, lineNr));
     }
     else
-      kkBonus = NullInt;
+      kkBonus = NULL_INT;
     line = in.readLine();
     lineNr++;
     testEmpty(line);
@@ -194,7 +197,7 @@ public class Weapon implements Cloneable {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      userDefined = line.equals("1");
+      userDefined = "1".equals(line);
     }
     else
       userDefined = false;
@@ -202,7 +205,7 @@ public class Weapon implements Cloneable {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      twoHanded = line.equals("1");
+      twoHanded = "1".equals(line);
     }
     else
       twoHanded = false;
@@ -210,7 +213,7 @@ public class Weapon implements Cloneable {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      projectile = line.equals("1");
+      projectile = "1".equals(line);
       if (projectile) {
         for (int i = 0; i < distances.length; ++i) {
           line = in.readLine();
@@ -247,7 +250,7 @@ public class Weapon implements Cloneable {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-    } while (!line.equals("-- End of Weapon --"));
+    } while (line != null && !line.equals("-- End of Weapon --"));
     if (Weapons.getInstance().getWeapon(name) == null) {
       userDefined = true;
       Weapons.getInstance().addWeapon(this);
@@ -270,15 +273,8 @@ public class Weapon implements Cloneable {
     this.projectile = projectile;
   }
 
-  public Object clone() {
-    Weapon cloned = null;
-    try {
-      cloned = (Weapon) super.clone();
-    }
-    catch (CloneNotSupportedException e) {
-      e.printStackTrace();
-    }
-    return cloned;
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
   }
 
   /**

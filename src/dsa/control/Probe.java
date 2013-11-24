@@ -21,21 +21,24 @@ package dsa.control;
 
 public class Probe {
 
-  public final static int DAEMONENPECH = 1001;
+  public static final int DAEMONENPECH = 1001;
 
-  public final static int PATZER = 1002;
+  public static final int PATZER = 1002;
 
-  public final static int FEHLSCHLAG = 1003;
+  public static final int FEHLSCHLAG = 1003;
 
-  public final static int GELUNGEN = 1004;
+  public static final int GELUNGEN = 1004;
 
-  public final static int PERFEKT = 1005;
+  public static final int PERFEKT = 1005;
 
-  public final static int GOETTERGLUECK = 1006;
+  public static final int GOETTERGLUECK = 1006;
 
   public Probe() {
-    firstProperty = secondProperty = thirdProperty = 10;
-    modifier = skill = 0;
+    firstProperty = 10;
+    secondProperty = 10;
+    thirdProperty = 10;
+    modifier = 0;
+    skill = 0;
   }
 
   public void setFirstProperty(int value) {

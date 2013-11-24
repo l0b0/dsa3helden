@@ -32,7 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ShieldSelectionDialog;
-import dsa.gui.dialogs.SelectionDialogBase.SelectionDialogCallback;
+import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
 import dsa.gui.tables.ShieldsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.CharacterAdapter;
@@ -42,7 +42,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
 
-public class ShieldsFrame extends SubFrame implements CharactersObserver {
+public final class ShieldsFrame extends SubFrame implements CharactersObserver {
 
   private class MyObserver extends CharacterAdapter {
     public void bfChanged(String item) {
@@ -54,7 +54,7 @@ public class ShieldsFrame extends SubFrame implements CharactersObserver {
     }
   }
 
-  private MyObserver myObserver = new MyObserver();
+  private final MyObserver myObserver = new MyObserver();
 
   public ShieldsFrame() {
     super("Parade");
@@ -140,7 +140,7 @@ public class ShieldsFrame extends SubFrame implements CharactersObserver {
   protected void addShield() {
     ShieldSelectionDialog dialog = new ShieldSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
-      public void ItemSelected(String item) {
+      public void itemSelected(String item) {
         if (Arrays.asList(currentHero.getShields()).contains(item)) {
           JOptionPane
               .showMessageDialog(
@@ -150,9 +150,9 @@ public class ShieldsFrame extends SubFrame implements CharactersObserver {
           return;
         }
         currentHero.addShield(item);
-        Shield Shield = Shields.getInstance().getShield(item);
-        if (Shield != null)
-          mTable.addShield(Shield);
+        Shield shield = Shields.getInstance().getShield(item);
+        if (shield != null)
+          mTable.addShield(shield);
         else
           mTable.addUnknownShield(item);
         removeButton.setEnabled(true);

@@ -48,8 +48,10 @@ import dsa.model.data.Weapons;
  * 
  */
 public class Main {
+  
+  private Main() {}
 
-  private static String[] startFiles = null;
+  private static java.util.List<String> startFiles = null;
 
   public static void main(String[] args) {
     System.setErr(new ErrorReportStream());
@@ -60,7 +62,7 @@ public class Main {
     else {
       SubFrame.setSaveLocations(false);
       if (args.length > 0) {
-        startFiles = args;
+        startFiles = java.util.Arrays.asList(args);
       }
     }
 
@@ -73,6 +75,10 @@ public class Main {
           + Version.getCurrentVersionString(), false);
       if (!secondStart) {
         int test = prefs.getInt("Heldenverwaltungx", -1);
+        if (test == -1) {
+          Preferences prefs2 = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+          test = prefs2.getInt("Heldenverwaltungx", -1);
+        }
         if (test == -1) {
           SubFrame.loadAllBounds(false);
         }
@@ -89,6 +95,7 @@ public class Main {
       Talents.getInstance().readFavorites(dirPath + "Favoriten.dat");
       Talents.getInstance().loadLanguages(dirPath + "Sprachen.dat");
       Talents.getInstance().loadUserTalents(dirPath + "Eigene_Talente.dat");
+      Talents.getInstance().loadUserSpells(dirPath + "Eigene_Zauber.dat");
       Currencies.getInstance().readCurrencies(dirPath + "Waehrungen.dat");
       // Armours.getInstance().loadFile(dirPath + "Ruestungen.dat");
       Weapons.getInstance().loadFile(dirPath + "Waffen.dat");
@@ -104,6 +111,8 @@ public class Main {
       Cities.getInstance().readCities(dirPath + "Staedte.dat");
       Names.getInstance().readFiles(dirPath + "Namen");
       Shields.getInstance().readFile(dirPath + "Schilde.dat");
+      Shields.getInstance().readUserDefinedFile(
+          dirPath + "Eigene_Parade.dat");
       CharacterTypes.getInstance().parseFiles(dirPath + "Heldentypen");
       Regions.getInstance().readFiles(dirPath + "Regionen");
     }

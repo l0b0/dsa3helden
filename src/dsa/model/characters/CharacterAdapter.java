@@ -103,13 +103,16 @@ public abstract class CharacterAdapter implements CharacterObserver {
   public void derivedValueChanged(Hero.DerivedValue dv) {
   }
 
-  public void thingRemoved(String thing) {
+  public void thingRemoved(String thing, boolean fromWarehouse) {
   }
 
   public void nameChanged(String oldName, String newName) {
   }
 
   public void weaponRemoved(String weapon) {
+  }
+  
+  public void armourRemoved(String armour) {
   }
 
   public void shieldRemoved(String shield) {

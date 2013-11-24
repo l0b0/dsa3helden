@@ -1,3 +1,9 @@
+Version 1.8.2
+-------------
+- Bugfix: Helden mit bestimmten Sonderzeichen im Namen konnten unter
+  Windows nicht gespeichert werden
+- Ergebnisse von Proben können in die Zwischenablage kopiert werden
+
 Version 1.8.1
 -------------
 - Bugfix für Peitschen

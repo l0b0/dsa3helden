@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.awt.Frame;
 
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JLabel;
@@ -245,8 +244,8 @@ public final class ProbeDialog extends BGDialog {
     }
     else
       result = doProbe(hero, property, difficulty);
-    JOptionPane.showMessageDialog(parent, result, all ? "Proben" : "Probe für "
-        + Strings.cutTo(hero.getName(), ' '), JOptionPane.INFORMATION_MESSAGE);
+    ProbeResultDialog.showDialog(parent, result, all ? "Proben" : "Probe für "
+        + Strings.cutTo(hero.getName(), ' '));
   }
 
   private static String doProbe(Hero character, String talentName, int mod) {

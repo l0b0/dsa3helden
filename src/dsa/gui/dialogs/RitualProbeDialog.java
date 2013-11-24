@@ -24,7 +24,6 @@ import java.awt.Frame;
 import javax.swing.JDialog;
 
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JLabel;
@@ -187,8 +186,8 @@ public final class RitualProbeDialog extends BGDialog {
     dispose();
     String ret = "";
     ret = doProbe(hero, testData, difficulty);
-    JOptionPane.showMessageDialog(parent, ret, "Ritual-Probe für "
-        + Strings.cutTo(hero.getName(), ' '), JOptionPane.INFORMATION_MESSAGE);
+    ProbeResultDialog.showDialog(parent, ret, "Ritual-Probe für "
+        + Strings.cutTo(hero.getName(), ' '));
   }
 
   public enum Result {

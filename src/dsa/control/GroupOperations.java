@@ -238,7 +238,7 @@ public final class GroupOperations {
     }
     File tempFile = null;
     try {
-      tempFile = File.createTempFile("dsa_" + hero.getName(), null);
+      tempFile = File.createTempFile("dsahero_", null);
       File realFile = new File(filePath);
       hero.storeToFile(tempFile, realFile);
       if (realFile.exists()) {

@@ -32,7 +32,6 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JLabel;
@@ -401,8 +400,8 @@ public final class SpellProbeDialog extends BGDialog {
     dispose();
     String result = "";
     result = doProbe(hero, talentName, difficulty);
-    JOptionPane.showMessageDialog(parent, result, "Probe für "
-        + Strings.cutTo(hero.getName(), ' '), JOptionPane.INFORMATION_MESSAGE);
+    ProbeResultDialog.showDialog(parent, result, "Probe für "
+        + Strings.cutTo(hero.getName(), ' '));
   }
 
   private String doProbe(Hero character, String talentName, int mod) {

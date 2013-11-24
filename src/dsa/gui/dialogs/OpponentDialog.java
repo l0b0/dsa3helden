@@ -149,6 +149,8 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     this.setSize(new Dimension(350, 350));
     this.setContentPane(getJContentPane());
     this.setLocationRelativeTo(getParent());
+    this.getRootPane().setDefaultButton(getOkButton());
+    setEscapeButton(getCancelButton());
   }
 
   public String getHelpPage() {

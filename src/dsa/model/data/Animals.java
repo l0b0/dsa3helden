@@ -126,6 +126,18 @@ public class Animals {
   }
 
   public static Animals getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        sInstance.readFiles(dirPath);
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Tiere", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return sInstance;
   }
 
@@ -136,6 +148,8 @@ public class Animals {
   }
 
   private static Animals sInstance = new Animals();
+  
+  private static boolean dataRead = false;
 
   private int parseInt(String line) throws IOException {
     try {

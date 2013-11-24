@@ -124,6 +124,8 @@ public final class ThingDialog extends BGDialog {
     this.setSize(374, 257);
     this.setTitle("Gegenstand hinzufügen");
     this.setContentPane(getJContentPane());
+    this.getRootPane().setDefaultButton(getOkButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

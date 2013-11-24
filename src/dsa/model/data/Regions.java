@@ -28,8 +28,22 @@ import java.util.HashMap;
 public class Regions {
 
   private static Regions instance = new Regions();
+  
+  private static boolean dataRead = false;
 
   public static Regions getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.readFiles(dirPath + "Regionen");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Regionen", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
 

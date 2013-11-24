@@ -30,6 +30,8 @@ public class SpellStartValues {
 
   private static SpellStartValues instance = new SpellStartValues();
   
+  private static boolean dataRead = false;
+  
   private static class TypeSpellStarts {
     
     private final HashMap<String, Integer> startValues;
@@ -138,6 +140,18 @@ public class SpellStartValues {
   }
   
   public static SpellStartValues getInstance() { 
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.parseFiles(dirPath + "Zauberstartwerte");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Zauberstartwerte", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
   

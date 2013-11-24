@@ -81,6 +81,8 @@ public abstract class AbstractSelectionDialog extends BGDialog {
     mTable.restoreSortingState(mSortingID);
     mTable.setDoubleClickListener(myListener);
     pack();
+    this.getRootPane().setDefaultButton(getAddButton());
+    setEscapeButton(closeButton);
   }
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {

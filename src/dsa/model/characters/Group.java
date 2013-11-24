@@ -90,6 +90,22 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   public Hero getCharacter(int index) {
     return characters.get(index);
   }
+  
+  public void moveHero(int oldIndex, int newIndex) {
+    if (oldIndex == newIndex) return;
+    Hero h = characters.get(oldIndex);
+    String fp = filePaths.get(oldIndex);
+    characters.remove(oldIndex);
+    filePaths.remove(oldIndex);
+    characters.add(newIndex, h);
+    filePaths.add(newIndex, fp);
+    for (CharactersObserver observer : observers) {
+      if (observer instanceof GroupObserver) {
+        ((GroupObserver) observer).orderChanged();
+      }
+    }
+    changed = true;
+  }
 
   public List<Hero> getAllCharacters() {
     return java.util.Collections.unmodifiableList(characters);
@@ -237,6 +253,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       
       file.println("-End Characters-");
       file.flush();
+      changed = false;
     }
     finally {
       if (file != null) file.close();

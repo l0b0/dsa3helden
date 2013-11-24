@@ -22,6 +22,8 @@ package dsa.gui.frames;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -34,6 +36,8 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.prefs.Preferences;
+
+import javax.swing.Timer;
 
 import dsa.gui.util.Help;
 import dsa.gui.util.HelpProvider;
@@ -54,6 +58,26 @@ public class FrameManagement {
     boolean ud, lr;
 
     boolean doSnap = true;
+    
+    private Timer timer;
+    
+    private Component component;
+    
+    public WindowSnapper() {
+      final int DELAY = 300;
+      timer = new Timer(DELAY, new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (doSnap) {
+            Rectangle oldPos = positions.get(component);
+            Rectangle newPos = component.getBounds();
+            if (newPos.equals(oldPos)) return;
+            snapComponent(component);
+            positions.put(component, component.getBounds());
+          }          
+        }
+      });
+      timer.setRepeats(false);
+    }
 
     private void snap(Component frame, Component other) {
       if (frame == other) return;
@@ -105,18 +129,23 @@ public class FrameManagement {
     }
 
     public void componentMoved(ComponentEvent e) {
-      if (doSnap) {
-        Rectangle oldPos = positions.get(e.getComponent());
-        Rectangle newPos = e.getComponent().getBounds();
-        if (newPos.equals(oldPos)) return;
-        snapComponent(e.getComponent());
-        positions.put(e.getComponent(), e.getComponent().getBounds());
+      component = e.getComponent();
+      if (timer.isRunning()) {
+        timer.restart();
+      }
+      else {
+        timer.start();
       }
     }
 
     public void componentResized(ComponentEvent e) {
-      // if (doSnap) snapComponent(e.getComponent());
-      positions.put(e.getComponent(), e.getComponent().getBounds());
+      component = e.getComponent();
+      if (timer.isRunning()) {
+        timer.restart();
+      }
+      else {
+        timer.start();
+      }
     }
   }
 

@@ -25,6 +25,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
@@ -124,12 +126,67 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
   }
 
   private boolean disableChange = false;
+  
+  protected static interface FocusPretender {
+    void pretendFocus(boolean pretend);
+  }
+  
+  protected static class PretenderButton extends JButton implements FocusPretender {
+    public PretenderButton() {
+      super();
+      mPretendFocus = false;
+    }
+    
+    public PretenderButton(ImageIcon icon) {
+      super(icon);
+      mPretendFocus = false;
+    }
+    
+    public PretenderButton(String text) {
+      super(text);
+      mPretendFocus = false;
+    }
+    
+    public void pretendFocus(boolean pretend) {
+      mPretendFocus = pretend;
+    }
+
+    public boolean isFocusOwner() {
+      return mPretendFocus ? true : super.isFocusOwner();
+    }
+    
+    private boolean mPretendFocus;
+  }
+
+  protected static class PretenderToggleButton extends JToggleButton implements FocusPretender {
+    public PretenderToggleButton() {
+      super();
+      mPretend = false;
+    }
+    public PretenderToggleButton(ImageIcon icon) {
+      super(icon);
+      mPretend = false;
+    }
+    public PretenderToggleButton(String text) {
+      super(text);
+      mPretend = false;
+    }
+    public void pretendFocus(boolean pretend) {
+      mPretend = pretend;
+    }
+    public boolean isFocusOwner() {
+      return mPretend ? true : super.isFocusOwner();
+    }
+    private boolean mPretend;
+  }
 
   protected static class ButtonCellRenderer implements TableCellRenderer {
     public ButtonCellRenderer(AbstractButton button,
         TableCellRenderer defaultRenderer) {
       mButton = button;
       mRenderer = defaultRenderer;
+      pressedRow = -1;
+      pressedColumn = -1;
     }
 
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -144,7 +201,18 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
       }
       else
         mButton.setEnabled(((Boolean) value).booleanValue());
+      if (mButton instanceof FocusPretender) {
+        ((FocusPretender)mButton).pretendFocus(hasFocus);
+      }
+      if (mButton instanceof JButton) { // not for toggle buttons
+        mButton.setSelected(row == pressedRow && column == pressedColumn);
+      }
       return mButton;
+    }
+    
+    public void setPressedCell(int row, int column) {
+      pressedRow = row;
+      pressedColumn = column;
     }
 
     ImageIcon lockedIcon = ImageManager.getIcon("locked");
@@ -154,6 +222,9 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
     javax.swing.AbstractButton mButton;
 
     TableCellRenderer mRenderer;
+    
+    int pressedRow; 
+    int pressedColumn;
 
   }
 
@@ -281,13 +352,63 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
 
   protected int mButtonClickedRow;
 
-  private class TableMouseListener implements MouseListener {
-
-    TableMouseListener(JTable table) {
-      mTable = table;
+  private final class ButtonChanger implements Runnable {
+    
+    public ButtonChanger(Component component, int row, int column, int type) {
+      this.type = type;
+      this.component = component;
+      this.row = row;
+      this.column = column;
+      manualReset = false;
     }
-
-    private void forwardToButton(MouseEvent e) {
+    
+    private int type;
+    private Component component;
+    private int row;
+    private int column;
+    private boolean manualReset;
+    
+    public void run() {
+      if (component instanceof AbstractButton) {
+        if (type == 0) {
+          mButtonClickedRow = row;
+          ((AbstractButton) component).doClick();
+        }
+        else if (type == 1) {
+          TableCellRenderer renderer = mTable.getCellRenderer(row, column);
+          if (renderer instanceof ButtonCellRenderer) {
+            ((ButtonCellRenderer)renderer).setPressedCell(row, column);
+            mTable.repaint(mTable.getCellRect(row, column, true));
+          }
+          type = 2;
+          manualReset = true;
+        }
+        else if (type == 2) {
+          if (manualReset) {
+            try {
+              Thread.sleep(300);
+            }
+            catch (InterruptedException ex) {}            
+          }
+          TableCellRenderer renderer = mTable.getCellRenderer(row, column);
+          if (renderer instanceof ButtonCellRenderer) {
+            ((ButtonCellRenderer)renderer).setPressedCell(-1, -1);
+            mTable.repaint(mTable.getCellRect(row, column, true));
+            type = 0;
+            // the 'clicked' event is simulated here manually to come after
+            // the 'released' event
+            javax.swing.SwingUtilities.invokeLater(this);
+          }
+        }
+      }
+    }
+  }
+  
+  private class TableInput {
+    protected TableInput() {
+    }
+    
+    protected void forwardToButton(MouseEvent e, int type) {
       TableColumnModel columnModel = mTable.getColumnModel();
       int column = columnModel.getColumnIndexAtX(e.getX());
       int row = e.getY() / mTable.getRowHeight();
@@ -296,22 +417,58 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
       Component component = mTable.getCellRenderer(row, column)
           .getTableCellRendererComponent(mTable,
               mTable.getValueAt(row, column), true, true, row, column);
-      if (component instanceof AbstractButton) {
-        mButtonClickedRow = row;
-        ((AbstractButton) component).doClick();
-      }
+      ButtonChanger changer = new ButtonChanger(component, row, column, type);
+      changer.run();
+    }
+
+    protected void forwardToButton(KeyEvent e, int type) {
+      if (e.getKeyCode() != KeyEvent.VK_SPACE) return;
+      int column = mTable.getSelectedColumn();
+      int row = mTable.getSelectedRow();
+      if (row < 0 || row >= mTable.getRowCount()) return;
+      if (column < 3 || column >= mTable.getColumnCount()) return;
+      Component component = mTable.getCellRenderer(row, column)
+          .getTableCellRendererComponent(mTable,
+              mTable.getValueAt(row, column), true, true, row, column);
+      ButtonChanger changer = new ButtonChanger(component, row, column, type);
+      changer.run();
+      // automatically release after the time (doesn't receive keyboard release event)
+      javax.swing.SwingUtilities.invokeLater(changer);
+    }
+  }
+  
+  private final class TableKeyListener extends TableInput implements KeyListener {
+    public TableKeyListener() {
+      super();
+    }
+    public void keyPressed(KeyEvent e) {
+      forwardToButton(e, 1);
+    }
+
+    public void keyReleased(KeyEvent e) {
+    }
+
+    public void keyTyped(KeyEvent e) {
+    }
+    
+  }
+
+  private final class TableMouseListener extends TableInput implements MouseListener {
+
+    public TableMouseListener() {
+      super();
     }
 
     public void mouseClicked(MouseEvent e) {
-      forwardToButton(e);
+      // forwardToButton(e, 0);
     }
 
     public void mousePressed(MouseEvent e) {
-      // ForwardToButton(e);
+      forwardToButton(e, 1);
     }
 
     public void mouseReleased(MouseEvent e) {
-      // ForwardToButton(e);
+      forwardToButton(e, 2);
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -319,7 +476,7 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
 
     public void mouseExited(MouseEvent e) {
     }
-
+    
   }
 
   private TalentTableModel mModel;
@@ -472,16 +629,16 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
         25, greyingRenderer, numberEditor));
     tcm.addColumn(new javax.swing.table.TableColumn(getCurrentValueColumn(),
         25, greyingRenderer, numberEditor));
-    JToggleButton lockButton = new JToggleButton(ImageManager.getIcon("locked"));
+    PretenderToggleButton lockButton = new PretenderToggleButton(ImageManager.getIcon("locked"));
     mLockButtons = new ButtonCellRenderer(lockButton,
         new DefaultTableCellRenderer());
     lockButton.setPressedIcon(ImageManager.getIcon("unlocked"));
     lockButton.setToolTipText("Schützen / Freigeben");
     tcm.addColumn(new javax.swing.table.TableColumn(getLockColumn(), 12,
         mLockButtons, new DummyCellEditor()));
-    JButton testButton = null;
+    PretenderButton testButton = null;
     if (enableTests) {
-      testButton = new JButton(ImageManager.getIcon("probe"));
+      testButton = new PretenderButton(ImageManager.getIcon("probe"));
       mTestButtons = new ButtonCellRenderer(testButton,
           new DefaultTableCellRenderer());
       testButton.setDisabledIcon(ImageManager.getIcon("probe_disabled"));
@@ -489,7 +646,7 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
       tcm.addColumn(new javax.swing.table.TableColumn(getTestColumn(), 12,
           mTestButtons, new DummyCellEditor()));
     }
-    JButton increaseButton = new JButton(ImageManager.getIcon("increase"));
+    PretenderButton increaseButton = new PretenderButton(ImageManager.getIcon("increase"));
     mIncreaseButtons = new ButtonCellRenderer(increaseButton,
         new DefaultTableCellRenderer());
     increaseButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
@@ -544,7 +701,8 @@ class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextF
     mTable.setRowSelectionAllowed(false);
     mTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
     mTable.setRowHeight(22);
-    mTable.addMouseListener(new TableMouseListener(mTable));
+    mTable.addMouseListener(new TableMouseListener());
+    mTable.addKeyListener(new TableKeyListener());
     mTable.setBackground(BACKGROUND_GRAY);
     if (dsa.gui.lf.Colors.hasCustomColors()) {
       mTable.setSelectionForeground(Colors.getSelectedForeground());

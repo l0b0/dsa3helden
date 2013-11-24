@@ -30,10 +30,24 @@ import java.util.List;
 public class Cities {
 
   public static Cities getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.readCities(dirPath + "Staedte.dat");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Städte", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
 
   private static Cities instance = new Cities();
+  
+  private static boolean dataRead = false;
 
   private final ArrayList<String> regions;
 

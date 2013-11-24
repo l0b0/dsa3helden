@@ -145,6 +145,8 @@ public class CitySelectionDialog extends BGDialog {
       getRegionCombo().setSelectedIndex(0);
       fillListBox();
     }
+    this.getRootPane().setDefaultButton(getOkButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

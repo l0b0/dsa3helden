@@ -112,6 +112,8 @@ public class NameSelectionDialog extends BGDialog {
     this.setSize(386, 316);
     this.setTitle("Namen generieren");
     this.setContentPane(getJContentPane());
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   public void setCharacterName(String aName) {

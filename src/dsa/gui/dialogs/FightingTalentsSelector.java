@@ -125,6 +125,8 @@ class FightingTalentsSelector extends BGDialog {
     contentPane.add(scrollPanel, BorderLayout.CENTER);
 
     this.setContentPane(contentPane);
+    this.getRootPane().setDefaultButton(okButton);
+    setEscapeButton(cancelButton);
     this.pack();
     this.setModal(true);
   }

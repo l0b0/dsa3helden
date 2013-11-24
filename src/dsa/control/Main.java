@@ -28,21 +28,12 @@ import dsa.gui.frames.FrameLayouts;
 import dsa.gui.frames.SubFrame;
 import dsa.gui.lf.LookAndFeels;
 import dsa.model.DataFactory;
-import dsa.model.data.Animals;
-import dsa.model.data.CharacterTypes;
-import dsa.model.data.Cities;
 import dsa.model.data.Currencies;
-import dsa.model.data.Looks;
-import dsa.model.data.Names;
-import dsa.model.data.Regions;
-import dsa.model.data.Rituals;
 import dsa.model.data.Shields;
-import dsa.model.data.SpellStartValues;
 import dsa.model.data.Talents;
 import dsa.model.data.Things;
 import dsa.model.data.Weapons;
 import dsa.model.data.Armours;
-import dsa.model.data.Opponents;
 
 /**
  * 
@@ -67,8 +58,6 @@ public class Main {
     }
 
     try {
-      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
-          + java.io.File.separator;
       Preferences prefs = Preferences
           .userNodeForPackage(dsa.gui.frames.SubFrame.class);
       boolean secondStart = prefs.getBoolean("initialized_"
@@ -88,6 +77,9 @@ public class Main {
         prefs.putBoolean("initialized_" + Version.getCurrentVersionString(),
             true);
       }
+
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
       String userDataPath = dsa.util.Directories.getUserDataPath();
       DataFactory.setFactory(new dsa.model.impl.DataFactoryImpl());
       Talents.getInstance().loadNormalTalents(dirPath + "Talente.dat");
@@ -104,22 +96,11 @@ public class Main {
       Weapons.getInstance().loadUserDefinedWeapons(
           userDataPath + "Eigene_Waffen.dat");
       Things.getInstance().loadFile(dirPath + "Ausruestung.dat");
-      Rituals.getInstance().readFile(dirPath + "Rituale.dat");
-      Animals.getInstance().readFiles(dirPath);
       Things.getInstance().loadUserDefinedThings(
           userDataPath + "Eigene_Ausruestung.dat");
-      Looks.getInstance().readEyeColors(dirPath + "Augen.dat");
-      Looks.getInstance().readHairColors(dirPath + "Haare.dat");
-      Cities.getInstance().readCities(dirPath + "Staedte.dat");
-      Names.getInstance().readFiles(dirPath + "Namen");
       Shields.getInstance().readFile(dirPath + "Schilde.dat");
       Shields.getInstance().readUserDefinedFile(
           userDataPath + "Eigene_Parade.dat");
-      CharacterTypes.getInstance().parseFiles(dirPath + "Heldentypen");
-      SpellStartValues.getInstance().parseFiles(dirPath + "Zauberstartwerte");
-      Regions.getInstance().readFiles(dirPath + "Regionen");
-      Opponents.getOpponentsDB().readFromFile(dirPath + "Gegner.dat", false);
-      Opponents.getOpponentsDB().readFromFile(userDataPath + "Eigene_Gegner.dat", true);
       FrameLayouts.getInstance().readFromFile(dsa.util.Directories.getUserHomePath() + "Fensterlayout.dat");
     }
     catch (java.io.IOException e) {

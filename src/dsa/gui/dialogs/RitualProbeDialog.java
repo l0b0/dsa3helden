@@ -110,6 +110,12 @@ public final class RitualProbeDialog extends BGDialog {
     ((JSpinner.DefaultEditor) getDifficultySpinner().getEditor()).getTextField().select(
         0, 1);
     setProbability();
+    this.getRootPane().setDefaultButton(getProbeButton());
+    setEscapeButton(getCancelButton());
+    this.getDifficultySpinner().requestFocusInWindow();
+    JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) this.getDifficultySpinner().getEditor();
+    editor.getTextField().setText("0");
+    editor.getTextField().selectAll();
   }
 
   /**
@@ -235,7 +241,7 @@ public final class RitualProbeDialog extends BGDialog {
     }
     else {
       this.result = Result.Success;
-      return "Gelungen; " + result + (ret == 1 ? " Punkt" : " Punkte")
+      return "Gelungen; " + ret + (ret == 1 ? " Punkt" : " Punkte")
           + " übrig." + s;
     }
   }

@@ -99,7 +99,8 @@ public final class ProjectileAttackDialog extends BGDialog {
     this.setSize(new java.awt.Dimension(360, 337));
     this.setTitle("Fernkampf");
     this.setContentPane(getJContentPane());
-
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

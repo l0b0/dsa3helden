@@ -180,6 +180,8 @@ public final class AnimalSelectionDialog extends BGDialog {
     this.setSize(337, 222);
     this.setTitle("Tier hinzufügen");
     this.setContentPane(getJContentPane());
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

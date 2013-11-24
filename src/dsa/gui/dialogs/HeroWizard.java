@@ -632,6 +632,8 @@ public final class HeroWizard extends BGDialog {
     contentPane.add(bottomPane, BorderLayout.SOUTH);
 
     this.setContentPane(contentPane);
+    this.getRootPane().setDefaultButton(nextButton);
+    setEscapeButton(cancelButton);
     this.pack();
   }
 

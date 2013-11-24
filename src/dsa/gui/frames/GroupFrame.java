@@ -75,6 +75,10 @@ public final class GroupFrame extends SubFrame
   private JButton addButton = null;
 
   private JButton removeButton = null;
+  
+  private JButton upButton = null;
+  
+  private JButton downButton = null;
 
   private JPanel jPanel1 = null;
 
@@ -140,6 +144,8 @@ public final class GroupFrame extends SubFrame
     }
     setSelectedHero();
     getRemoveButton().setEnabled(group.getAllCharacters().size() > 0);
+    getUpButton().setEnabled(group.getAllCharacters().size() > 0);
+    getDownButton().setEnabled(group.getAllCharacters().size() > 0);
     listenForChanges = true;
   }
 
@@ -198,6 +204,8 @@ public final class GroupFrame extends SubFrame
       jPanel.add(getCreateButton(), null);
       jPanel.add(getAddButton(), null);
       jPanel.add(getRemoveButton(), null);
+      jPanel.add(getUpButton(), null);
+      jPanel.add(getDownButton(), null);
     }
     return jPanel;
   }
@@ -262,6 +270,47 @@ public final class GroupFrame extends SubFrame
       });
     }
     return removeButton;
+  }
+  
+  private JButton getUpButton() {
+    if (upButton == null) {
+      upButton = new JButton();
+      upButton.setBounds(new Rectangle(10, 135, 51, 21));
+      upButton.setToolTipText("Nach oben verschieben");
+      upButton.setIcon(ImageManager.getIcon("up"));
+      upButton.setEnabled(false);
+      upButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          moveHero(-1);
+        }
+      });
+    }
+    return upButton;
+  }
+  
+  private JButton getDownButton() {
+    if (downButton == null) {
+      downButton = new JButton();
+      downButton.setBounds(new Rectangle(10, 165, 51, 21));
+      downButton.setToolTipText("Nach unten verschieben");
+      downButton.setIcon(ImageManager.getIcon("down"));
+      downButton.setEnabled(false);
+      downButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          moveHero(1);
+        }
+      });
+    }
+    return downButton;
+  }
+  
+  private void moveHero(int offset) {
+    int index = getHeroList().getSelectedIndex();
+    int newIndex = index + offset;
+    if (newIndex >= 0 && newIndex < Group.getInstance().getNrOfCharacters()) {
+      Group.getInstance().moveHero(index, newIndex);
+      updateData();
+    }
   }
   
   private JButton getPrintButton() {
@@ -408,7 +457,9 @@ public final class GroupFrame extends SubFrame
   }
 
   public void groupLoaded() {
+    listenForChanges = false;
     nameField.setText(Group.getInstance().getName());
+    listenForChanges = true;
   }
 
   public void dragEnter(DropTargetDragEvent dtde) {
@@ -426,6 +477,9 @@ public final class GroupFrame extends SubFrame
   }
 
   public void dropActionChanged(DropTargetDragEvent dtde) {
+  }
+
+  public void orderChanged() {
   }
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"

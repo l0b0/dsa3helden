@@ -137,6 +137,8 @@ public final class PrintingDialog extends BGDialog {
     this.setModal(true);
     this.setSize(435, 364);
     this.setContentPane(getJContentPane());
+    this.getRootPane().setDefaultButton(getCreateButton());
+    setEscapeButton(getCloseButton());
   }
 
   /**

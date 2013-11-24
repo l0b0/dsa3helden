@@ -107,6 +107,7 @@ public class RedistributionDialog extends BGDialog {
     this.setSize(326, 212);
     this.setContentPane(getJContentPane());
     this.setModal(true);
+    this.getRootPane().setDefaultButton(getOKButton());
   }
 
   /**

@@ -209,6 +209,8 @@ public class ShieldDialog extends BGDialog {
     this.setSize(new java.awt.Dimension(366, 317));
     this.setContentPane(getJContentPane());
     this.setTitle("Paradehilfe hinzufügen");
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

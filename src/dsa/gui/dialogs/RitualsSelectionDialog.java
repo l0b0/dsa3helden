@@ -74,6 +74,8 @@ public final class RitualsSelectionDialog extends BGDialog {
     // this.setSize(new java.awt.Dimension(364,253));
     this.setContentPane(getJContentPane());
     this.setTitle("Sonderfertigkeiten");
+    this.getRootPane().setDefaultButton(getAddTestButton());
+    setEscapeButton(getCloseButton());
     // this.pack();
     currentHero = Group.getInstance().getActiveHero();
     updateData();

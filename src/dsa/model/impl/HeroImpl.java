@@ -614,7 +614,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   private void checkForNextStepIncrease() {
     if (overallSpellIncreaseTries > 0 || overallSpellOrTalentIncreaseTries > 0
         || overallTalentIncreaseTries > 0 || mLEIncreaseTries > 0
-        || mAEIncreaseTries > 0 || goodPropertyChangeTries > 0
+        || (hasEnergy(Energy.AE) && mAEIncreaseTries > 0) 
+        || goodPropertyChangeTries > 0
         || badPropertyChangeTries > 0) return;
     if (remainingStepIncreases > 0) {
       --remainingStepIncreases;

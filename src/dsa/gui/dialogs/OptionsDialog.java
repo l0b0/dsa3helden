@@ -145,6 +145,8 @@ public final class OptionsDialog extends BGDialog {
     this.setTitle("Optionen");
     updateData();
     onLFSelected();
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   private void onLFSelected() {

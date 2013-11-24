@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
@@ -192,14 +191,14 @@ public class FightingTalentsFrame extends TalentFrame {
     DummyCellEditor editor = new DummyCellEditor();
     tcm.addColumn(new TableColumn(getATColumn(), 20, greyingRenderer, editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getATColumn());
-    JButton incrATButton = new JButton(ImageManager.getIcon("move_left"));
+    PretenderButton incrATButton = new PretenderButton(ImageManager.getIcon("move_left"));
     incrATButton.addActionListener(new ATPAMover(true));
     ButtonCellRenderer atRenderer = new ButtonCellRenderer(incrATButton,
         new javax.swing.table.DefaultTableCellRenderer());
     tcm.addColumn(new TableColumn(getATIncrColumn(), 20, atRenderer,
         new DummyCellEditor()));
     tcm.moveColumn(tcm.getColumnCount() - 1, getATIncrColumn());
-    JButton incrPAButton = new JButton(ImageManager.getIcon("move_right"));
+    PretenderButton incrPAButton = new PretenderButton(ImageManager.getIcon("move_right"));
     incrPAButton.addActionListener(new ATPAMover(false));
     ButtonCellRenderer paRenderer = new ButtonCellRenderer(incrPAButton,
         new javax.swing.table.DefaultTableCellRenderer());

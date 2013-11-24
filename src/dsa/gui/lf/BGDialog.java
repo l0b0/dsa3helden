@@ -22,9 +22,15 @@ package dsa.gui.lf;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 import dsa.gui.util.HelpProvider;
@@ -88,26 +94,45 @@ public abstract class BGDialog extends JDialog implements HelpProvider{
   }
 
   protected JRootPane createRootPane() {
+    JRootPane pane = null;
     String rootPaneClass = UIManager.getString("dsa.gui.rootPaneClass");
     if (rootPaneClass == null || rootPaneClass.equals("")) {
-      return super.createRootPane();
+      pane = super.createRootPane();
     }
     else
       try {
-        return (JRootPane) Class.forName(rootPaneClass).newInstance();
+        pane = (JRootPane) Class.forName(rootPaneClass).newInstance();
       }
       catch (ClassNotFoundException e) {
         e.printStackTrace();
-        return super.createRootPane();
+        pane = super.createRootPane();
       }
       catch (InstantiationException e) {
         e.printStackTrace();
-        return super.createRootPane();
+        pane = super.createRootPane();
       }
       catch (IllegalAccessException e) {
         e.printStackTrace();
-        return super.createRootPane();
+        pane = super.createRootPane();
       }
+     if (pane != null)
+       registerEscape(pane);
+     return pane;
+  }
+  
+  private JButton escapeButton;
+  
+  protected void setEscapeButton(JButton button) {
+    escapeButton = button;
+  }
+  
+  private void registerEscape(JRootPane pane) {
+    KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    pane.registerKeyboardAction(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (escapeButton != null) escapeButton.doClick();
+      }
+    }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
   }
 
 }

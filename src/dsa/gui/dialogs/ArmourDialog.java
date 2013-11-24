@@ -163,7 +163,8 @@ public class ArmourDialog extends BGDialog {
     this.setSize(new java.awt.Dimension(335,215));
     this.setContentPane(getJContentPane());
     this.setTitle("Rüstung hinzufügen");
-
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

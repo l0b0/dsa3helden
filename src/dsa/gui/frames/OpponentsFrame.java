@@ -256,4 +256,7 @@ public final class OpponentsFrame extends SubFrame
     if (o != null) o.setName(newName);
   }
 
+  public void orderChanged() {
+  }
+
 }

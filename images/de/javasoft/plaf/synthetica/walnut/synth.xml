@@ -58,6 +58,11 @@ Defaults
     </object>
     <defaultsProperty key="dsa.gui.lf.hout-vert-hover" type="idref" value="hout-vert-hover" />
 
+    <object class="java.lang.String" id="border">
+      <string>/de/javasoft/plaf/synthetica/walnut/images/border.png</string>
+    </object>
+    <defaultsProperty key="dsa.gui.lf.border" type="idref" value="border" />
+
   </style>
   <bind style="default" type="region" key=".*" />
 
@@ -388,11 +393,6 @@ Button
 
     <state value="FOCUSED">
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
-      <!--
-      <imagePainter method="buttonBorder" path="walnut/images/buttonFocus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-	  <painter method="buttonBackground" idref="syntheticaPainter" />
-      -->              
     </state>
 
     <state value="PRESSED">
@@ -411,10 +411,6 @@ Button
 
     <state value="DEFAULT">
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
-      <!--
-	  <imagePainter method="buttonBackground" path="walnut/images/button_default.png"
-                    sourceInsets="4 4 4 4" paintCenter="true" stretch="true"/>
-      -->              
     </state>
 
     <state value="DISABLED">
@@ -432,55 +428,26 @@ Button
     </state>
 
     <state value="FOCUSED AND MOUSE_OVER">
-      <!--
-      <imagePainter method="buttonBorder" path="walnut/images/buttonFocus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-      -->              
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="FOCUSED AND PRESSED">
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
-      <!--
-      <imagePainter method="buttonBorder" path="walnut/images/focus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-      -->              
-
     </state>
 
     <state value="DEFAULT AND PRESSED">
-      <!--
-	  <imagePainter method="buttonBackground" path="walnut/images/button_pressed.png"
-                    sourceInsets="4 4 4 4" paintCenter="true" stretch="true"/>
-      -->              
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="DEFAULT AND FOCUSED">
-      <!--
-	  <imagePainter method="buttonBackground" path="walnut/images/button_default.png"
-                    sourceInsets="4 4 4 4" paintCenter="true" stretch="true"/>
-      <imagePainter method="buttonBorder" path="walnut/images/buttonFocus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-      -->              
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="DEFAULT AND PRESSED AND FOCUSED">
-      <!--
-	  <imagePainter method="buttonBackground" path="walnut/images/button_pressed.png"
-                    sourceInsets="4 4 4 4" paintCenter="true" stretch="true"/>
-      <imagePainter method="buttonBorder" path="walnut/images/focus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-      -->              
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="DISABLED AND PRESSED">
-      <!--
-      <imagePainter method="buttonBackground" path="walnut/images/button_disabledAndPressed.png"
-                    sourceInsets="4 4 4 4" paintCenter="true" stretch="true"/>
-      -->              
 	  <painter method="buttonBackground" idref="syntheticaPainter" />
     </state>
 
@@ -591,9 +558,7 @@ Note: editable ComboBox contains TextField and ArrowButton
       <imagePainter method="comboBoxBorder" path="walnut/images/border.png"
                     sourceInsets="3 3 3 3" paintCenter="false" stretch="true"/>
 
-	  <!-- <painter method="comboBoxBackground" idref="syntheticaPainter" /> -->
-	  <imagePainter method="comboBoxBackground" path="walnut/images/hout.png"
-	    sourceInsets="0 0 0 0" paintCenter="true" stretch="true"/>
+	  <painter method="comboBoxBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="FOCUSED">
@@ -1211,6 +1176,7 @@ Menu
       <defaultsProperty key="Synthetica.menu.insets" type="insets" value="0 0 0 0"/>
 
 	  <painter method="menuBackground" idref="syntheticaPainter" />
+	  <painter method="menuBorder" idref="syntheticaPainter" />
     </state>
 
     <state value="SELECTED">
@@ -1230,6 +1196,7 @@ Menu
       <defaultsProperty key="Synthetica.menu.hover" type="idref" value="menuBackground"/>
 
 	  <painter method="menuBackground" idref="syntheticaPainter" />
+	  <painter method="menuBorder" idref="syntheticaPainter" />
     </state>
 
     <state value="DISABLED">
@@ -1241,6 +1208,7 @@ Menu
       <defaultsProperty key="Synthetica.menu.disabled" type="idref" value="menuBackground"/>
 
 	  <painter method="menuBackground" idref="syntheticaPainter" />
+	  <painter method="menuBorder" idref="syntheticaPainter" />
     </state>
 
   </style>
@@ -1256,8 +1224,8 @@ MenuBar
     <state>
       <opaque value="false" />
       <color type="BACKGROUND" value="#FFFFFF" />
-      <imagePainter method="menuBarBackground" path="/de/javasoft/plaf/synthetica/walnut/images/hout.png"
-                    sourceInsets="0 0 0 0" destinationInsets="0 0 0 0" paintCenter="true" stretch="true"/>
+      <painter method="menuBarBackground" idref="syntheticaPainter" />
+	  <painter method="menuBarBorder" idref="syntheticaPainter" />
     </state>
   </style>
   <bind style="menuBar" type="region" key="MenuBar"/>
@@ -1289,16 +1257,15 @@ MenuItem
         <string>/de/javasoft/plaf/synthetica/walnut/images/hout.png</string>
       </object>
       <defaultsProperty key="Synthetica.menuItem.background" type="idref" value="menuItemBackground"/>
-      <imagePainter method="menuItemBackground" path="/de/javasoft/plaf/synthetica/walnut/images/hout.png" 
-                    sourceInsets="0 0 0 0" destinationInsets="0 0 0 0" paintCenter="true" stretch="true"/>
 
       <imagePainter method="radioButtonMenuItemBackground" path="/de/javasoft/plaf/synthetica/walnut/images/hout.png" 
                     sourceInsets="0 0 0 0" destinationInsets="0 0 0 0" paintCenter="true" stretch="true"/>
       <imagePainter method="checkBoxMenuItemBackground" path="/de/javasoft/plaf/synthetica/walnut/images/hout.png" 
                     sourceInsets="0 0 0 0" destinationInsets="0 0 0 0" paintCenter="true" stretch="true"/>
 
-      <!-- 
 	  <painter method="menuItemBackground" idref="syntheticaPainter" />
+	  <painter method="menuItemBorder" idref="syntheticaPainter" />
+      <!-- 
 	  <painter method="radioButtonMenuItemBackground" idref="syntheticaPainter" />
 	  <painter method="checkBoxMenuItemBackground" idref="syntheticaPainter" />
 	  -->
@@ -1541,6 +1508,7 @@ PopupMenu
       <defaultsProperty key="Synthetica.popupMenu.background.insets" type="insets" value="7 7 7 7"/>
 
 	  <painter method="popupMenuBackground" idref="syntheticaPainter" />
+	  <painter method="popupMenuBorder" idref="syntheticaPainter" />
     </state>
   </style>
   <bind style="popupMenu" type="region" key="PopupMenu"/>
@@ -1859,11 +1827,7 @@ ScrollBar
 
       <defaultsProperty key="Synthetica.scrollBarTrack.background.insets" type="insets" value="0 0 0 0"/>
 
-	<!--
 	  <painter method="scrollBarTrackBackground" idref="syntheticaPainter" />
-	-->
-	  <imagePainter method="scrollBarTrackBackground" path="/de/javasoft/plaf/synthetica/walnut/images/backarea.png"
-	    sourceInsets="0 0 0 0" paintCenter="true" stretch="false" />
     </state>
   </style>
   <bind style="scrollBarTrack" type="region" key="ScrollBarTrack"/>
@@ -2255,10 +2219,6 @@ Table
       </object>
       <defaultsProperty key="Synthetica.tableHeader.gridColor" type="idref" value="gridColor"/>
 
-    <!--
-      <imagePainter method="tableHeaderBackground" path="walnut/images/tableHeaderBackground.png"
-                    sourceInsets="0 0 0 0" paintCenter="true" stretch="true"/>
-    -->
     </state>
   </style>
   <bind style="tableHeader" type="region" key="TableHeader"/>
@@ -2596,10 +2556,6 @@ ToggleButton
     </state>
 
     <state value="FOCUSED">
-      <!--
-      <imagePainter method="toggleButtonBorder" path="walnut/images/buttonFocus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-      -->
 	  <painter method="toggleButtonBackground" idref="syntheticaPainter" />
     </state>
 
@@ -2616,35 +2572,19 @@ ToggleButton
     </state>
 
     <state value="FOCUSED AND SELECTED">
-      <!--
-      <imagePainter method="toggleButtonBorder" path="walnut/images/focus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-      -->              
 	  <painter method="toggleButtonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="FOCUSED AND MOUSE_OVER">
-      <!--
-      <imagePainter method="toggleButtonBorder" path="walnut/images/buttonFocus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-	  -->
 	  <painter method="toggleButtonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="FOCUSED AND SELECTED AND MOUSE_OVER">
-      <!--
-      <imagePainter method="toggleButtonBorder" path="walnut/images/buttonFocus.png"
-                    sourceInsets="5 5 5 5" paintCenter="false" stretch="true" />
-	  -->
 	  <painter method="toggleButtonBackground" idref="syntheticaPainter" />
     </state>
 
     <state value="DISABLED AND SELECTED">
   	  <color type="TEXT_FOREGROUND" value="#A0A0A0" /> 
-      <!--
-	  <imagePainter method="toggleButtonBackground" path="walnut/images/button_disabledAndPressed.png"
-                    sourceInsets="4 4 4 4" paintCenter="true" stretch="true"/>
-      -->              
 	  <painter method="toggleButtonBackground" idref="syntheticaPainter" />
     </state>
 
@@ -2879,14 +2819,21 @@ Customized
         <int>115</int>
       </object>
       <defaultsProperty key="dsa.gui.lf.focusedBackgroundColor" type="idref" value="focusedBackgroundColor"/>
+
+      <object class="javax.swing.plaf.ColorUIResource" id="focusRectColor">
+        <!-- #804040 -->
+        <int>128</int>
+        <int>64</int>
+        <int>64</int>
+      </object>
+      <defaultsProperty key="dsa.gui.lf.focusRectColor" type="idref" value="focusRectColor"/>
 </style>
 
 <bind style="colors" type="region" key=".*" />
 
 <style id="tableheader">
   <state>
-    <imagePainter method="tableHeaderBackground" path="/de/javasoft/plaf/synthetica/walnut/images/hout.png"
-                  sourceInsets="0 0 0 0" paintCenter="true" stretch="false"/>
+    <painter method="tableHeaderBackground" idref="syntheticaPainter" />
   </state>
 </style>
 

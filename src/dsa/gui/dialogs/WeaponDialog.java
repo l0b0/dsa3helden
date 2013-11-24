@@ -213,7 +213,8 @@ public final class WeaponDialog extends BGDialog {
     this.setSize(new Dimension(339, 419));
     this.setContentPane(getJContentPane());
     this.setTitle("Waffe hinzufügen");
-
+    this.getRootPane().setDefaultButton(getOkButton());
+    setEscapeButton(getCancelButton());
   }
 
   public final String getHelpPage() {

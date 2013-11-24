@@ -41,7 +41,23 @@ public class Opponents {
   
   private static Opponents opponentsDB = new Opponents();
   
+  private static boolean dbInitialized = false;
+  
   public static Opponents getOpponentsDB() {
+    if (!dbInitialized) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+          + java.io.File.separator;
+      String userDataPath = dsa.util.Directories.getUserDataPath();
+      try {
+        opponentsDB.readFromFile(dirPath + "Gegner.dat", false);
+        opponentsDB.readFromFile(userDataPath + "Eigene_Gegner.dat", true);
+        dbInitialized = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Gegnerdaten", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return opponentsDB;
   }
   

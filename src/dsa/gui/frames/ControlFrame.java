@@ -73,6 +73,7 @@ import dsa.gui.util.OptionsChange.OptionsListener;
 import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
+import dsa.model.characters.GroupObserver;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 import dsa.model.data.Animal;
@@ -120,7 +121,7 @@ public final class ControlFrame extends SubFrame
     if (checkForNewVersion) {
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          checkForUpdate(false);
+          (new Thread(new UpdateChecker(false))).start();
         }
       });
     }
@@ -380,7 +381,7 @@ public final class ControlFrame extends SubFrame
         heroBox.addItem(hero.getName());
         hero.addHeroObserver(nameListener);
       }
-      Group.getInstance().addObserver(new CharactersObserver() {
+      Group.getInstance().addObserver(new GroupObserver() {
         public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
           ControlFrame.this.activeCharacterChanged(newCharacter);
         }
@@ -404,6 +405,18 @@ public final class ControlFrame extends SubFrame
         }
 
         public void globalLockChanged() {
+        }
+
+        public void groupLoaded() {
+        }
+
+        public void orderChanged() {
+          listenForCharacterBox = false;
+          heroBox.removeAllItems();
+          for (Hero h : Group.getInstance().getAllCharacters()) {
+            heroBox.addItem(h.getName());
+          }
+          heroBox.setSelectedItem(Group.getInstance().getActiveHero().getName());
         }
       });
       heroBox.addItemListener(new ItemListener() {
@@ -1604,54 +1617,84 @@ public final class ControlFrame extends SubFrame
 
     private TalentFrame frame = null;
   };
-
-  private void checkForUpdate(boolean verbose) {
-    String urlS = "http://www.ruedenauer.net/Software/dsa/helden_version.txt";
-    try {
-      URL url = new URL(urlS);
-      BufferedReader in = new BufferedReader(new InputStreamReader(url
-          .openStream()));
-      try {
-        String line = in.readLine();
-        Version thisVersion = Version.getCurrentVersion();
-        Version serverVersion = Version.parse(line);
-        int result = thisVersion.compareTo(serverVersion);
-        if (result == -1) {
-          if (JOptionPane
-              .showConfirmDialog(
-                  this,
-                  "Eine neuere Version ist verfügbar!\nSoll die Homepage geöffnet werden?",
-                  "Heldenverwaltung", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            showHomepage(true);
+  
+  private class UpdateChecker implements Runnable {
+    
+    public UpdateChecker(boolean verbose) {
+      this.verbose = verbose;
+      this.state = 0;
+    }
+    
+    private boolean verbose;
+    private int state;
+    private String message;
+    
+    public void run() {
+      if (state == 0) {
+        final String urlS = "http://www.ruedenauer.net/Software/dsa/helden_version.txt";
+        dsa.gui.util.ProgressMonitor monitor = null;
+        if (verbose) {
+          monitor = new dsa.gui.util.ProgressMonitor(ControlFrame.this, "Suche nach neuer Version ...");
+        }
+        try {
+          URL url = new URL(urlS);
+          BufferedReader in = new BufferedReader(new InputStreamReader(url
+              .openStream()));
+          try {
+            String line = in.readLine();
+            Version thisVersion = Version.getCurrentVersion();
+            Version serverVersion = Version.parse(line);
+            int result = thisVersion.compareTo(serverVersion);
+            if (result == -1) {
+              if (!verbose || !monitor.isCanceled()) state = 1;
+            }
+            else if (verbose && !monitor.isCanceled()) {
+              state = 2;
+            }
+          }
+          finally {
+            in.close();
           }
         }
-        else if (verbose) {
-          JOptionPane.showMessageDialog(this,
-              "Es ist keine neuere Version verfügbar.", "Heldenverwaltung",
-              JOptionPane.INFORMATION_MESSAGE);
+        catch (java.net.MalformedURLException e) {
+          e.printStackTrace();
+          state = 0;
+        }
+        catch (java.io.IOException e) {
+          if (monitor != null && !monitor.isCanceled()) state = 3;
+          message = e.getMessage();
+        }
+        catch (java.text.ParseException e) {
+          if (monitor != null && !monitor.isCanceled()) state = 3;
+          message = e.getMessage();
+        }
+        finally {
+          if (monitor != null && !monitor.isCanceled()) monitor.close();
+        }
+        if (state > 0) {
+          javax.swing.SwingUtilities.invokeLater(this);
         }
       }
-      finally {
-        in.close();
+      else if (state == 1) {
+        if (JOptionPane.showConfirmDialog(
+            ControlFrame.this,
+            "Eine neuere Version ist verfügbar!\nSoll die Homepage geöffnet werden?",
+            "Heldenverwaltung", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+          showHomepage(true);
+        }
+      }
+      else if (state == 2) {
+        JOptionPane.showMessageDialog(ControlFrame.this,
+            "Es ist keine neuere Version verfügbar.", "Heldenverwaltung",
+            JOptionPane.INFORMATION_MESSAGE);
+      }
+      else if (state == 3) {
+        JOptionPane.showMessageDialog(ControlFrame.this,
+            "Ein Fehler ist bei der Versionsabfrage aufgetreten:\n"
+              + message, "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
       }
     }
-    catch (java.net.MalformedURLException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      JOptionPane.showMessageDialog(this,
-          "Ein Fehler ist bei der Versionsabfrage aufgetreten:\n"
-              + e.getMessage(), "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
-    }
-    catch (java.text.ParseException e) {
-      e.printStackTrace();
-      JOptionPane.showMessageDialog(this,
-          "Ein Fehler ist bei der Versionsabfrage aufgetreten:\n"
-              + e.getMessage(), "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
-    }
-
-  }
+  };
 
   /**
    * This method initializes jJMenuBar
@@ -1732,7 +1775,7 @@ public final class ControlFrame extends SubFrame
       updateCheckItem.setMnemonic(java.awt.event.KeyEvent.VK_P);
       updateCheckItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          checkForUpdate(true);
+          (new Thread(new UpdateChecker(true))).start();
         }
       });
     }
@@ -2049,10 +2092,12 @@ public final class ControlFrame extends SubFrame
       }
 
       public void actionPerformed(java.awt.event.ActionEvent e) {
+        inStart = true;
         if (GroupOperations.openGroup(new File(fileName), ControlFrame.this)) {
           getGroupSaveItem().setEnabled(true);
           rebuildLastGroupsMenu();
         }
+        inStart = false;
       }
 
       private final String fileName;
@@ -2082,10 +2127,12 @@ public final class ControlFrame extends SubFrame
       groupOpenItem.setMnemonic(java.awt.event.KeyEvent.VK_F);
       groupOpenItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
+          inStart = true;
           if (GroupOperations.openGroup(ControlFrame.this)) {
             getGroupSaveItem().setEnabled(true);
             rebuildLastGroupsMenu();
           }
+          inStart = false;
         }
       });
     }

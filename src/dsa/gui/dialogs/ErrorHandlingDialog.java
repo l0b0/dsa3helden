@@ -86,6 +86,7 @@ public final class ErrorHandlingDialog extends BGDialog {
     this.setContentPane(getJContentPane());
     this.setTitle("Heldenverwaltung: Fehler im Programm");
     this.setLocationByPlatform(true);
+    this.getRootPane().setDefaultButton(getMailButton());
   }
 
   /**

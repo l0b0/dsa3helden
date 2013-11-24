@@ -27,8 +27,23 @@ import java.util.Collections;
 public class Looks {
 
   private static Looks instance = new Looks();
+  
+  private static boolean dataRead = false;
 
   public static Looks getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.readEyeColors(dirPath + "Augen.dat");
+        instance.readHairColors(dirPath + "Haare.dat");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Haar- und Augenfarben", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
 

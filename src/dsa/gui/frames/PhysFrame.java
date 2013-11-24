@@ -39,6 +39,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import dsa.gui.dialogs.CitySelectionDialog;
 import dsa.gui.dialogs.DateSelectionDialog;
@@ -374,6 +376,8 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     }
     return godBox;
   }
+  
+  private boolean standComboFilled = false;
 
   /**
    * This method initializes jComboBox2
@@ -384,6 +388,25 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     if (standCombo == null) {
       standCombo = new JComboBox();
       standCombo.setBounds(135, 103, 169, 16);
+      standCombo.addPopupMenuListener(new PopupMenuListener() {
+        public void popupMenuCanceled(PopupMenuEvent e) {
+        }
+        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        }
+
+        public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+          if (!standComboFilled) {
+            CharacterType heroType = CharacterTypes.getInstance().getType(
+                currentHero.getInternalType());
+            if (heroType != null) {
+              for (String origin : heroType.getPossibleOrigins()) {
+                getStandCombo().addItem(origin);
+              }
+            }
+            standComboFilled = true;
+          }
+        }
+      });
       standCombo.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (disableChanges) return;
@@ -697,10 +720,28 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       eyeCombo = new JComboBox();
       eyeCombo.setSize(128, 16);
       eyeCombo.setLocation(455, 125);
-      eyeCombo.addItem("<passend>");
-      for (String color : Looks.getInstance().getEyeColors()) {
-        eyeCombo.addItem(color);
-      }
+      eyeCombo.addPopupMenuListener(new PopupMenuListener() {
+        public void popupMenuCanceled(PopupMenuEvent e) {
+        }
+        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        }
+        
+        private boolean filled = false;
+
+        public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+          if (!filled) {
+            fillBox();
+            filled = true;
+          }
+        }
+        
+        private void fillBox() {
+          eyeCombo.addItem("<passend>");
+          for (String color : Looks.getInstance().getEyeColors()) {
+            eyeCombo.addItem(color);
+          }          
+        }
+      });
       eyeCombo.addItemListener(new ItemListener() {
         public void itemStateChanged(ItemEvent e) {
           if (disableChanges) return;
@@ -742,6 +783,10 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     boolean hasHero = currentHero != null;
     getBirthdayField().setEnabled(true);
     getBirthdayField().setEditable(true);
+    getEyeCombo().setEnabled(true);
+    getEyeCombo().setEditable(true);
+    getStandCombo().setEnabled(true);
+    getStandCombo().setEditable(true);
 
     if (hasHero) {
       getNameField().setText(currentHero.getName());
@@ -749,16 +794,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getSexCombo().setSelectedIndex(currentHero.getSex().equals("m") ? 1 : 0);
       getGodBox().setSelectedItem(currentHero.getGod());
       getStandCombo().removeAllItems();
-      CharacterType heroType = CharacterTypes.getInstance().getType(
-          currentHero.getInternalType());
-      if (heroType != null) {
-        getStandCombo().setEnabled(true);
-        for (String origin : heroType.getPossibleOrigins()) {
-          getStandCombo().addItem(origin);
-        }
-      }
-      else
-        getStandCombo().setEnabled(false);
+      standComboFilled = false;
       getStandCombo().setSelectedItem(currentHero.getStand());
       getBirthplaceField().setText(currentHero.getBirthPlace());
       getBirthdayField().setText(currentHero.getBirthday());
@@ -799,8 +835,8 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getEyeCombo().setSelectedItem("");
       getTitleField().setText("");
       getSkinField().setText("");
-      getStandCombo().setEnabled(false);
     }
+    getStandCombo().setEnabled(hasHero);
     getNameField().setEnabled(hasHero);
     getSexCombo().setEnabled(hasHero);
     getGodBox().setEnabled(hasHero);
@@ -822,7 +858,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     getBirthdayField().setEnabled(hasHero);
     getBirthdayField().setEditable(false);
     getBirthdayButton().setEnabled(hasHero);
-    getStandCombo().setEditable(false);
+    getStandCombo().setEditable(hasHero);
     disableChanges = false;
   }
 

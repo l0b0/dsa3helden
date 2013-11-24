@@ -1,3 +1,14 @@
+Version 1.4.1
+-------------
+- Suche nach neuer Version geschieht im Hintergrund
+- Verbesserte Tastaturunterstützung
+- Anzeigeverbesserungen für manche Look & Feels, inbesondere Walnut
+- Bugfix: manche alten, nicht magiebegabten Helden konnten nicht gesteigert werden
+- Programmstart beschleunigt
+- Zeichnen des Walnut-Look & Feels beschleunigt
+- Bugfix: Gruppen wurden manchmal fälschlich als 'ungespeichert' angesehen
+- Reihenfolge der Helden kann im Gruppenfenster geändert werden
+
 Version 1.4.0
 -------------
 - Gruppenübersicht kann gedruckt werden

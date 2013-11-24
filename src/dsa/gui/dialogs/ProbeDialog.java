@@ -117,6 +117,12 @@ public final class ProbeDialog extends BGDialog {
     ((JSpinner.DefaultEditor) getDifficultySpinner().getEditor()).getTextField().select(
         0, 1);
     setProbability();
+    this.getRootPane().setDefaultButton(getProbeButton());
+    setEscapeButton(getCancelButton());
+    this.getDifficultySpinner().requestFocusInWindow();
+    JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) this.getDifficultySpinner().getEditor();
+    editor.getTextField().setText("0");
+    editor.getTextField().selectAll();
   }
 
   /**

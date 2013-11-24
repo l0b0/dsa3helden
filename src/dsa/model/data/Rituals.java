@@ -220,10 +220,24 @@ public class Rituals {
   }
 
   public static Rituals getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.readFile(dirPath + "Rituale.dat");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Rituale", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
 
   private static Rituals instance = new Rituals();
+  
+  private static boolean dataRead = false;
 
   private Rituals() {
     theRituals = new HashMap<String, TypeRituals>();

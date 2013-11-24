@@ -39,10 +39,17 @@ public class Colors {
     init();
     return sBackground;
   }
+  
+  public static Color getFocusRectColor() {
+    init();
+    return sFocus;
+  }
 
   private static Color sForeground = null;
 
   private static Color sBackground = null;
+  
+  private static Color sFocus = null;
 
   private static boolean bInit = false;
 
@@ -54,6 +61,7 @@ public class Colors {
         sForeground = (Color) o;
         sBackground = (Color) UIManager
             .get("dsa.gui.lf.focusedBackgroundColor");
+        sFocus = (Color) UIManager.getColor("dsa.gui.lf.focusRectColor");
       }
     }
   }

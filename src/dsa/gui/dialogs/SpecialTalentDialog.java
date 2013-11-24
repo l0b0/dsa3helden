@@ -276,6 +276,8 @@ public class SpecialTalentDialog extends BGDialog {
     this.setSize(315, 323);
     this.setTitle("Talent hinzufügen");
     this.setContentPane(getJContentPane());
+    this.getRootPane().setDefaultButton(getOkButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

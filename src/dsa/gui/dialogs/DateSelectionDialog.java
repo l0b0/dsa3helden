@@ -172,6 +172,8 @@ public class DateSelectionDialog extends BGDialog {
     this.setSize(303, 209);
     this.setTitle("Geburtstag");
     this.setContentPane(getJContentPane());
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

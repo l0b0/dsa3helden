@@ -26,6 +26,8 @@ import java.util.HashMap;
 public class Names {
 
   private final HashMap<String, RegionNames> regionNames;
+  
+  private static boolean dataRead = false;
 
   public RegionNames getRegionNames(String region) {
     return regionNames.get(region);
@@ -34,6 +36,18 @@ public class Names {
   private static Names instance = new Names();
 
   public static Names getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.readFiles(dirPath + "Namen");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Namen", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
 

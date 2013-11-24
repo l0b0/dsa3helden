@@ -33,8 +33,22 @@ import javax.swing.tree.TreeNode;
 public class CharacterTypes {
 
   private static CharacterTypes instance = new CharacterTypes();
+  
+  private static boolean dataRead = false;
 
   public static CharacterTypes getInstance() {
+    if (!dataRead) {
+      String dirPath = dsa.util.Directories.getApplicationPath() + "daten"
+        + java.io.File.separator;
+      try {
+        instance.parseFiles(dirPath + "Heldentypen");
+        dataRead = true;
+      }
+      catch (java.io.IOException e) {
+        javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
+            "Fehler beim Laden der Heldentypen", javax.swing.JOptionPane.ERROR_MESSAGE);        
+      }
+    }
     return instance;
   }
 

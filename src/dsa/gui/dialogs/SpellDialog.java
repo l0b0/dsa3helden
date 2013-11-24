@@ -119,6 +119,8 @@ public final class SpellDialog extends BGDialog {
     this.setTitle("Zauber hinzufügen");
     this.setContentPane(getJContentPane());
     this.setSize(new java.awt.Dimension(376, 285));
+    this.getRootPane().setDefaultButton(getOKButton());
+    setEscapeButton(getCancelButton());
   }
 
   /**

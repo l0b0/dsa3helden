@@ -552,8 +552,10 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       goodPropertyChangeTries++;
       badPropertyChangeTries++;
       mLEIncreaseTries++;
-      mAEIncreaseTries++;
-      canMeditate = mHasGreatMeditation;
+      if (hasEnergy(Energy.AE)) {
+        mAEIncreaseTries++;
+        canMeditate = mHasGreatMeditation;
+      }
     }
     overallSpellIncreaseTries += spellIncreasesPerStep;
     overallSpellOrTalentIncreaseTries += spellToTalentMoves;
@@ -619,11 +621,11 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     mLEIncreaseTries++;
     if (hasEnergy(Energy.AE)) {
       mAEIncreaseTries++;
+      canMeditate = mHasGreatMeditation;          
     }
     overallSpellIncreaseTries += spellIncreasesPerStep;
     overallSpellOrTalentIncreaseTries += spellToTalentMoves;
     overallSpellIncreaseTries -= spellToTalentMoves;
-    canMeditate = mHasGreatMeditation;          
     for (CharacterObserver o : observers)
       o.stepIncreased();
   }
@@ -925,6 +927,10 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     else
       badPropertyChangeTries--;
     checkForNextStepIncrease();
+    for (CharacterObserver o : observers) {
+      o.increaseTriesChanged();
+    }
+    changed = true;
   }
 
   /*
@@ -2670,6 +2676,10 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changeDefaultEnergy(Energy.LE, lePlus);
     changeDefaultEnergy(Energy.AE, aePlus);
     checkForNextStepIncrease();
+    changed = true;
+    for (CharacterObserver o : observers) {
+      o.increaseTriesChanged();
+    }
   }
 
   public boolean hasAEIncreaseTry() {
@@ -2680,12 +2690,20 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     mLEIncreaseTries--;
     changeDefaultEnergy(Energy.LE, lePlus);
     checkForNextStepIncrease();
+    changed = true;
+    for (CharacterObserver o : observers) {
+      o.increaseTriesChanged();
+    }
   }
 
   public void increaseAE(int aePlus) {
     mAEIncreaseTries--;
     changeDefaultEnergy(Energy.AE, aePlus);
     checkForNextStepIncrease();
+    changed = true;
+    for (CharacterObserver o : observers) {
+      o.increaseTriesChanged();
+    }
   }
 
   public int getOverallSpellIncreaseTries() {

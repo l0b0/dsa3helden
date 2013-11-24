@@ -21,6 +21,7 @@ package dsa.model.data;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -72,6 +73,8 @@ public class Armours {
   }
   
   public void loadUserDefinedArmours(String filename) throws IOException {
+    File file = new File(filename);
+    if (!file.exists()) return;
     internalLoadFile(filename, true);
   }
 

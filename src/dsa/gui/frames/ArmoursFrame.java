@@ -83,6 +83,9 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
     public void armourRemoved(String armour) {
       mTable.removeArmour(armour);
     }
+    public void beModificationChanged() {
+      updateData();
+    }
   }
 
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();

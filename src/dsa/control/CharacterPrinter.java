@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006 [Joerg Ruedenauer]
+ Copyright (c) 2006-2007 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -19,7 +19,6 @@
  */
 package dsa.control;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +26,7 @@ import java.util.Comparator;
 
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
+import dsa.model.characters.Printable;
 import dsa.model.characters.Property;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
@@ -39,14 +39,12 @@ import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.model.talents.Spell;
 import dsa.model.talents.Talent;
-import dsa.util.FileTransformer;
-import dsa.util.FileType;
 import dsa.util.LookupTable;
 
 /**
  * 
  */
-public class CharacterPrinter {
+public class CharacterPrinter extends AbstractPrinter {
 
   private static class NameComparator implements Comparator<Spell> {
     public NameComparator(int direction) {
@@ -174,44 +172,19 @@ public class CharacterPrinter {
     return PrinterHolder.PRINTER;
   }
 
-  private static int getCategoryNumber(String category) {
-    if (category.startsWith("Kampf")) {
-      return 1;
-    }
-    else if (category.startsWith("Körperliche")) {
-      return 2;
-    }
-    else if (category.startsWith("Gesellschaft")) {
-      return 3;
-    }
-    else if (category.startsWith("Natur")) {
-      return 4;
-    }
-    else if (category.startsWith("Wissen")) {
-      return 5;
-    }
-    else if (category.startsWith("Handwerk")) {
-      return 6;
-    }
-    else if (category.startsWith("Intuitiv")) {
-      return 7;
-    }
-    else {
-      return 8;
-    }
-  }
+  protected final void fillTable(Printable p, LookupTable table) {
+    
+    assert(p instanceof Hero);
+    if (! (p instanceof Hero)) return;
+    Hero character = (Hero) p;
+    
+    printProperties(character, table, "");
+    printEnergies(character, table, "");
+    printBasicAttributes(character, table, "");
 
-  public void printCharacter(Hero character, File template, File output,
-      FileType fileType, java.awt.Component parent, String message)
-      throws java.io.IOException {
-    LookupTable table = new LookupTable('!');
-    printProperties(character, table);
-    printEnergies(character, table);
-    printBasicAttributes(character, table);
+    printDerivedValues(character, table, "");
 
-    printDerivedValues(character, table);
-
-    printTalents(character, table);
+    printTalents(character, table, "");
     printSpells(character, table);
 
     int overallWeight = 0;
@@ -275,20 +248,9 @@ public class CharacterPrinter {
 
     printAnimals(character, table);
 
-    printMagicAttributes(character, table);
+    printMagicAttributes(character, table, "");
     // ...
 
-    FileTransformer transformer = new FileTransformer(template, output,
-        fileType);
-    transformer.setLookupTable(table);
-    transformer.transform(parent, message);
-  }
-
-  private static void printMagicAttributes(Hero character, LookupTable table) {
-    table.addItem("Ele", character.getElement());
-    table.addItem("SeT", character.getSoulAnimal());
-    table.addItem("Aka", character.getAcademy());
-    table.addItem("SpG", character.getSpecialization());
   }
 
   private static void printAnimals(Hero character, LookupTable table) {
@@ -761,24 +723,6 @@ public class CharacterPrinter {
     return overallWeight;
   }
 
-  private static void printTalents(Hero character, LookupTable table) {
-    for (String category : Talents.getInstance().getKnownCategories()) {
-      if (category.equals("Favoriten")) continue;
-      if (category.startsWith("Berufe")) continue;
-      if (category.equals("Zauber")) continue;
-      char appendix = 'a';
-      int catNr = getCategoryNumber(category);
-      for (Talent talent : Talents.getInstance().getTalentsInCategory(category)) {
-        table.addItem("" + catNr + appendix, character
-            .getDefaultTalentValue(talent.getName()));
-        appendix++;
-      }
-    }
-
-    printSpecialTalents(character, table);
-
-  }
-
   private static void printSpells(Hero character, LookupTable table) {
     ArrayList<Spell> spells = new ArrayList<Spell>();
 
@@ -833,89 +777,6 @@ public class CharacterPrinter {
       table.addItem("zw", "");
       table.addItem("zg", "");
       table.addItem("zu", "");
-    }
-  }
-
-  private static void printSpecialTalents(Hero character, LookupTable table) {
-    table.addItem("mf", character.getDefaultTalentValue("Jagen (Falle)"));
-    table.addItem("mp", character.getDefaultTalentValue("Jagen (Pirsch)"));
-    char appendix = 'a';
-    for (Talent talent : Talents.getInstance().getTalentsInCategory(
-        "Berufe / Sonstiges")) {
-      if (talent.getName().startsWith("Jagen (")) continue;
-      if (character.hasTalent(talent.getName())) {
-        table.addItem("bn" + appendix, talent.getName());
-        table.addItem("8" + appendix, character.getDefaultTalentValue(talent
-            .getName()));
-        ++appendix;
-      }
-    }
-    while (appendix != 'l') {
-      table.addItem("bn" + appendix, "");
-      table.addItem("8" + appendix, "");
-      ++appendix;
-    }
-  }
-
-  private static void printDerivedValues(Hero character, LookupTable table) {
-    table.addItem("mb", character.getMRBonus());
-    table.addItem("mr", character.getDefaultDerivedValue(Hero.DerivedValue.MR));
-    table
-        .addItem("atb", character.getDefaultDerivedValue(Hero.DerivedValue.AT));
-    table
-        .addItem("pab", character.getDefaultDerivedValue(Hero.DerivedValue.PA));
-    table
-        .addItem("fkb", character.getDefaultDerivedValue(Hero.DerivedValue.FK));
-    table
-        .addItem("auw", character.getDefaultDerivedValue(Hero.DerivedValue.AW));
-  }
-
-  private static void printBasicAttributes(Hero character, LookupTable table) {
-    table.addItem("name", character.getName());
-    table.addItem("typ", character.getType());
-    table.addItem("ort", character.getBirthPlace());
-    table.addItem("gro", character.getHeight());
-    table.addItem("gew", character.getWeight());
-    table.addItem("haar", character.getHairColor());
-    table.addItem("sex", character.getSex());
-    table.addItem("alt", character.getAge());
-    table.addItem("geb", character.getBirthday());
-    table.addItem("gott", character.getGod());
-    table.addItem("augen", character.getEyeColor());
-    table.addItem("skin", character.getSkinColor());
-    table.addItem("stand", character.getStand());
-    table.addItem("gs", 10);
-
-    table.addItem("ap", character.getAP());
-    table.addItem("ruf", character.getRuf());
-    int step = character.getStep();
-    table.addItem("stufe", step);
-    table.addItem("nst", (step * (step + 1) * 50));
-    table.addItem("APminus", ((step * (step + 1) * 50) - character.getAP()));
-    table.addItem("titel", character.getTitle());
-    table.addItem("haut", character.getSkin());
-  }
-
-  private static void printEnergies(Hero character, LookupTable table) {
-    table.addItem("le", character.getDefaultEnergy(Energy.LE));
-    table.addItem("ae", character.getDefaultEnergy(Energy.AE));
-    table.addItem("ke", character.getDefaultEnergy(Energy.KE));
-    table.addItem("ko", character.getDefaultEnergy(Energy.KO));
-    table.addItem("aus", character.getDefaultEnergy(Energy.AU));
-  }
-
-  private static void printProperties(Hero character, LookupTable table) {
-    for (int i = 0; i < 7; ++i) {
-      table.addItem("p" + (i + 1), character.getDefaultProperty(Property
-          .values()[i]));
-    }
-    table.addItem("n1", character.getDefaultProperty(Property.AG));
-    table.addItem("n2", character.getDefaultProperty(Property.HA));
-    table.addItem("n3", character.getDefaultProperty(Property.RA));
-    table.addItem("n4", character.getDefaultProperty(Property.TA));
-    for (int i = 4; i < 7; ++i) {
-      table.addItem("n" + (i + 1), character.getDefaultProperty(Property
-          .values()[i + 7]));
     }
   }
 

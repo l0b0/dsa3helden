@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -20,8 +20,6 @@
 package dsa.gui.frames;
 
 import java.awt.Rectangle;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -118,9 +116,14 @@ public abstract class SubFrame extends JFrame implements HelpProvider {
     if (!update) loadAllBounds(true);
   }
 
-  private Rectangle normalBounds;
-
-  // private final boolean rolledUp = false;
+  public static void saveFrameBounds(String title, Rectangle r) {
+    Preferences prefs = Preferences
+      .userNodeForPackage(dsa.gui.PackageID.class);
+    prefs.putInt(title + "x", r.x);
+    prefs.putInt(title + "y", r.y);
+    prefs.putInt(title + "w", r.width);
+    prefs.putInt(title + "h", r.height);
+  }
 
   public SubFrame() {
     super();
@@ -142,19 +145,12 @@ public abstract class SubFrame extends JFrame implements HelpProvider {
     if (y < 0) y = 0;
     if (x + w > screen.width) x = screen.width - w;
     if (y + h > screen.height) y = screen.height - h;
-    normalBounds = new Rectangle(x, y, w, h);
-    this.setBounds(normalBounds.x, normalBounds.y, normalBounds.width,
-        normalBounds.height);
+    this.setBounds(x, y, w, h);
     addWindowListener(new WindowAdapter() {
       private void saveBounds() {
         Rectangle r = getBounds();
         String title = getTitle();
-        Preferences prefs = Preferences
-            .userNodeForPackage(dsa.gui.PackageID.class);
-        prefs.putInt(title + "x", r.x);
-        prefs.putInt(title + "y", r.y);
-        prefs.putInt(title + "w", r.width);
-        prefs.putInt(title + "h", r.height);
+        saveFrameBounds(title, r);
         if (shallSave) storeBounds(r);
       }
 
@@ -164,25 +160,6 @@ public abstract class SubFrame extends JFrame implements HelpProvider {
 
       public void windowClosed(WindowEvent e) {
         saveBounds();
-      }
-    });
-    addComponentListener(new ComponentAdapter() {
-      private void boundsChanged() {
-        Rectangle r = getBounds();
-        normalBounds.x = r.x;
-        normalBounds.y = r.y;
-        //if (!rolledUp) {
-          normalBounds.width = r.width;
-          normalBounds.height = r.height;
-        //}
-      }
-
-      public void componentMoved(ComponentEvent e) {
-        boundsChanged();
-      }
-
-      public void componentResized(ComponentEvent e) {
-        boundsChanged();
       }
     });
     this.setIconImage(getIcon().getImage());

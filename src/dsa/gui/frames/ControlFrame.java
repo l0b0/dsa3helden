@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006 [Joerg Ruedenauer]
+ Copyright (c) 2006-2007 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -23,10 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
+import java.awt.Rectangle;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
@@ -42,25 +39,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.URL;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -69,10 +60,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
+import dsa.control.GroupOperations;
 import dsa.control.Version;
 import dsa.util.Directories;
 import dsa.gui.dialogs.AnimalSelectionDialog;
-import dsa.gui.dialogs.HeroWizard;
 import dsa.gui.dialogs.OptionsDialog;
 import dsa.gui.dialogs.PrintingDialog;
 import dsa.gui.lf.BGList;
@@ -87,6 +78,7 @@ import dsa.model.characters.Property;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
+import dsa.model.data.Opponents;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
 import dsa.model.data.Talents;
@@ -98,7 +90,6 @@ import dsa.model.data.Weapons;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.filechooser.FileFilter;
 
 import org.jdesktop.jdic.desktop.Desktop;
 import org.jdesktop.jdic.desktop.Message;
@@ -106,7 +97,8 @@ import org.jdesktop.jdic.desktop.Message;
 /**
  * 
  */
-public final class ControlFrame extends SubFrame implements DropTargetListener {
+public final class ControlFrame extends SubFrame 
+    implements DropTargetListener, FrameManagement.FrameStateChanger {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -119,14 +111,26 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
    */
   public ControlFrame(boolean loadLastGroup) {
     super("Heldenverwaltung");
+    inStart = true;
     initialize(loadLastGroup);
+    FrameManagement.getInstance().setFrameOpener(this);
+    FrameLayouts.getInstance().restoreLastLayout();
+    inStart = false;
+    boolean checkForNewVersion = Preferences.userNodeForPackage(dsa.gui.PackageID.class).getBoolean("VersionCheckAtStart", true);
+    if (checkForNewVersion) {
+      javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          checkForUpdate(false);
+        }
+      });
+    }
   }
+  
+  private boolean inStart = false;
 
   public String getHelpPage() {
     return "Hauptfenster";
   }
-
-  private String currentGroupFileName = "";
 
   private DropTarget dropTarget = null;
 
@@ -145,7 +149,6 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       String fileName = Preferences.userNodeForPackage(dsa.gui.PackageID.class)
           .get("lastUsedGroupFile", "");
       if (!fileName.equals("")) loadChars(fileName);
-      currentGroupFileName = fileName;
       String lastHero = Preferences.userNodeForPackage(dsa.gui.PackageID.class)
           .get("lastActiveHero", "");
       for (Hero hero : Group.getInstance().getAllCharacters()) {
@@ -167,18 +170,18 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
    * 
    */
   protected void saveAndExit() {
-    if (!autoSaveAll()) return;
-    List<SubFrame> openFrames = FrameManagement.getInstance().getOpenFrames();
-    Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-    prefs.putInt("OpenFramesCount", openFrames.size());
-    Iterator<SubFrame> it = openFrames.iterator();
-    for (int i = 0; i < openFrames.size(); ++i) {
-      SubFrame frame = it.next();
-      // if (frame == this) continue;
-      prefs.put("OpenFrames" + i, frame.getTitle());
+    if (!GroupOperations.autoSaveAll(this)) return;
+    try {
+      FrameLayouts.getInstance().storeToFile(Directories.getUserHomePath() + "Fensterlayout.dat");
     }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(this, "Fensterlayouts konnten nicht gespeichert werden. Grund:\n" 
+          + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+    Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+    
     prefs.putInt("SelectedPaneIndex", getJTabbedPane().getSelectedIndex());
-    prefs.put("lastUsedGroupFile", currentGroupFileName);
+    prefs.put("lastUsedGroupFile", Group.getInstance().getCurrentFileName());
     if (Group.getInstance().getActiveHero() != null) {
       prefs
           .put("lastActiveHero", Group.getInstance().getActiveHero().getName());
@@ -236,6 +239,14 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
               + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
     }
     try {
+      Opponents.getOpponentsDB().writeToFile(baseDir + "Eigene_Gegner.dat", true);
+    }
+    catch (IOException e) {
+      JOptionPane.showMessageDialog(this,
+          "Benutzerdefinierte Gegner konnten nicht gespeichert werden. Grund:\n"
+          + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+    }
+    try {
       prefs.flush();
     }
     catch (BackingStoreException e) {
@@ -245,7 +256,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     }
     Group.getInstance().setActiveHero(null);
     dispose();
-    if (openFrames.size() == 0) {
+    if (FrameManagement.getInstance().getOpenFrames().size() == 0) {
       System.exit(0);
     }
     else {
@@ -254,107 +265,15 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     }
   }
 
-  private boolean autoSaveAll() {
-    for (Hero hero : Group.getInstance().getAllCharacters()) {
-      if (hero.isChanged()) {
-        int result = JOptionPane.showConfirmDialog(this, "Held '"
-            + hero.getName() + "' ist nicht gespeichert.\nJetzt speichern?",
-            "Beenden", JOptionPane.YES_NO_CANCEL_OPTION);
-        if (result == JOptionPane.CANCEL_OPTION) return false;
-        if (result == JOptionPane.YES_OPTION) {
-          saveHero(hero);
-        }
-      }
-    }
-    if (Group.getInstance().isChanged()) {
-      int result = JOptionPane.showConfirmDialog(this,
-          "Heldengruppe wurde geändert.\nGruppe speichern?", "Beenden",
-          JOptionPane.YES_NO_CANCEL_OPTION);
-      if (result == JOptionPane.CANCEL_OPTION) return false;
-      if (result == JOptionPane.YES_OPTION) {
-        String file = currentGroupFileName;
-        if (file.equals("")) {
-          boolean saved = saveAsGroup();
-          if (!saved) return false;
-        }
-        else
-          saveGroup();
-      }
-    }
-    return true;
-  }
-
   protected void loadChars(String filename) {
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(filename));
-      Group.getInstance().loadFromFile(reader);
+      Group.getInstance().loadFromFile(new File(filename));
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
           "Gruppe konnte nicht geladen werden! Fehler:\n" + e.getMessage(),
           "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
     }
-  }
-
-  protected boolean shouldFrameOpen(String title) {
-    Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-    int frameCount = prefs.getInt("OpenFramesCount", 0);
-    for (int i = 0; i < frameCount; ++i) {
-      String frameTitle = prefs.get("OpenFrames" + i, "");
-      if (frameTitle.equals(title)) return true;
-    }
-    return false;
-  }
-
-  private void copyFile(File first, File second) throws IOException {
-    BufferedReader in = new BufferedReader(new FileReader(first));
-    try {
-      PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
-          second)));
-      try {
-        String s = in.readLine();
-        while (s != null) {
-          out.println(s);
-          s = in.readLine();
-        }
-        out.flush();
-      }
-      finally {
-        if (out != null) out.close();
-      }
-    }
-    finally {
-      if (in != null) in.close();
-    }
-  }
-
-  /**
-   * 
-   * @param hero
-   */
-  private boolean saveHero(Hero hero) {
-    String filePath = Group.getInstance().getFilePath(hero);
-    if (filePath == null || filePath.equals("")) return saveHeroAs(hero);
-    File tempFile = null;
-    try {
-      tempFile = File.createTempFile("dsa_" + hero.getName(), null);
-      File realFile = new File(filePath);
-      hero.storeToFile(tempFile, realFile);
-      if (realFile.exists()) realFile.delete();
-      if (tempFile.renameTo(realFile) && realFile.exists()) {
-        return true;
-      }
-      else {
-        copyFile(tempFile, realFile);
-        tempFile.deleteOnExit();
-      }
-    }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(this, "Fehler beim Speichern:\n"
-          + e.getMessage(), "Speichern", JOptionPane.ERROR_MESSAGE);
-      if (tempFile != null) tempFile.deleteOnExit();
-    }
-    return false;
   }
 
   /**
@@ -410,36 +329,6 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     }
   }
 
-  private static final class GroupFileFilter extends FileFilter {
-    public boolean accept(File f) {
-      return f.getName().endsWith(".dsagroup") || f.isDirectory();
-    }
-
-    public String getDescription() {
-      return "DSA-Gruppen (*.dsagroup)";
-    }
-  }
-
-  private static final class WiegeFileFilter extends FileFilter {
-    public boolean accept(File f) {
-      return f.getName().endsWith(".h42") || f.isDirectory();
-    }
-
-    public String getDescription() {
-      return "Wiege-Charaktere (*.h42)";
-    }
-  }
-
-  private static final class HeroFileFilter extends FileFilter {
-    public boolean accept(File f) {
-      return f.getName().endsWith(".dsahero") || f.isDirectory();
-    }
-
-    public String getDescription() {
-      return "DSA-Charaktere (*.dsahero)";
-    }
-  }
-
   class CharacterNameListener extends CharacterAdapter {
     public void nameChanged(String oldName, String newName) {
       listenForCharacterBox = false;
@@ -460,15 +349,31 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     if (alwaysPane == null) {
       alwaysPane = new JPanel();
       alwaysPane.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER,
-          15, 10));
+          12, 10));
       newHeroButton = new JButton(ImageManager.getIcon("tsa"));
       newHeroButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          newHero();
+          GroupOperations.newHero(ControlFrame.this);
         }
       });
+      final int BUTTON_SIZE = 22;
       newHeroButton.setToolTipText("Neuen Helden erzeugen");
+      newHeroButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
       alwaysPane.add(newHeroButton);
+      
+      printHeroButton = new JButton(ImageManager.getIcon("print"));
+      printHeroButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          PrintingDialog dialog = new PrintingDialog(Group.getInstance()
+              .getActiveHero(), ControlFrame.this);
+          dialog.setVisible(true);
+        }
+      });
+      printHeroButton.setToolTipText("Heldendaten drucken...");
+      printHeroButton.setEnabled(false);
+      printHeroButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
+      alwaysPane.add(printHeroButton);
+      
       heroBox = new JComboBox();
       nameListener = new CharacterNameListener();
       for (Hero hero : Group.getInstance().getAllCharacters()) {
@@ -488,6 +393,14 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         public void characterAdded(Hero character) {
           heroBox.addItem(character.getName());
           character.addHeroObserver(nameListener);
+          if (!inStart) {
+            if (!physButton.isSelected()) {
+              physButton.doClick();
+            }
+            else {
+              FrameManagement.getInstance().getFrame("Grunddaten").toFront();
+            }
+          }
         }
 
         public void globalLockChanged() {
@@ -508,6 +421,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       heroBox.setPreferredSize(new Dimension(210,
           heroBox.getPreferredSize().height));
       alwaysPane.add(heroBox);
+      
       lockButton = new JToggleButton(ImageManager.getIcon("locked"));
       lockButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -518,13 +432,41 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       });
       lockButton.setToolTipText("Alles schützen / freigeben");
       alwaysPane.add(lockButton);
+      
+      groupButton = new JToggleButton(ImageManager.getIcon("group"));
+      groupButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (frame != null && frame.isVisible()) {
+            frame.dispose();
+            frame = null;
+          }
+          else {
+            frame = new GroupFrame();
+            frame.addWindowListener(new WindowAdapter() {
+              public void windowClosing(java.awt.event.WindowEvent e) {
+                ControlFrame.this.groupButton.setSelected(false);
+              }
+            });
+            frame.setVisible(true);
+          }
+        }
+
+        private GroupFrame frame = null;
+      });
+      groupButton.setToolTipText("Gruppe");
+      alwaysPane.add(groupButton);
+      frameButtons.put("Gruppe", groupButton);
     }
     return alwaysPane;
   }
 
   private JToggleButton lockButton;
+  
+  private JToggleButton groupButton;
 
   private JButton newHeroButton;
+  
+  private JButton printHeroButton;
 
   /**
    * This method initializes jTabbedPane
@@ -818,9 +760,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private PhysFrame frame = null;
       });
       temp.add(physButton);
-      if (shouldFrameOpen("Grunddaten")) {
-        physButton.doClick();
-      }
+      frameButtons.put("Grunddaten", physButton);
 
       stepButton = new JToggleButton("Erfahrung");
       stepButton.addActionListener(new ActionListener() {
@@ -843,9 +783,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private StepFrame frame = null;
       });
       temp.add(stepButton);
-      if (shouldFrameOpen("Erfahrung")) {
-        stepButton.doClick();
-      }
+      frameButtons.put("Erfahrung", stepButton);
 
       goodPropertiesButton = new JToggleButton("Gute Eigenschaften");
       goodPropertiesButton.addActionListener(new ActionListener() {
@@ -868,9 +806,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private PropertyFrame frame = null;
       });
       temp.add(goodPropertiesButton);
-      if (shouldFrameOpen("Gute Eigenschaften")) {
-        goodPropertiesButton.doClick();
-      }
+      frameButtons.put("Gute Eigenschaften", goodPropertiesButton);
 
       badPropertiesButton = new JToggleButton("Schlechte Eigenschaften");
       badPropertiesButton.addActionListener(new ActionListener() {
@@ -893,9 +829,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private PropertyFrame frame = null;
       });
       temp.add(badPropertiesButton);
-      if (shouldFrameOpen("Schlechte Eigenschaften")) {
-        badPropertiesButton.doClick();
-      }
+      frameButtons.put("Schlechte Eigenschaften", badPropertiesButton);
 
       energiesButton = new JToggleButton("Energien");
       energiesButton.addActionListener(new ActionListener() {
@@ -918,9 +852,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private EnergyFrame frame = null;
       });
       temp.add(energiesButton);
-      if (shouldFrameOpen("Energien")) {
-        energiesButton.doClick();
-      }
+      frameButtons.put("Energien", energiesButton);
 
       derivedValuesButton = new JToggleButton("Berechnete Werte");
       derivedValuesButton.addActionListener(new ActionListener() {
@@ -943,9 +875,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private DerivedValuesFrame frame = null;
       });
       temp.add(derivedValuesButton);
-      if (shouldFrameOpen("Berechnete Werte")) {
-        derivedValuesButton.doClick();
-      }
+      frameButtons.put("Berechnete Werte", derivedValuesButton);
 
       heroPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
@@ -996,9 +926,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private LanguageFrame frame = null;
       });
       temp.add(langButton);
-      if (shouldFrameOpen("Sprachen")) {
-        langButton.doClick();
-      }
+      frameButtons.put("Sprachen", langButton);
 
       bgButton = new JToggleButton("Hintergrund");
       bgButton.addActionListener(new ActionListener() {
@@ -1021,9 +949,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private BackgroundFrame frame = null;
       });
       temp.add(bgButton);
-      if (shouldFrameOpen("Hintergrund")) {
-        bgButton.doClick();
-      }
+      frameButtons.put("Hintergrund", bgButton);
 
       ritualsButton = new JToggleButton("Sonderfertigkeiten");
       ritualsButton.addActionListener(new ActionListener() {
@@ -1046,9 +972,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private RitualsFrame frame = null;
       });
       temp.add(ritualsButton);
-      if (shouldFrameOpen("Sonderfertigkeiten")) {
-        ritualsButton.doClick();
-      }
+      frameButtons.put("Sonderfertigkeiten", ritualsButton);
 
       magicButton = new JToggleButton("Magie");
       magicButton.addActionListener(new ActionListener() {
@@ -1071,9 +995,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private MagicAttributeFrame frame = null;
       });
       temp.add(magicButton);
-      if (shouldFrameOpen("Magie")) {
-        magicButton.doClick();
-      }
+      frameButtons.put("Magie", magicButton);
 
       imageButton = new JToggleButton("Bild");
       imageButton.addActionListener(new ActionListener() {
@@ -1096,9 +1018,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private ImageFrame frame = null;
       });
       temp.add(imageButton);
-      if (shouldFrameOpen("Bild")) {
-        imageButton.doClick();
-      }
+      frameButtons.put("Bild", imageButton);
 
       metaButton = new JToggleButton("Metadaten");
       metaButton.addActionListener(new ActionListener() {
@@ -1121,9 +1041,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private TypeMetaFrame frame = null;
       });
       temp.add(metaButton);
-      if (shouldFrameOpen("Metadaten")) {
-        metaButton.doClick();
-      }
+      frameButtons.put("Metadaten", metaButton);
 
       othersPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
@@ -1255,9 +1173,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private WeaponsFrame frame = null;
       });
       temp.add(weaponsButton);
-      if (shouldFrameOpen("Waffen")) {
-        weaponsButton.doClick();
-      }
+      frameButtons.put("Waffen", weaponsButton);
+      
       armoursButton = new JToggleButton("Rüstungen");
       armoursButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1279,9 +1196,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private ArmoursFrame frame = null;
       });
       temp.add(armoursButton);
-      if (shouldFrameOpen("Rüstungen")) {
-        armoursButton.doClick();
-      }
+      frameButtons.put("Rüstungen", armoursButton);
+      
       paradeButton = new JToggleButton("Parade");
       paradeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1303,9 +1219,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private ShieldsFrame frame = null;
       });
       temp.add(paradeButton);
-      if (shouldFrameOpen("Parade")) {
-        paradeButton.doClick();
-      }
+      frameButtons.put("Parade", paradeButton);
+      
       fightButton = new JToggleButton("Kampf (Spieler)");
       fightButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1327,9 +1242,31 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private FightFrame frame = null;
       });
       temp.add(fightButton);
-      if (shouldFrameOpen("Kampf (Spieler)")) {
-        fightButton.doClick();
-      }
+      frameButtons.put("Kampf (Spieler)", fightButton);
+      
+      opponentsButton = new JToggleButton("Gegner");
+      opponentsButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (frame != null && frame.isVisible()) {
+            frame.dispose();
+            frame = null;
+          }
+          else {
+            frame = new OpponentsFrame();
+            frame.addWindowListener(new WindowAdapter() {
+              public void windowClosing(java.awt.event.WindowEvent e) {
+                ControlFrame.this.opponentsButton.setSelected(false);
+              }
+            });
+            frame.setVisible(true);
+          }
+        }
+
+        private OpponentsFrame frame = null;
+      });
+      temp.add(opponentsButton);
+      frameButtons.put("Gegner", opponentsButton);
+      
       fightPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
@@ -1351,6 +1288,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
   }
 
   private JToggleButton fightButton;
+  
+  private JToggleButton opponentsButton;
 
   private JPanel getThingsPanel() {
     if (thingsPanel == null) {
@@ -1376,9 +1315,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private ThingsFrame frame = null;
       });
       temp.add(thingsButton);
-      if (shouldFrameOpen("Ausrüstung")) {
-        thingsButton.doClick();
-      }
+      frameButtons.put("Ausrüstung", thingsButton);
 
       thingsInWarehouseButton = new JToggleButton("Lager");
       thingsInWarehouseButton.addActionListener(new ActionListener() {
@@ -1401,9 +1338,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private WarehouseFrame frame = null;
       });
       temp.add(thingsInWarehouseButton);
-      if (shouldFrameOpen("Lager")) {
-        thingsInWarehouseButton.doClick();
-      }
+      frameButtons.put("Lager", thingsInWarehouseButton);
 
       moneyButton = new JToggleButton("Geld");
       moneyButton.addActionListener(new ActionListener() {
@@ -1426,9 +1361,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private MoneyFrame frame = null;
       });
       temp.add(moneyButton);
-      if (shouldFrameOpen("Geld")) {
-        moneyButton.doClick();
-      }
+      frameButtons.put("Geld", moneyButton);
 
       bankMoneyButton = new JToggleButton("Bankkonto");
       bankMoneyButton.addActionListener(new ActionListener() {
@@ -1451,9 +1384,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private MoneyFrame frame = null;
       });
       temp.add(bankMoneyButton);
-      if (shouldFrameOpen("Bankkonto")) {
-        bankMoneyButton.doClick();
-      }
+      frameButtons.put("Bankkonto", bankMoneyButton);
 
       clothesButton = new JToggleButton("Kleidung");
       clothesButton.addActionListener(new ActionListener() {
@@ -1476,9 +1407,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         private ClothesFrame frame = null;
       });
       temp.add(clothesButton);
-      if (shouldFrameOpen("Kleidung")) {
-        clothesButton.doClick();
-      }
+      frameButtons.put("Kleidung", clothesButton);
 
       JPanel lower = new JPanel();
       lower.setLayout(null);
@@ -1599,9 +1528,9 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
 
   private JPanel talentsPanel = null;
 
-  private JMenuBar jJMenuBar = null;
+  private JMenuBar menuBar = null;
 
-  private JMenu jMenu = null;
+  private JMenu heroesMenu = null;
 
   private JMenu groupMenu = null;
 
@@ -1619,9 +1548,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
         JToggleButton button = new JToggleButton(category);
         button.addActionListener(new TalentFrameAction(category, button));
         temp.add(button);
-        if (shouldFrameOpen(category)) {
-          button.doClick();
-        }
+        frameButtons.put(category, button);
       }
       talentsPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
@@ -1678,7 +1605,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     private TalentFrame frame = null;
   };
 
-  private void checkForUpdate() {
+  private void checkForUpdate(boolean verbose) {
     String urlS = "http://www.ruedenauer.net/Software/dsa/helden_version.txt";
     try {
       URL url = new URL(urlS);
@@ -1695,10 +1622,10 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
                   this,
                   "Eine neuere Version ist verfügbar!\nSoll die Homepage geöffnet werden?",
                   "Heldenverwaltung", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            showHomepage();
+            showHomepage(true);
           }
         }
-        else {
+        else if (verbose) {
           JOptionPane.showMessageDialog(this,
               "Es ist keine neuere Version verfügbar.", "Heldenverwaltung",
               JOptionPane.INFORMATION_MESSAGE);
@@ -1732,14 +1659,15 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
    * @return javax.swing.JMenuBar
    */
   private JMenuBar getJJMenuBar() {
-    if (jJMenuBar == null) {
-      jJMenuBar = new JMenuBar();
-      jJMenuBar.add(getJMenu());
-      jJMenuBar.add(getGroupMenu());
-      jJMenuBar.add(getExtrasMenu());
-      jJMenuBar.add(getHelpMenu());
+    if (menuBar == null) {
+      menuBar = new JMenuBar();
+      menuBar.add(getHeroesMenu());
+      menuBar.add(getGroupMenu());
+      menuBar.add(getExtrasMenu());
+      menuBar.add(getWindowMenu());
+      menuBar.add(getHelpMenu());
     }
-    return jJMenuBar;
+    return menuBar;
   }
 
   private JMenu getExtrasMenu() {
@@ -1747,22 +1675,38 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       extrasMenu = new JMenu();
       extrasMenu.setText("Extras");
       extrasMenu.setMnemonic(java.awt.event.KeyEvent.VK_X);
+      extrasMenu.add(getUpdateCheckItem());
       extrasMenu.add(getOptionsItem());
     }
     return extrasMenu;
   }
 
   private JMenu extrasMenu;
+  
+  private JMenu windowMenu;
+  
+  private JMenu getWindowMenu() {
+    if (windowMenu == null) {
+      windowMenu = new JMenu();
+      windowMenu.setText("Fenster");
+      windowMenu.setMnemonic(java.awt.event.KeyEvent.VK_F);
+      windowMenu.add(getSaveWindowsItem());
+      windowMenu.add(getLoadWindowsItem());
+      windowMenu.add(getDeleteWindowsItem());
+      windowMenu.addSeparator();
+      windowMenu.add(getCloseWindowsItem());
+    }
+    return windowMenu;
+  }
 
   private JMenu getHelpMenu() {
     if (helpMenu == null) {
       helpMenu = new JMenu();
       helpMenu.setText("Hilfe");
-      helpMenu.setMnemonic(java.awt.event.KeyEvent.VK_H);
+      helpMenu.setMnemonic(java.awt.event.KeyEvent.VK_I);
       helpMenu.add(getHomepageItem());
       helpMenu.add(getManualItem());
       helpMenu.add(getMailItem());
-      helpMenu.add(getUpdateCheckItem());
       helpMenu.addSeparator();
       helpMenu.add(getAboutItem());
     }
@@ -1788,7 +1732,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       updateCheckItem.setMnemonic(java.awt.event.KeyEvent.VK_P);
       updateCheckItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          checkForUpdate();
+          checkForUpdate(true);
         }
       });
     }
@@ -1859,15 +1803,16 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       homepageItem.setMnemonic(java.awt.event.KeyEvent.VK_H);
       homepageItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          showHomepage();
+          showHomepage(false);
         }
       });
     }
     return homepageItem;
   }
 
-  private void showHomepage() {
+  private void showHomepage(boolean download) {
     String url = "http://www.ruedenauer.net/Software/dsa/helden.html";
+    if (download) url += "#Download";
     try {
       Desktop.browse(new java.net.URL(url));
     }
@@ -1920,32 +1865,138 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
   }
 
   private JMenuItem aboutItem;
+  
+  private JMenuItem saveWindowsItem;
+  
+  private JMenuItem loadWindowsItem;
+  
+  private JMenuItem deleteWindowsItem;
+  
+  private JMenuItem getSaveWindowsItem() {
+    if (saveWindowsItem == null) {
+      saveWindowsItem = new JMenuItem();
+      saveWindowsItem.setText("Layout speichern...");
+      saveWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_S);
+      saveWindowsItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          saveWindows();
+        }
+      });
+    }
+    return saveWindowsItem;
+  }
+  
+  private void saveWindows() {
+    String name = JOptionPane.showInputDialog(this, "Name für das Fensterlayout:", "Heldenverwaltung", JOptionPane.PLAIN_MESSAGE);
+    if (name != null) {
+      FrameLayouts.getInstance().storeLayout(name);
+      getLoadWindowsItem().setEnabled(true);
+      getDeleteWindowsItem().setEnabled(true);
+    }
+  }
+  
+  private JMenuItem getLoadWindowsItem() {
+    if (loadWindowsItem == null) {
+      loadWindowsItem = new JMenuItem();
+      loadWindowsItem.setText("Layout laden...");
+      loadWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_L);
+      loadWindowsItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          loadWindows();
+        }
+      });
+      loadWindowsItem.setEnabled(FrameLayouts.getInstance().getStoredLayouts().length > 0);
+    }
+    return loadWindowsItem;
+  }
+    
+  private void loadWindows() {
+    String[] layouts = FrameLayouts.getInstance().getStoredLayouts();
+    Object layout = JOptionPane.showInputDialog(this, "Zu ladendes Layout wählen:", "Heldenverwaltung", JOptionPane.PLAIN_MESSAGE,
+        null, layouts, layouts[0]);
+    if (layout != null) {
+      for (int i = 0; i < layouts.length; ++i) {
+        if (layouts[i] == layout) {
+          FrameLayouts.getInstance().restoreLayout(i);
+          break;
+        }
+      }
+    }
+  }
+  
+  private JMenuItem getDeleteWindowsItem() {
+    if (deleteWindowsItem == null) {
+      deleteWindowsItem = new JMenuItem();
+      deleteWindowsItem.setText("Layout löschen...");
+      deleteWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_H);
+      deleteWindowsItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          deleteWindows();
+        }
+      });
+      deleteWindowsItem.setEnabled(FrameLayouts.getInstance().getStoredLayouts().length > 0);
+    }
+    return deleteWindowsItem;
+  }
+  
+  private void deleteWindows() {
+    String[] layouts = FrameLayouts.getInstance().getStoredLayouts();
+    Object layout = JOptionPane.showInputDialog(this, "Zu löschendes Layout wählen:", "Heldenverwaltung", JOptionPane.PLAIN_MESSAGE,
+        null, layouts, layouts[0]);
+    if (layout != null) {
+      for (int i = 0; i < layouts.length; ++i) {
+        if (layouts[i] == layout) {
+          FrameLayouts.getInstance().deleteLayout(i);
+          getDeleteWindowsItem().setEnabled(layouts.length > 1);
+          getLoadWindowsItem().setEnabled(layouts.length > 1);
+          break;
+        }
+      }
+    }    
+  }
+  
+  private JMenuItem closeWindowsItem;
+  
+  private JMenuItem getCloseWindowsItem() {
+    if (closeWindowsItem == null) {
+      closeWindowsItem = new JMenuItem();
+      closeWindowsItem.setText("Alle Fenster schließen");
+      closeWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
+      closeWindowsItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          FrameManagement.getInstance().closeAllFrames(ControlFrame.this);
+        }
+      });
+    }
+    return closeWindowsItem;
+  }
+  
 
   /**
    * This method initializes jMenu
    * 
    * @return javax.swing.JMenu
    */
-  private JMenu getJMenu() {
-    if (jMenu == null) {
-      jMenu = new JMenu();
-      jMenu.setText("Helden");
-      jMenu.setMnemonic(java.awt.event.KeyEvent.VK_H);
-      jMenu.add(getNewItem());
-      jMenu.add(getOpenHeroMenuItem());
-      jMenu.add(getImportHeroMenuItem());
-      jMenu.add(getCloneHeroMenuItem());
-      jMenu.addSeparator();
-      jMenu.add(getSaveHeroMenuItem());
-      jMenu.add(getSaveHeroAsMenuItem());
-      jMenu.add(getSaveAllItem());
-      jMenu.add(getRemoveHeroMenuItem());
-      jMenu.addSeparator();
-      jMenu.add(getPrintMenuItem());
-      jMenu.addSeparator();
-      jMenu.add(getQuitMenuItem());
+  private JMenu getHeroesMenu() {
+    if (heroesMenu == null) {
+      heroesMenu = new JMenu();
+      heroesMenu.setText("Helden");
+      heroesMenu.setMnemonic(java.awt.event.KeyEvent.VK_H);
+      heroesMenu.add(getNewItem());
+      heroesMenu.add(getOpenHeroMenuItem());
+      heroesMenu.add(getImportHeroMenuItem());
+      heroesMenu.add(getCloneHeroMenuItem());
+      heroesMenu.addSeparator();
+      heroesMenu.add(getSaveHeroMenuItem());
+      heroesMenu.add(getSaveHeroAsMenuItem());
+      heroesMenu.add(getSaveAllItem());
+      heroesMenu.add(getRemoveHeroMenuItem());
+      heroesMenu.addSeparator();
+      heroesMenu.add(getPrintMenuItem());
+      heroesMenu.addSeparator();
+      heroesMenu.add(getQuitMenuItem());
     }
-    return jMenu;
+    return heroesMenu;
   }
 
   private JMenuItem printMenuItem = null;
@@ -1986,6 +2037,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     groupMenu.add(getGroupOpenItem());
     groupMenu.add(getGroupSaveItem());
     groupMenu.add(getGroupSaveAsItem());
+    groupMenu.addSeparator();
+    groupMenu.add(getGroupPrintItem());
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
         .userNodeForPackage(dsa.gui.PackageID.class);
     int nrOfLastGroups = prefs.getInt("LastUsedGroupsCount", 0);
@@ -1996,7 +2049,10 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       }
 
       public void actionPerformed(java.awt.event.ActionEvent e) {
-        openGroup(new File(fileName));
+        if (GroupOperations.openGroup(new File(fileName), ControlFrame.this)) {
+          getGroupSaveItem().setEnabled(true);
+          rebuildLastGroupsMenu();
+        }
       }
 
       private final String fileName;
@@ -2026,75 +2082,14 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       groupOpenItem.setMnemonic(java.awt.event.KeyEvent.VK_F);
       groupOpenItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          openGroup();
+          if (GroupOperations.openGroup(ControlFrame.this)) {
+            getGroupSaveItem().setEnabled(true);
+            rebuildLastGroupsMenu();
+          }
         }
       });
     }
     return groupOpenItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected void openGroup() {
-    JFileChooser chooser = new JFileChooser();
-    File f = Directories.getLastUsedDirectory(this, "Groups");
-    if (f != null) {
-      chooser.setCurrentDirectory(f);
-    }
-    chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new GroupFileFilter());
-    chooser.setMultiSelectionEnabled(false);
-    int result = chooser.showOpenDialog(this);
-    if (result == JFileChooser.APPROVE_OPTION) {
-      Directories.setLastUsedDirectory(this, "Groups", chooser
-          .getSelectedFile());
-      openGroup(chooser.getSelectedFile());
-    }
-  }
-
-  public void openGroup(File file) {
-    if (!autoSaveAll()) return;
-    try {
-      Group.getInstance().removeAllCharacters();
-      Group.getInstance()
-          .loadFromFile(new BufferedReader(new FileReader(file)));
-      currentGroupFileName = file.getAbsolutePath();
-      getGroupSaveItem().setEnabled(true);
-      updateLastGroups(file.getCanonicalPath(), file.getName());
-      OptionsChange.fireOptionsChanged();
-    }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(this, "Fehler beim Laden: "
-          + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-    }
-  }
-
-  private void updateLastGroups(String path, String name) {
-    java.util.prefs.Preferences prefs = java.util.prefs.Preferences
-        .userNodeForPackage(dsa.gui.PackageID.class);
-    int nrOfLastGroups = prefs.getInt("LastUsedGroupsCount", 0);
-    if (nrOfLastGroups < 4) nrOfLastGroups++;
-    int previousPos = nrOfLastGroups - 1;
-    for (int i = nrOfLastGroups - 2; i >= 0; --i) {
-      String oldPath = prefs.get("LastUsedGroupFile" + i, "");
-      if (oldPath.equals(path)) {
-        previousPos = i;
-        --nrOfLastGroups;
-        break;
-      }
-    }
-    for (int i = previousPos; i > 0; --i) {
-      String oldPath = prefs.get("LastUsedGroupFile" + (i - 1), "");
-      String oldName = prefs.get("LastUsedGroupName" + (i - 1), "");
-      prefs.put("LastUsedGroupFile" + i, oldPath);
-      prefs.put("LastUsedGroupName" + i, oldName);
-    }
-    prefs.put("LastUsedGroupFile" + 0, path);
-    prefs.put("LastUsedGroupName" + 0, name);
-    prefs.putInt("LastUsedGroupsCount", nrOfLastGroups);
-    rebuildLastGroupsMenu();
   }
 
   private JMenuItem getGroupSaveItem() {
@@ -2105,30 +2100,12 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       groupSaveItem.setEnabled(false);
       groupSaveItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          saveGroup();
+          GroupOperations.saveGroup(ControlFrame.this);
+          rebuildLastGroupsMenu();
         }
       });
     }
     return groupSaveItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected boolean saveGroup() {
-    try {
-      Group.getInstance().writeToFile(
-          new PrintWriter(new FileWriter(currentGroupFileName)));
-      updateLastGroups(currentGroupFileName, (new File(currentGroupFileName))
-          .getName());
-      return true;
-    }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(this, "Fehler beim Speichern: "
-          + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-      return false;
-    }
   }
 
   private JMenuItem getGroupSaveAsItem() {
@@ -2138,51 +2115,14 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       groupSaveAsItem.setMnemonic(java.awt.event.KeyEvent.VK_U);
       groupSaveAsItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          saveAsGroup();
+          if (GroupOperations.saveAsGroup(ControlFrame.this)) {
+            groupSaveItem.setEnabled(true);
+            rebuildLastGroupsMenu();
+          }
         }
       });
     }
     return groupSaveAsItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected boolean saveAsGroup() {
-    JFileChooser chooser = new JFileChooser();
-    File f = Directories.getLastUsedDirectory(this, "Groups");
-    if (f != null) chooser.setCurrentDirectory(f);
-    chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new GroupFileFilter());
-    chooser.setMultiSelectionEnabled(false);
-    do {
-      int result = chooser.showSaveDialog(this);
-      if (result == JFileChooser.APPROVE_OPTION) {
-        File file = chooser.getSelectedFile();
-        try {
-          if (!file.getName().endsWith(".dsagroup"))
-            file = new File(file.getCanonicalPath() + ".dsagroup");
-          if (file.exists()) {
-            result = JOptionPane.showConfirmDialog(this,
-                "Datei existiert bereits. Überschreiben?", "Speichern",
-                JOptionPane.YES_NO_CANCEL_OPTION);
-            if (result == JOptionPane.NO_OPTION) continue;
-            if (result == JOptionPane.CANCEL_OPTION) break;
-          }
-          currentGroupFileName = file.getPath();
-          Directories.setLastUsedDirectory(this, "Groups", file);
-          groupSaveItem.setEnabled(true);
-          return saveGroup();
-        }
-        catch (IOException e) {
-          JOptionPane.showMessageDialog(this, e.getMessage(), "Speichern",
-              JOptionPane.ERROR_MESSAGE);
-        }
-      }
-      else if (result == JFileChooser.CANCEL_OPTION) break;
-    } while (true);
-    return false;
   }
 
   private JMenuItem getGroupNewItem() {
@@ -2192,25 +2132,27 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       groupNewItem.setMnemonic(java.awt.event.KeyEvent.VK_N);
       groupNewItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          newGroup();
+          GroupOperations.newGroup(ControlFrame.this);
+          getGroupSaveItem().setEnabled(false);
         }
       });
     }
     return groupNewItem;
   }
 
-  /**
-   * 
-   * 
-   */
-  public void newGroup() {
-    if (!autoSaveAll()) return;
-    Group chars = Group.getInstance();
-    chars.removeAllCharacters();
-    chars.prepareNewGroup();
-    getGroupSaveItem().setEnabled(false);
-    currentGroupFileName = "";
-    OptionsChange.fireOptionsChanged();
+  private JMenuItem getGroupPrintItem() {
+    if (groupPrintItem == null) {
+      groupPrintItem = new JMenuItem();
+      groupPrintItem.setText("Drucken...");
+      groupPrintItem.setMnemonic(java.awt.event.KeyEvent.VK_D);
+      groupPrintItem.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+          PrintingDialog dialog = new PrintingDialog(Group.getInstance(), ControlFrame.this);
+          dialog.setVisible(true);
+        }
+      });
+    }
+    return groupPrintItem;
   }
 
   /**
@@ -2225,31 +2167,11 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       newItem.setMnemonic(java.awt.event.KeyEvent.VK_N);
       newItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          newHero();
+          GroupOperations.newHero(ControlFrame.this);
         }
       });
     }
     return newItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected void newHero() {
-    HeroWizard wizard = new HeroWizard(this);
-    wizard.setVisible(true);
-    Hero hero = wizard.getCreatedHero();
-    if (hero != null) {
-      Group.getInstance().addHero(hero);
-      Group.getInstance().setActiveHero(hero);
-      if (!physButton.isSelected()) {
-        physButton.doClick();
-      }
-      else {
-        FrameManagement.getInstance().getFrame("Grunddaten").toFront();
-      }
-    }
   }
 
   private JMenuItem newItem = null;
@@ -2277,6 +2199,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
   private JMenuItem groupSaveAsItem = null;
 
   private JMenuItem groupOpenItem = null;
+  
+  private JMenuItem groupPrintItem = null;
 
   /**
    * This method initializes jMenuItem
@@ -2290,56 +2214,13 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       openItem.setMnemonic(java.awt.event.KeyEvent.VK_F);
       openItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          openHeroes();
+          GroupOperations.openHeroes(ControlFrame.this);
         }
       });
     }
     return openItem;
   }
 
-  /**
-   * 
-   * 
-   */
-  protected void openHeroes() {
-    JFileChooser chooser = new JFileChooser();
-    File f = Directories.getLastUsedDirectory(this, "Heros");
-    if (f != null) {
-      chooser.setCurrentDirectory(f);
-    }
-    chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new HeroFileFilter());
-    chooser.setMultiSelectionEnabled(true);
-    int result = chooser.showOpenDialog(this);
-    if (result == JFileChooser.APPROVE_OPTION) {
-      File[] files = chooser.getSelectedFiles();
-      for (int i = 0; i < files.length; i++) {
-        openHero(files[i]);
-      }
-      if (files.length > 0) {
-        Directories.setLastUsedDirectory(this, "Heros", files[0]);
-      }
-    }
-  }
-
-  public void openHero(File file) {
-    Hero newCharacter = null;
-    try {
-      String path = file.getCanonicalPath();
-      String dir = path.substring(0, path.lastIndexOf(File.separator));
-      java.util.prefs.Preferences.userNodeForPackage(dsa.gui.PackageID.class)
-          .put("lastUsedImportPath", dir);
-      newCharacter = dsa.model.DataFactory.getInstance().createHeroFromFile(
-          file);
-      Group.getInstance().addHero(newCharacter);
-      Group.getInstance().setFilePath(newCharacter, path);
-    }
-    catch (IOException e) {
-      JOptionPane.showMessageDialog(this, "Laden von " + file.getName()
-          + " fehlgeschlagen!\nFehlermeldung: " + e.getMessage(), "Fehler",
-          JOptionPane.ERROR_MESSAGE);
-    }
-  }
 
   /**
    * This method initializes jMenuItem1
@@ -2354,19 +2235,11 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       saveItem.setEnabled(false);
       saveItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          saveHero();
+          GroupOperations.saveHero(Group.getInstance().getActiveHero(), ControlFrame.this);
         }
       });
     }
     return saveItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected void saveHero() {
-    saveHero(Group.getInstance().getActiveHero());
   }
 
   /**
@@ -2382,7 +2255,9 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       saveAsItem.setMnemonic(java.awt.event.KeyEvent.VK_U);
       saveAsItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          saveHeroAs();
+          if (GroupOperations.saveHeroAs(Group.getInstance().getActiveHero(), ControlFrame.this)) {
+            saveItem.setEnabled(true);
+          }
         }
       });
     }
@@ -2396,68 +2271,11 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       saveAllItem.setMnemonic(java.awt.event.KeyEvent.VK_L);
       saveAllItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          saveAll();
+          GroupOperations.saveAllHeroes(ControlFrame.this);
         }
       });
     }
     return saveAllItem;
-  }
-
-  protected void saveAll() {
-    for (Hero c : Group.getInstance().getAllCharacters()) {
-      saveHero(c);
-    }
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected void saveHeroAs() {
-    saveHeroAs(Group.getInstance().getActiveHero());
-  }
-
-  /**
-   * 
-   * @param hero
-   */
-  private boolean saveHeroAs(Hero hero) {
-    JFileChooser chooser = new JFileChooser();
-    File f = Directories.getLastUsedDirectory(this, "Heros");
-    if (f != null) {
-      chooser.setCurrentDirectory(f);
-    }
-    chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new HeroFileFilter());
-    chooser.setMultiSelectionEnabled(false);
-    chooser.setSelectedFile(new File(hero.getName() + ".dsahero"));
-    do {
-      int result = chooser.showSaveDialog(this);
-      if (result == JFileChooser.APPROVE_OPTION) {
-        File file = chooser.getSelectedFile();
-        try {
-          if (!file.getName().endsWith(".dsahero"))
-            file = new File(file.getCanonicalPath() + ".dsahero");
-          if (file.exists()) {
-            result = JOptionPane.showConfirmDialog(this,
-                "Datei existiert bereits. Überschreiben?", "Speichern",
-                JOptionPane.YES_NO_CANCEL_OPTION);
-            if (result == JOptionPane.NO_OPTION) continue;
-            if (result == JOptionPane.CANCEL_OPTION) break;
-          }
-          Group.getInstance().setFilePath(hero, file.getCanonicalPath());
-          Directories.setLastUsedDirectory(this, "Heros", file);
-          saveItem.setEnabled(true);
-          return saveHero(hero);
-        }
-        catch (IOException e) {
-          JOptionPane.showMessageDialog(this, e.getMessage(), "Speichern",
-              JOptionPane.ERROR_MESSAGE);
-        }
-      }
-      else if (result == JFileChooser.CANCEL_OPTION) break;
-    } while (true);
-    return false;
   }
 
   /**
@@ -2472,50 +2290,11 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       importItem.setMnemonic(java.awt.event.KeyEvent.VK_I);
       importItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          importHeroes();
+          GroupOperations.importHeroes(ControlFrame.this);
         }
       });
     }
     return importItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected void importHeroes() {
-    JFileChooser chooser = new JFileChooser();
-    File f = Directories.getLastUsedDirectory(this, "Wiege-Files");
-    if (f != null) {
-      chooser.setCurrentDirectory(f);
-    }
-    chooser.setAcceptAllFileFilterUsed(true);
-    chooser.addChoosableFileFilter(new WiegeFileFilter());
-    chooser.setMultiSelectionEnabled(true);
-    int result = chooser.showOpenDialog(this);
-    if (result == JFileChooser.APPROVE_OPTION) {
-      File[] files = chooser.getSelectedFiles();
-      for (int i = 0; i < files.length; i++) {
-        Hero newCharacter = null;
-        try {
-          String path = files[i].getCanonicalPath();
-          String dir = path.substring(0, path.lastIndexOf(File.separator));
-          java.util.prefs.Preferences.userNodeForPackage(
-              dsa.gui.PackageID.class).put("lastUsedImportPath", dir);
-          newCharacter = dsa.model.DataFactory.getInstance()
-              .createHeroFromWiege(files[i]);
-          Group.getInstance().addHero(newCharacter);
-        }
-        catch (IOException e) {
-          JOptionPane.showMessageDialog(this, "Import von "
-              + files[i].getName() + " fehlgeschlagen!\nFehlermeldung: "
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-      if (files.length > 0) {
-        Directories.setLastUsedDirectory(this, "Wiege-Files", files[0]);
-      }
-    }
   }
 
   /**
@@ -2550,30 +2329,11 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       removeItem.setMnemonic(java.awt.event.KeyEvent.VK_E);
       removeItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          removeHero();
+          GroupOperations.removeHero(ControlFrame.this);
         }
       });
     }
     return removeItem;
-  }
-
-  /**
-   * 
-   * 
-   */
-  protected void removeHero() {
-    Hero hero = Group.getInstance().getActiveHero();
-    if (hero.isChanged()) {
-      int result = JOptionPane.showConfirmDialog(this, "Held '"
-          + hero.getName() + "' ist nicht gespeichert.\nJetzt speichern?",
-          "Entfernen", JOptionPane.YES_NO_CANCEL_OPTION);
-      if (result == JOptionPane.CANCEL_OPTION) return;
-      if (result == JOptionPane.YES_OPTION) {
-        if (!saveHero(hero)) return;
-      }
-    }
-    Group.getInstance().removeCharacter(hero);
-
   }
 
   /**
@@ -2589,91 +2349,15 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       cloneItem.setMnemonic(java.awt.event.KeyEvent.VK_K);
       cloneItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          cloneHero();
+          GroupOperations.cloneHero(ControlFrame.this);
         }
       });
     }
     return cloneItem;
   }
 
-  /**
-   * 
-   * 
-   */
-  protected void cloneHero() {
-    Hero c = Group.getInstance().getActiveHero();
-    String newName = JOptionPane.showInputDialog(this,
-        "Name des neuen Charakters? ", c.getName());
-    if (newName == null) return;
-    Hero newChar = dsa.model.DataFactory.getInstance().createHero(c);
-    newChar.setName(newName);
-    Group.getInstance().addHero(newChar);
-  }
-
-  private static java.util.List textURIListToFileList(String data) {
-    java.util.List<File> list = new java.util.ArrayList<File>(1);
-    for (java.util.StringTokenizer st = new java.util.StringTokenizer(data,
-        "\r\n"); st.hasMoreTokens();) {
-      String s = st.nextToken();
-      if (s.charAt(0) == '#') {
-        // the line is a comment (as per the RFC 2483)
-        continue;
-      }
-      try {
-        java.net.URI uri = new java.net.URI(s);
-        java.io.File file = new java.io.File(uri);
-        list.add(file);
-      }
-      catch (java.net.URISyntaxException e) {
-        // malformed URI
-        continue;
-      }
-      catch (IllegalArgumentException e) {
-        // the URI is not a valid 'file:' URI
-        continue;
-      }
-    }
-    return list;
-  }
-
   public void dragEnter(DropTargetDragEvent dtde) {
-    try {
-      Transferable tr = dtde.getTransferable();
-      List fileList = null;
-      DataFlavor uriListFlavor = new DataFlavor(
-          "text/uri-list;class=java.lang.String");
-      if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-        fileList = (java.util.List) tr
-            .getTransferData(DataFlavor.javaFileListFlavor);
-      }
-      else if (tr.isDataFlavorSupported(uriListFlavor)) {
-        String data = (String) tr.getTransferData(uriListFlavor);
-        fileList = textURIListToFileList(data);
-      }
-      if (fileList != null) {
-        Iterator iterator = fileList.iterator();
-        while (iterator.hasNext()) {
-          File f = (File) iterator.next();
-          if (f.getName().endsWith(".dsagroup")
-              || f.getName().endsWith(".dsahero")
-              || f.getName().endsWith(".dsa") || f.getName().endsWith(".grp")) {
-            dtde.acceptDrag(DnDConstants.ACTION_COPY);
-            return;
-          }
-        }
-      }
-
-    }
-    catch (ClassNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (UnsupportedFlavorException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    dtde.rejectDrag();
+    GroupOperations.dragEnter(dtde);
   }
 
   public void dragOver(DropTargetDragEvent dtde) {
@@ -2686,87 +2370,14 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
   }
 
   public void drop(DropTargetDropEvent dtde) {
-    try {
-      Transferable tr = dtde.getTransferable();
-      List fileList = null;
-      DataFlavor uriListFlavor = new DataFlavor(
-          "text/uri-list;class=java.lang.String");
-      if (dtde.getDropAction() == DnDConstants.ACTION_MOVE) {
-        if ((dtde.getSourceActions() & DnDConstants.ACTION_COPY) == 0) {
-          dtde.rejectDrop();
-          return;
-        }
-      }
-      else if (dtde.getDropAction() != DnDConstants.ACTION_COPY) {
-        dtde.rejectDrop();
-        return;
-      }
-      if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-        dtde.acceptDrop(DnDConstants.ACTION_COPY);
-        fileList = (java.util.List) tr
-            .getTransferData(DataFlavor.javaFileListFlavor);
-      }
-      else if (tr.isDataFlavorSupported(uriListFlavor)) {
-        dtde.acceptDrop(DnDConstants.ACTION_COPY);
-        String data = (String) tr.getTransferData(uriListFlavor);
-        fileList = textURIListToFileList(data);
-      }
-      if (fileList != null) {
-        Iterator iterator = fileList.iterator();
-        File groupFile = null;
-        boolean ok = false;
-        while (iterator.hasNext()) {
-          File file = (File) iterator.next();
-          if (file.getName().endsWith(".dsagroup")
-              || file.getName().endsWith(".grp")) {
-            groupFile = file;
-            ok = true;
-            break;
-          }
-          else if (file.getName().endsWith(".dsahero")
-              || file.getName().endsWith(".dsa")) {
-            ok = true;
-          }
-        }
-        if (!ok) {
-          dtde.rejectDrop();
-          return;
-        }
-        if (groupFile != null) {
-          openGroup(groupFile);
-        }
-        else {
-          iterator = fileList.iterator();
-          while (iterator.hasNext()) {
-            File file = (File) iterator.next();
-            if (file.getName().endsWith(".dsahero")
-                || file.getName().endsWith(".dsa")) {
-              openHero(file);
-            }
-          }
-        }
-        dtde.getDropTargetContext().dropComplete(true);
-      }
-      else {
-        System.err.println("Rejected");
-        dtde.rejectDrop();
-      }
-    }
-    catch (IOException io) {
-      io.printStackTrace();
-      dtde.rejectDrop();
-    }
-    catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      dtde.rejectDrop();
-    }
-    catch (UnsupportedFlavorException ufe) {
-      ufe.printStackTrace();
-      dtde.rejectDrop();
+    if (GroupOperations.drop(dtde, this)) {
+      getGroupSaveItem().setEnabled(true);
+      rebuildLastGroupsMenu();
     }
   }
 
   private void activeCharacterChanged(Hero newCharacter) {
+    listenForCharacterBox = false;
     if (newCharacter != null) heroBox.setSelectedItem(newCharacter.getName());
     // newItem.setEnabled(false);
     // openItem.setEnabled(true);
@@ -2779,6 +2390,30 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     removeItem.setEnabled(newCharacter != null);
     cloneItem.setEnabled(newCharacter != null);
     getPrintMenuItem().setEnabled(newCharacter != null);
+    printHeroButton.setEnabled(newCharacter != null);
+    listenForCharacterBox = true;
+  }
+  
+  private HashMap<String, JToggleButton> frameButtons = new HashMap<String, JToggleButton>();
+
+  public void openFrame(String name, Rectangle bounds) {
+    if (name.equals(getTitle())) {
+      setBounds(bounds);
+      return;
+    }
+    JToggleButton button = frameButtons.get(name);
+    if (button != null) {
+      SubFrame.saveFrameBounds(name, bounds);
+      button.doClick();
+    }
+  }
+  
+  public void closeFrame(SubFrame frame) {
+    String title = frame.getTitle();
+    frame.dispose();
+    if (frameButtons.containsKey(title)) {
+      frameButtons.get(title).setSelected(false);
+    }
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

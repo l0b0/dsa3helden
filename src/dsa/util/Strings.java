@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -32,6 +32,17 @@ public class Strings {
     if (index != -1) {
       return s.substring(0, index);
     }
+    else {
+      return s;
+    }
+  }
+  
+  public static String firstWord(String s) {
+    int index = 0;
+    while (index < s.length() && Character.isLetter(s.charAt(index))) ++index;
+    if (index < s.length()) {
+      return s.substring(0, index);
+    }    
     else {
       return s;
     }

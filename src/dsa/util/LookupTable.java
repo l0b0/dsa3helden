@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -128,8 +128,8 @@ public class LookupTable {
   private void initFormat() {
     format = NumberFormat.getNumberInstance();
     format.setGroupingUsed(true);
-    format.setMaximumFractionDigits(3);
-    format.setMinimumFractionDigits(0);
+    format.setMaximumFractionDigits(2);
+    format.setMinimumFractionDigits(2);
     format.setMinimumIntegerDigits(1);    
   }
   

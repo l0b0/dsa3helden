@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -32,6 +32,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import dsa.gui.util.Help;
@@ -42,6 +43,11 @@ import dsa.gui.util.HelpProvider;
  * 
  */
 public class FrameManagement {
+  
+  public interface FrameStateChanger {
+    void openFrame(String name, Rectangle bounds);
+    void closeFrame(SubFrame frame);
+  }
 
   private final class WindowSnapper extends ComponentAdapter {
 
@@ -125,6 +131,12 @@ public class FrameManagement {
   public static FrameManagement getInstance() {
     return instance;
   }
+  
+  private FrameStateChanger frameStateChanger;
+  
+  public void setFrameOpener(FrameStateChanger o) {
+    frameStateChanger = o;
+  }
 
   private SubFrame mainFrame;
   
@@ -173,6 +185,10 @@ public class FrameManagement {
 
   private final java.util.LinkedList<SubFrame> frames;
   private HashMap<Component, Rectangle> positions;
+  
+  public Map<Component, Rectangle> getPositions() {
+    return positions;
+  }
 
   private final ComponentListener windowSnapper;
 
@@ -215,8 +231,15 @@ public class FrameManagement {
 
   public void closeAllFrames(SubFrame caller) {
     for (SubFrame frame : frames)
-      if (frame != null && frame.isVisible() && frame != caller)
-        frame.dispose();
+      if (frame != null && frame.isVisible() && frame != caller) {
+        frameStateChanger.closeFrame(frame);
+      }
+  }
+  
+  public void closeFrame(SubFrame frame) {
+    if (frame != null) {
+      frameStateChanger.closeFrame(frame);
+    }
   }
 
   public void iconifyAllFrames(SubFrame caller) {
@@ -224,6 +247,30 @@ public class FrameManagement {
       if (frame != null && frame.isVisible() && frame != caller) {
         frame.setState(java.awt.Frame.ICONIFIED);
       }
+  }
+  
+  public void openFrame(String title, Rectangle bounds) {
+    java.awt.Dimension screen = java.awt.Toolkit.getDefaultToolkit()
+      .getScreenSize();
+    if (bounds.width > screen.width) bounds.width = screen.width;
+    if (bounds.height > screen.height) bounds.height = screen.height;
+    if (bounds.x < 0) bounds.x = 0;
+    if (bounds.y < 0) bounds.y = 0;
+    if (bounds.x + bounds.width > screen.width) bounds.x = screen.width - bounds.width;
+    if (bounds.y + bounds.height > screen.height) bounds.y = screen.height - bounds.height;
+    for (SubFrame frame : frames) {
+      if (frame.getTitle().equals(title)) {
+        Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+        if (prefs.getBoolean("BringWindowsToTop", true)) {
+          frame.toFront();
+        }
+        frame.setBounds(bounds);
+        return;
+      }
+    }
+    if (frameStateChanger != null) {
+      frameStateChanger.openFrame(title, bounds);
+    }
   }
 
   public SubFrame getFrame(String title) {

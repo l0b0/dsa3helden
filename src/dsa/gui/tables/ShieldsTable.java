@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -26,12 +26,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.text.NumberFormatter;
 
+import dsa.gui.lf.BGTableCellRenderer;
 import dsa.gui.util.FormattedTextFieldCellEditor;
 import dsa.gui.util.TableSorter;
 import dsa.model.data.Shield;
@@ -137,7 +137,7 @@ public class ShieldsTable extends AbstractTable implements FormattedTextFieldCel
     tcm.addColumn(new TableColumn(3, 25));
     tcm.addColumn(new TableColumn(4, 25));
     if (mBFChanger != null) {
-      tcm.addColumn(new TableColumn(5, 25, new DefaultTableCellRenderer(), numberEditor));
+      tcm.addColumn(new TableColumn(5, 25, new BGTableCellRenderer(), numberEditor));
     }
     else {
       tcm.addColumn(new TableColumn(5, 25));

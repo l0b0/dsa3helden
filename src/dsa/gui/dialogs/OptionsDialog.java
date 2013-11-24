@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -44,6 +44,9 @@ import javax.swing.JLabel;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import javax.swing.JRadioButton;
 
 public final class OptionsDialog extends BGDialog {
 
@@ -103,6 +106,22 @@ public final class OptionsDialog extends BGDialog {
 
   private JCheckBox twohwBox = null;
 
+  private JPanel programPanel = null;
+
+  private JCheckBox versionCheckBox = null;
+
+  private JLabel jLabel3 = null;
+
+  private JRadioButton dataHomeDirButton = null;
+
+  private JRadioButton dataProgramDirButton = null;
+
+  private JRadioButton dataCustomDirButton = null;
+
+  private JTextField dataCustomDirBox = null;
+
+  private JButton selDataDirButton = null;
+
   /**
    * This method initializes
    * 
@@ -121,7 +140,7 @@ public final class OptionsDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new java.awt.Dimension(328, 257));
+    this.setSize(new Dimension(352, 257));
     this.setContentPane(getJContentPane());
     this.setTitle("Optionen");
     updateData();
@@ -208,7 +227,26 @@ public final class OptionsDialog extends BGDialog {
       LookAndFeels.setLookAndFeel(lf);
     }
     Preferences prefs = Preferences.userNodeForPackage(PackageID.class);
+    
+    int dataOption = 0;
+    if (dataProgramDirButton.isSelected()) {
+      dataOption = 1;
+    }
+    else if (dataCustomDirButton.isSelected()) {
+      String dataCustomDir = dataCustomDirBox.getText();
+      File test = new File(dataCustomDir);
+      if (!test.exists() || !test.isDirectory()) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+            "Bitte ein gültiges Verzeichnis (oder eine andere Option) wählen", "Fehler",
+            javax.swing.JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+      prefs.put("CustomDataDir", dataCustomDir);
+      dataOption = 2;
+    }
+    prefs.putInt("CustomDataDirOption", dataOption);
     prefs.putBoolean("BringWindowsToTop", fgBox.isSelected());
+    prefs.putBoolean("VersionCheckAtStart", versionCheckBox.isSelected());
 
     GroupOptions options = Group.getInstance().getOptions();
     boolean changed = false;
@@ -268,6 +306,29 @@ public final class OptionsDialog extends BGDialog {
     paBasisBox.setSelected(options.hasQvatPABasis());
     heavyClothesBox.setSelected(!options.hasHeavyClothes());
     twohwBox.setSelected(options.hasHard2HWeapons());
+    versionCheckBox.setSelected(prefs.getBoolean("VersionCheckAtStart", true));
+
+    int dataDirOpt = prefs.getInt("CustomDataDirOption", -1);
+    if (dataDirOpt == -1) dataDirOpt = 0; // wasn't set yet
+    if (dataDirOpt == 0) {
+      dataHomeDirButton.setSelected(true);
+      dataProgramDirButton.setSelected(false);
+      dataCustomDirButton.setSelected(false);
+      dataCustomDirBox.setEnabled(false);
+    }
+    else if (dataDirOpt == 1) {
+      dataHomeDirButton.setSelected(false);
+      dataProgramDirButton.setSelected(true);
+      dataCustomDirButton.setSelected(false);
+      dataCustomDirBox.setEnabled(false);      
+    }
+    else {
+      dataHomeDirButton.setSelected(false);
+      dataProgramDirButton.setSelected(false);
+      dataCustomDirButton.setSelected(true);
+      dataCustomDirBox.setEnabled(true);  
+    }
+    dataCustomDirBox.setText(prefs.get("CustomDataDir", ""));
   }
 
   /**
@@ -300,6 +361,7 @@ public final class OptionsDialog extends BGDialog {
       jTabbedPane.addTab("Hausregeln", null, getRulesPanel(), null);
       jTabbedPane.addTab("QVAT", null, getQvatPanel(), null);
       jTabbedPane.addTab("Aussehen", null, getJPanel1(), null);
+      jTabbedPane.addTab("Programm", null, getProgramPanel(), null);
     }
     return jTabbedPane;
   }
@@ -312,13 +374,13 @@ public final class OptionsDialog extends BGDialog {
   private JPanel getJPanel1() {
     if (jPanel1 == null) {
       jLabel2 = new JLabel();
-      jLabel2.setBounds(new java.awt.Rectangle(15, 37, 90, 15));
+      jLabel2.setBounds(new Rectangle(10, 40, 96, 21));
       jLabel2.setText("Skin:");
       jLabel1 = new JLabel();
-      jLabel1.setBounds(new java.awt.Rectangle(15, 59, 203, 15));
+      jLabel1.setBounds(new Rectangle(10, 70, 203, 15));
       jLabel1.setText("(erfordert Programmneustart)");
       jLabel = new JLabel();
-      jLabel.setBounds(new java.awt.Rectangle(14, 11, 91, 15));
+      jLabel.setBounds(new Rectangle(10, 10, 97, 21));
       jLabel.setText("Look & Feel:");
       jPanel1 = new JPanel();
       jPanel1.setLayout(null);
@@ -341,7 +403,7 @@ public final class OptionsDialog extends BGDialog {
   private JCheckBox getFGBox() {
     if (fgBox == null) {
       fgBox = new JCheckBox();
-      fgBox.setBounds(new java.awt.Rectangle(10, 80, 268, 21));
+      fgBox.setBounds(new Rectangle(10, 100, 268, 21));
       fgBox.setText("Fenster in den Vordergrund bringen");
     }
     return fgBox;
@@ -355,7 +417,7 @@ public final class OptionsDialog extends BGDialog {
   private JComboBox getLFCombo() {
     if (lfBox == null) {
       lfBox = new JComboBox();
-      lfBox.setBounds(new java.awt.Rectangle(116, 8, 183, 20));
+      lfBox.setBounds(new Rectangle(110, 10, 181, 20));
       for (String name : LookAndFeels.getLookAndFeels()) {
         lfBox.addItem(name);
       }
@@ -377,7 +439,7 @@ public final class OptionsDialog extends BGDialog {
   private JTextField getSkinField() {
     if (skinField == null) {
       skinField = new JTextField();
-      skinField.setBounds(new java.awt.Rectangle(116, 34, 141, 20));
+      skinField.setBounds(new Rectangle(110, 40, 181, 20));
       String themePack = LookAndFeels.getLastThemePack();
       File f = new File(themePack);
       if (f.exists()) {
@@ -395,7 +457,7 @@ public final class OptionsDialog extends BGDialog {
   private JButton getSkinButton() {
     if (skinButton == null) {
       skinButton = new JButton();
-      skinButton.setBounds(new java.awt.Rectangle(268, 34, 30, 20));
+      skinButton.setBounds(new Rectangle(300, 40, 30, 20));
       skinButton.setText("...");
       skinButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -572,6 +634,151 @@ public final class OptionsDialog extends BGDialog {
       twohwBox.setText("1W mehr Schaden bei Zweihandwaffen");
     }
     return twohwBox;
+  }
+
+  /**
+   * This method initializes programPanel	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getProgramPanel() {
+    if (programPanel == null) {
+      jLabel3 = new JLabel();
+      jLabel3.setBounds(new Rectangle(10, 40, 271, 21));
+      jLabel3.setText("Selbstdefinierte Daten speichern in:");
+      programPanel = new JPanel();
+      programPanel.setLayout(null);
+      programPanel.add(getVersionCheckBox(), null);
+      programPanel.add(jLabel3, null);
+      programPanel.add(getDataHomeDirButton(), null);
+      programPanel.add(getDataProgramDirButton(), null);
+      programPanel.add(getDataCustomDirButton(), null);
+      programPanel.add(getDataCustomDirBox(), null);
+      programPanel.add(getSelDataDirButton(), null);
+    }
+    return programPanel;
+  }
+
+  /**
+   * This method initializes versionCheckBox	
+   * 	
+   * @return javax.swing.JCheckBox	
+   */
+  private JCheckBox getVersionCheckBox() {
+    if (versionCheckBox == null) {
+      versionCheckBox = new JCheckBox();
+      versionCheckBox.setBounds(new Rectangle(10, 10, 251, 21));
+      versionCheckBox.setText("Beim Start auf neue Version prüfen");
+    }
+    return versionCheckBox;
+  }
+  
+  private void updateDataButtonState(int sel) {
+    if (sel != 0) dataHomeDirButton.setSelected(false);
+    if (sel != 1) dataProgramDirButton.setSelected(false);
+    if (sel != 2) dataCustomDirButton.setSelected(false);
+    dataCustomDirBox.setEnabled(sel == 2);
+  }
+
+  /**
+   * This method initializes dataHomeDirButton	
+   * 	
+   * @return javax.swing.JRadioButton	
+   */
+  private JRadioButton getDataHomeDirButton() {
+    if (dataHomeDirButton == null) {
+      dataHomeDirButton = new JRadioButton();
+      dataHomeDirButton.setBounds(new Rectangle(10, 70, 261, 21));
+      dataHomeDirButton.setText("Benutzer-Stammverzeichnis");
+      dataHomeDirButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          updateDataButtonState(0);
+        }
+      });
+    }
+    return dataHomeDirButton;
+  }
+
+  /**
+   * This method initializes dataProgramDirButton	
+   * 	
+   * @return javax.swing.JRadioButton	
+   */
+  private JRadioButton getDataProgramDirButton() {
+    if (dataProgramDirButton == null) {
+      dataProgramDirButton = new JRadioButton();
+      dataProgramDirButton.setBounds(new Rectangle(10, 100, 181, 21));
+      dataProgramDirButton.setText("Programmverzeichnis");
+      dataProgramDirButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          updateDataButtonState(1);
+        }
+      });
+    }
+    return dataProgramDirButton;
+  }
+
+  /**
+   * This method initializes dataCustomDirButton	
+   * 	
+   * @return javax.swing.JRadioButton	
+   */
+  private JRadioButton getDataCustomDirButton() {
+    if (dataCustomDirButton == null) {
+      dataCustomDirButton = new JRadioButton();
+      dataCustomDirButton.setBounds(new Rectangle(10, 131, 21, 20));
+      dataCustomDirButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          updateDataButtonState(2);
+        }
+      });
+    }
+    return dataCustomDirButton;
+  }
+
+  /**
+   * This method initializes dataCustomDirBox	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JTextField getDataCustomDirBox() {
+    if (dataCustomDirBox == null) {
+      dataCustomDirBox = new JTextField();
+      dataCustomDirBox.setBounds(new Rectangle(30, 130, 251, 21));
+    }
+    return dataCustomDirBox;
+  }
+
+  /**
+   * This method initializes selDataDirButton	
+   * 	
+   * @return javax.swing.JButton	
+   */
+  private JButton getSelDataDirButton() {
+    if (selDataDirButton == null) {
+      selDataDirButton = new JButton();
+      selDataDirButton.setBounds(new Rectangle(290, 130, 31, 21));
+      selDataDirButton.setText("...");
+      selDataDirButton.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+          selectDataCustomDir();
+        }
+      });
+    }
+    return selDataDirButton;
+  }
+  
+  private void selectDataCustomDir() {
+    JFileChooser chooser = new JFileChooser();
+    chooser.setAcceptAllFileFilterUsed(false);
+    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    chooser.setMultiSelectionEnabled(false);
+    int result = chooser.showOpenDialog(this);
+    if (result == JFileChooser.APPROVE_OPTION) {
+      dataCustomDirBox.setText(chooser.getSelectedFile().getAbsolutePath());
+      dataCustomDirButton.setSelected(true);
+      updateDataButtonState(2);
+    }
   }
 
 } //  @jve:decl-index=0:visual-constraint="10,10"

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -20,7 +20,6 @@
 package dsa.gui.tables;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -36,11 +35,11 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+import dsa.gui.lf.BGTableCellRenderer;
 import dsa.gui.util.TableSorter;
 
 public abstract class AbstractTable implements TableSorter.SortingListener {
@@ -74,19 +73,9 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
     private static KeyStroke copyStroke = KeyStroke.getKeyStroke("control C");
   }
 
-  private static class MyCellRenderer extends DefaultTableCellRenderer {
-    public Component getTableCellRendererComponent(JTable table, Object value,
-        boolean isSelected, boolean hasFocus, int row, int column) {
-      Component c = super.getTableCellRendererComponent(table, value,
-          isSelected, hasFocus, row, column);
-      ((JComponent) c).setOpaque(isSelected);
-      return c;
-    }
-  }
-
-  protected void setCellRenderer() {
+   protected void setCellRenderer() {
     if (dsa.gui.lf.Colors.hasCustomColors()) {
-      MyCellRenderer renderer = new MyCellRenderer();
+      BGTableCellRenderer renderer = new BGTableCellRenderer();
       mTable.setDefaultRenderer(Object.class, renderer);
       mTable.setDefaultRenderer(dsa.util.Optional.NULL_INT.getClass(), renderer);
       mTable.setSelectionBackground(dsa.gui.lf.Colors.getSelectedBackground());
@@ -159,6 +148,7 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
   }
 
   public void clear() {
+    if (mTable.isEditing()) mTable.removeEditor();
     ((DefaultTableModel) mSorter.getTableModel()).setRowCount(0);
   }
 

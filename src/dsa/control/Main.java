@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006 [Joerg Ruedenauer]
+ Copyright (c) 2006-2007 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -24,6 +24,7 @@ import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
 import dsa.gui.frames.ControlFrame;
+import dsa.gui.frames.FrameLayouts;
 import dsa.gui.frames.SubFrame;
 import dsa.gui.lf.LookAndFeels;
 import dsa.model.DataFactory;
@@ -41,6 +42,7 @@ import dsa.model.data.Talents;
 import dsa.model.data.Things;
 import dsa.model.data.Weapons;
 import dsa.model.data.Armours;
+import dsa.model.data.Opponents;
 
 /**
  * 
@@ -116,6 +118,9 @@ public class Main {
       CharacterTypes.getInstance().parseFiles(dirPath + "Heldentypen");
       SpellStartValues.getInstance().parseFiles(dirPath + "Zauberstartwerte");
       Regions.getInstance().readFiles(dirPath + "Regionen");
+      Opponents.getOpponentsDB().readFromFile(dirPath + "Gegner.dat", false);
+      Opponents.getOpponentsDB().readFromFile(userDataPath + "Eigene_Gegner.dat", true);
+      FrameLayouts.getInstance().readFromFile(dsa.util.Directories.getUserHomePath() + "Fensterlayout.dat");
     }
     catch (java.io.IOException e) {
       javax.swing.JOptionPane.showMessageDialog(null, e.getMessage(),
@@ -138,7 +143,7 @@ public class Main {
           if (file.endsWith(".dsagroup") || file.endsWith(".grp")) {
             java.io.File f = new java.io.File(file);
             if (f.exists()) {
-              mainFrame.openGroup(f);
+              GroupOperations.openGroup(f, mainFrame);
               return;
             }
           }
@@ -149,10 +154,10 @@ public class Main {
             java.io.File f = new java.io.File(file);
             if (f.exists()) {
               if (first) {
-                mainFrame.newGroup();
+                GroupOperations.newGroup(mainFrame);
                 first = false;
               }
-              mainFrame.openHero(f);
+              GroupOperations.openHero(f, mainFrame);
             }
           }
         }

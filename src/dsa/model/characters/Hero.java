@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006 [Joerg Ruedenauer]
+ Copyright (c) 2006-2007 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -24,14 +24,11 @@ import java.util.List;
 
 import dsa.model.data.Animal;
 import dsa.model.data.ExtraThingData;
-import dsa.util.FileType;
 
 /**
  * 
  */
-public interface Hero {
-
-  String getName();
+public interface Hero extends Printable {
 
   int getDefaultProperty(Property property);
 
@@ -190,14 +187,6 @@ public interface Hero {
   // void ReadFromFile(java.io.BufferedReader file) throws java.io.IOException;
   boolean isChanged();
 
-  String getPrintingTemplateFile();
-
-  void setPrintingTemplateFile(String filePath);
-  
-  FileType getPrintingFileType();
-  
-  void setPrintingFileType(FileType fileType);
-
   String getRuf();
 
   void addTalent(String name);
@@ -300,14 +289,6 @@ public interface Hero {
 
   void setPAPart(String talent, int value);
 
-  List<String> getFightingTalentsInDocument();
-
-  void setFightingTalentsInDocument(List<String> talents);
-  
-  int getPrintingZFW();
-  
-  void setPrintingZFW(int zfw);
-
   String getSkin();
 
   void setSkin(String skin);
@@ -317,10 +298,6 @@ public interface Hero {
   void addRitual(String ritual);
 
   void removeRitual(String ritual);
-
-  String getPrintFile();
-
-  void setPrintFile(String file);
 
   int getNrOfAnimals();
 
@@ -449,4 +426,8 @@ public interface Hero {
   String getInternalType();
   
   void setInternalType(String typeName);
+  
+  boolean hasLoadedNewerVersion();
+  
+  void setHasLoadedNewerVersion(boolean newer);
 }

@@ -1,3 +1,21 @@
+Version 1.4.0
+-------------
+- Gruppenübersicht kann gedruckt werden
+- Änderung: beim Drucken werden Fließkommazahlen immer mit 2 Nachkommastellen
+  ausgegeben
+- Warnung, falls man mit einer älteren Version Dateien einer neueren Version
+  lädt und sie dann speichern möchte
+- Fenster für Gruppenübersicht
+- Button zum schnellen Drucken eines Helden
+- Gegner können verwaltet werden
+- Fensterlayouts können gespeichert werden --> neues Menü "Fenster"
+- Option, bei Programmstart nach Updates zu suchen
+- Option, mit der man den Speicherort eigener Daten festlegen kann
+- Rituale des Druiden wurden korrigiert
+- Heldentyp einiger Prototypen (v.a. Krieger) wurde korrigiert
+- Rapier für die Kategorie Schwerter hinzugefügt (als Rapier*)
+- Neue Version des Installationsprogrammes benutzt
+
 Version 1.3.0
 -------------
 - Zwischenablage kann für Gegenstände, Waffen, Rüstungen usw. verwendet werden

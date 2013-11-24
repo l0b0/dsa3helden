@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006 [Joerg Ruedenauer]
+ Copyright (c) 2006-2007 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -26,11 +26,11 @@ import javax.swing.JScrollPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import dsa.gui.lf.BGTableCellRenderer;
 import dsa.gui.util.SpinnerCellEditor;
 import dsa.gui.util.TableSorter;
 import dsa.model.data.Weapon;
@@ -163,7 +163,7 @@ public class WeaponsTable extends AbstractTable implements
     tcm.addColumn(new TableColumn(1, 150));
     tcm.addColumn(new TableColumn(2, 80));
     if (bfChanger != null) {
-      tcm.addColumn(new TableColumn(3, 55, new DefaultTableCellRenderer(), numberEditor));
+      tcm.addColumn(new TableColumn(3, 55, new BGTableCellRenderer(), numberEditor));
     }
     else {
       tcm.addColumn(new TableColumn(3, 35));
@@ -172,7 +172,7 @@ public class WeaponsTable extends AbstractTable implements
     tcm.addColumn(new TableColumn(5, 80));
     tcm.addColumn(new TableColumn(6, 60));
     if (hasProjectiles) {
-      tcm.addColumn(new TableColumn(7,80, new DefaultTableCellRenderer(), projectilesEditor));
+      tcm.addColumn(new TableColumn(7,80, new BGTableCellRenderer(), projectilesEditor));
     }
 
     mSorter = new TableSorter(mModel);

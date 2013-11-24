@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -37,14 +37,17 @@ import org.jdesktop.jdic.desktop.Desktop;
 
 import dsa.gui.lf.BGDialog;
 import dsa.gui.util.ExampleFileFilter;
-import dsa.model.characters.Hero;
+import dsa.model.characters.Printable;
 import dsa.util.Directories;
 import dsa.util.FileType;
+
 import java.awt.Rectangle;
+
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+
 import java.awt.Dimension;
 import java.awt.Point;
 
@@ -71,7 +74,7 @@ public final class PrintingDialog extends BGDialog {
 
   private JButton closeButton = null;
 
-  private Hero hero;
+  private Printable toPrint;
 
   private JButton fightTalentButton = null;
 
@@ -97,22 +100,29 @@ public final class PrintingDialog extends BGDialog {
     initialize();
   }
 
-  public PrintingDialog(Hero character, java.awt.Frame parent) {
+  public PrintingDialog(Printable printable, java.awt.Frame parent) {
     super(parent);
-    hero = character;
+    toPrint = printable;
     initialize();
-    getTemplateField().setText(hero.getPrintingTemplateFile());
-    getOutputField().setText(hero.getPrintFile());
+    getTemplateField().setText(toPrint.getPrintingTemplateFile());
+    getOutputField().setText(toPrint.getPrintFile());
     for (FileType ft : FileType.values()) {
       getFileTypeBox().addItem(ft.getDescription());
     }
-    getFileTypeBox().setSelectedIndex(hero.getPrintingFileType().ordinal());
-    getZfwSpinner().setValue(hero.getPrintingZFW());
+    getFileTypeBox().setSelectedIndex(toPrint.getPrintingFileType().ordinal());
+    getZfwSpinner().setValue(toPrint.getPrintingZFW());
     this.setLocationRelativeTo(parent);
-    this.setTitle("Drucken: " + hero.getName());
+    this.setTitle("Drucken: " + toPrint.getName());
+    enableCustomizations();
     updateButtons();
   }
   
+  private void enableCustomizations() {
+    getFightTalentButton().setEnabled(toPrint.hasPrintingCustomizations());
+    getZfwSpinner().setEnabled(toPrint.hasPrintingCustomizations());
+    jLabel3.setEnabled(toPrint.hasPrintingCustomizations());
+  }
+
   public final String getHelpPage() {
     return "Drucken";
   }
@@ -359,11 +369,10 @@ public final class PrintingDialog extends BGDialog {
     public void run() {
       if (task == 0) {
         try {
-          dsa.control.CharacterPrinter printer = dsa.control.CharacterPrinter
-              .getInstance();
-          printer.printCharacter(hero, input, output, fileType, PrintingDialog.this,
+          dsa.control.Printer printer = toPrint.getPrinter();
+          printer.print(toPrint, input, output, fileType, PrintingDialog.this,
               "Datei wird erstellt");
-          hero.setPrintingTemplateFile(input.getCanonicalPath());
+          toPrint.setPrintingTemplateFile(input.getCanonicalPath());
           task = 1;
         }
         catch (java.io.IOException e) {
@@ -373,8 +382,8 @@ public final class PrintingDialog extends BGDialog {
         SwingUtilities.invokeLater(this);
       }
       else if (task == 1) {
-        hero.setPrintFile(getOutputField().getText());
-        hero.setPrintingFileType(fileType);
+        toPrint.setPrintFile(getOutputField().getText());
+        toPrint.setPrintingFileType(fileType);
         JOptionPane.showMessageDialog(PrintingDialog.this,
             "Ausgabedatei erfolgreich erstellt!", "Drucken",
             JOptionPane.INFORMATION_MESSAGE);
@@ -409,7 +418,7 @@ public final class PrintingDialog extends BGDialog {
         return;
       }
     }
-    hero.setPrintingZFW(((Number)getZfwSpinner().getValue()).intValue());
+    toPrint.setPrintingZFW(((Number)getZfwSpinner().getValue()).intValue());
     TransformerHelper helper = new TransformerHelper(input, output, ft);
     getDisplayButton().setEnabled(false);
     (new Thread(helper)).start();
@@ -478,7 +487,7 @@ public final class PrintingDialog extends BGDialog {
       fightTalentButton.setText("Kampftalente auswählen ...");
       fightTalentButton.setSize(new Dimension(208, 22));
       fightTalentButton.setLocation(new Point(22, 249));
-      fightTalentButton.setEnabled(hero != null);
+      fightTalentButton.setEnabled(toPrint != null);
       fightTalentButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           selectFightingTalents();
@@ -489,11 +498,11 @@ public final class PrintingDialog extends BGDialog {
   }
 
   protected void selectFightingTalents() {
-    java.util.List<String> talents = hero.getFightingTalentsInDocument();
+    java.util.List<String> talents = toPrint.getFightingTalentsInDocument();
     FightingTalentsSelector dialog = new FightingTalentsSelector(this, talents);
     dialog.setVisible(true);
     if (dialog.closedByOK()) {
-      hero.setFightingTalentsInDocument(dialog.getSelectedTalents());
+      toPrint.setFightingTalentsInDocument(dialog.getSelectedTalents());
     }
   }
 

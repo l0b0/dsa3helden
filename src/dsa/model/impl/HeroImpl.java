@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2006 [Joerg Ruedenauer]
+ Copyright (c) 2006-2007 [Joerg Ruedenauer]
  
  This file is part of Heldenverwaltung.
 
@@ -34,6 +34,7 @@ import java.util.TreeSet;
 
 import static dsa.model.characters.Energy.*;
 import static dsa.model.characters.Property.*;
+import dsa.control.Printer;
 import dsa.model.characters.CharacterObserver;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
@@ -52,6 +53,7 @@ import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.model.talents.Talent;
 import dsa.util.AbstractObservable;
+import dsa.util.Directories;
 import dsa.util.FileType;
 
 /**
@@ -229,6 +231,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.extraWarehouseData.putAll(extraWarehouseData);
     hero.nrOfProjectiles = new HashMap<String, Integer>();
     hero.nrOfProjectiles.putAll(nrOfProjectiles);
+    hero.loadedNewerVersion = false;
     return hero;
   }
 
@@ -1044,56 +1047,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static String getRelativePath(String absolutePath, File f)
-      throws IOException {
-    File abs = new File(absolutePath);
-    if (abs.getParentFile() == null) return absolutePath;
-    if (f.getParentFile() == null) return absolutePath;
-    String p1 = abs.getParentFile().getCanonicalPath();
-    String p2 = f.getParentFile().getCanonicalPath();
-    if (p1.length() > 2 && p2.length() > 2 && p1.charAt(1) == ':'
-        && p2.charAt(1) == ':' && p1.charAt(0) != p2.charAt(0)) {
-      // under windows, different drives
-      return absolutePath;
-    }
-    StringTokenizer t1 = new StringTokenizer(p1, File.separator);
-    String[] p1Parts = new String[t1.countTokens()];
-    int i = 0;
-    while (t1.hasMoreTokens())
-      p1Parts[i++] = t1.nextToken();
-    StringTokenizer t2 = new StringTokenizer(p2, File.separator);
-    String[] p2Parts = new String[t2.countTokens()];
-    i = 0;
-    while (t2.hasMoreTokens())
-      p2Parts[i++] = t2.nextToken();
-    if (p1Parts.length == 0 || p2Parts.length == 0) return p1;
-    i = 0;
-    while (i < p1Parts.length && i < p2Parts.length
-        && p1Parts[i].equals(p2Parts[i]))
-      ++i;
-    String path = "";
-    for (int j = i; j < p2Parts.length; ++j)
-      path += ".." + File.separator;
-    for (int j = i; j < p1Parts.length; ++j)
-      path += p1Parts[j] + File.separator;
-    path += abs.getName();
-    return path;
-  }
-
-  static final int FILE_VERSION = 39;
-
-  private static String getAbsolutePath(String relativePath, File f)
-      throws IOException {
-    if (relativePath == null || relativePath.equals("")) {
-      return "";
-    }
-    File test = new File(relativePath);
-    if (test.isAbsolute()) return test.getCanonicalPath();
-    if (f.getParentFile() == null) return relativePath;
-    String p1 = f.getParentFile().getCanonicalPath();
-    p1 += File.separator + relativePath;
-    return new File(p1).getCanonicalPath();
-  }
+  private static final int FILE_VERSION = 39;
 
   /*
    * (non-Javadoc)
@@ -1134,7 +1088,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       }
       file.println("--");
       // version 2
-      file.println(getAbsolutePath(printingTemplateFile, f));
+      file.println(Directories.getAbsolutePath(printingTemplateFile, f));
       // version 3
       file.println(birthPlace);
       file.println(eyeColor);
@@ -1211,13 +1165,13 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         }
       }
       // version 13
-      file.println(getRelativePath(bgFile, realFile));
-      file.println(getAbsolutePath(bgEditor, realFile));
+      file.println(Directories.getRelativePath(bgFile, realFile));
+      file.println(Directories.getAbsolutePath(bgEditor, realFile));
       file.println(1); // use external editor, now always true
       file.println(notes);
       file.println("-- End Notes --");
       // version 14
-      file.println(getRelativePath(picture, realFile));
+      file.println(Directories.getRelativePath(picture, realFile));
       // version 15
       file.println(atParts.size());
       for (String atName : atParts.keySet()) {
@@ -1241,7 +1195,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       for (String s : rituals)
         file.println(s);
       // version 20
-      file.println(getRelativePath(printFile, realFile));
+      file.println(Directories.getRelativePath(printFile, realFile));
       // version 21
       file.println(animals.size());
       for (int i = 0; i < animals.size(); ++i) {
@@ -1365,7 +1319,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     String line = file.readLine();
     testEmpty(line);
     int version = parseInt(line, lineNr);
-    // if (version > fileVersion) throw new IOException("Version ist zu neu!");
+    loadedNewerVersion =  (version > FILE_VERSION);
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -1385,7 +1339,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      printingTemplateFile = getAbsolutePath(line, f);
+      printingTemplateFile = Directories.getAbsolutePath(line, f);
     }
     if (version > 2) {
       lineNr = readVersion3Data(file, lineNr);
@@ -1424,7 +1378,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      picture = getAbsolutePath(line, f);
+      picture = Directories.getAbsolutePath(line, f);
     }
     atParts.clear();
     if (version > 14) {
@@ -1445,7 +1399,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      printFile = getAbsolutePath(line, f);
+      printFile = Directories.getAbsolutePath(line, f);
     }
     else
       printFile = "";
@@ -1962,7 +1916,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    bgFile = getAbsolutePath(line, f);
+    bgFile = Directories.getAbsolutePath(line, f);
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -3804,5 +3758,23 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       internalType = typeName;
       changed = true;
     }
+  }
+
+  public boolean hasPrintingCustomizations() {
+    return true;
+  }
+
+  public Printer getPrinter() {
+    return dsa.control.CharacterPrinter.getInstance();
+  }
+  
+  private boolean loadedNewerVersion = false;
+
+  public boolean hasLoadedNewerVersion() {
+    return loadedNewerVersion;
+  }
+
+  public void setHasLoadedNewerVersion(boolean newer) {
+    loadedNewerVersion = newer;
   }
 }

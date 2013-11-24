@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
+    Copyright (c) 2006-2007 [Joerg Ruedenauer]
   
     This file is part of Heldenverwaltung.
 
@@ -19,15 +19,26 @@
  */
 package dsa.model.characters;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
+import dsa.control.Printer;
 import dsa.model.DataFactory;
+import dsa.model.data.Opponent;
+import dsa.model.data.Opponents;
 import dsa.util.AbstractObservable;
+import dsa.util.Directories;
+import dsa.util.FileType;
 
 /**
  * @author joerg
@@ -35,7 +46,7 @@ import dsa.util.AbstractObservable;
  * To change the template for this generated type comment go to
  * Window>Preferences>Java>Code Generation>Code and Comments
  */
-public class Group extends AbstractObservable<CharactersObserver> {
+public class Group extends AbstractObservable<CharactersObserver> implements Printable {
 
   private final ArrayList<Hero> characters;
 
@@ -46,6 +57,8 @@ public class Group extends AbstractObservable<CharactersObserver> {
   private boolean changed;
 
   private final GroupOptions options;
+  
+  private Opponents opponents;
 
   private static Group instance = new Group();
 
@@ -126,7 +139,9 @@ public class Group extends AbstractObservable<CharactersObserver> {
     characters.add(hero);
     filePaths.add("");
     changed = true;
-    for (CharactersObserver observer : observers) {
+    LinkedList<CharactersObserver> temp = new LinkedList<CharactersObserver>();
+    temp.addAll(observers);
+    for (CharactersObserver observer : temp) {
       observer.characterAdded(hero);
     }
     if (activeHero == null) {
@@ -134,11 +149,40 @@ public class Group extends AbstractObservable<CharactersObserver> {
     }
   }
 
+  public Set<String> getOpponentNames() {
+    return opponents.getOpponentNames();
+  }
+  
+  public Opponent getOpponent(String name) {
+    return opponents.getOpponent(name);
+  }
+  
+  public Opponent addOpponent(Opponent opponent) {
+    int nr = 2;
+    Opponent clone = opponent.makeClone();
+    while (opponents.getOpponent(clone.getName()) != null) {
+      clone.setName(opponent.getName() + " " + nr);
+      ++nr;
+    }
+    opponents.addOpponent(clone);
+    return clone;
+  }
+  
+  public void removeOpponent(String name) {
+    opponents.removeOpponent(name);
+  }
+  
+  public void replaceOpponent(String name, Opponent newOpponent) {
+    opponents.removeOpponent(name);
+    opponents.addOpponent(newOpponent);
+  }
+  
   private Group() {
     super();
     characters = new ArrayList<Hero>();
     filePaths = new ArrayList<String>();
     options = new GroupOptions();
+    opponents = new Opponents();
     options.getDefaults();
     options.setChanged(false);
     options.loadCorrectFiles();
@@ -159,34 +203,54 @@ public class Group extends AbstractObservable<CharactersObserver> {
         break;
       }
     }
+    hero.setHasLoadedNewerVersion(false);
   }
 
   /**
    * @return
    */
   public boolean isChanged() {
-    return changed || options.isChanged();
+    return changed || options.isChanged() || opponents.wasChanged();
   }
+  
+  private static final int GROUP_VERSION = 5;
 
-  public void writeToFile(java.io.PrintWriter file) throws java.io.IOException {
-    file.println(3); // version
-    for (String path : filePaths) {
-      if (path != null && !path.equals("")) file.println(path);
+  public void writeToFile(java.io.File f) throws java.io.IOException {
+    PrintWriter file = new PrintWriter(new FileWriter(f));
+    try {
+      file.println(GROUP_VERSION); // version
+      for (String path : filePaths) {
+        if (path != null && !path.equals("")) file.println(path);
+      }
+      file.println("--");
+      // version 2
+      file.println(activeHero != null ? activeHero.getName() : "");
+      // version 3
+      options.writeToFile(file);
+      // version 4
+      file.println(name);
+      file.println(Directories.getRelativePath(printFile, f));
+      file.println(Directories.getAbsolutePath(printingTemplate, f));
+      file.println(printingFileType.toString());
+      // version 5
+      opponents.writeToFile(file);
+      
+      file.println("-End Characters-");
+      file.flush();
     }
-    file.println("--");
-    file.println(activeHero != null ? activeHero.getName() : "");
-    options.writeToFile(file);
-    file.println("-End Characters-");
-    file.flush();
+    finally {
+      if (file != null) file.close();
+    }
   }
-
-  public void loadFromFile(java.io.BufferedReader file) throws IOException {
+  
+  public void loadFromFile(java.io.File f) throws IOException {
+    BufferedReader file = new BufferedReader(new FileReader(f));
     String line = file.readLine();
     testEmpty(line);
     int version = 1;
     try {
       version = Integer.parseInt(line);
-      // if (version > 3) throw new IOException("Version zu hoch!");
+      loadedNewerVersion = (version > GROUP_VERSION);
     }
     catch (NumberFormatException e) {
       throw new IOException("Dateiformat falsch");
@@ -199,7 +263,9 @@ public class Group extends AbstractObservable<CharactersObserver> {
             .createHeroFromFile(new File(line));
         characters.add(hero);
         filePaths.add(line);
-        for (CharactersObserver observer : observers)
+        LinkedList<CharactersObserver> copiedList = new LinkedList<CharactersObserver>();
+        copiedList.addAll(observers);
+        for (CharactersObserver observer : copiedList)
           observer.characterAdded(hero);
         line = file.readLine();
         testEmpty(line);
@@ -224,13 +290,47 @@ public class Group extends AbstractObservable<CharactersObserver> {
     if (version >= 3) {
       options.readFromFile(file, 0);
     }
+    if (version >= 4) {
+      line = file.readLine();
+      testEmpty(line);
+      name = line;
+      line = file.readLine();
+      testEmpty(line);
+      printFile = Directories.getAbsolutePath(line, f);
+      line = file.readLine();
+      testEmpty(line);
+      printingTemplate = Directories.getAbsolutePath(line, f);
+      line = file.readLine();
+      testEmpty(line);
+      printingFileType = FileType.valueOf(line);
+    }
+    else {
+      name = f.getName();
+      int index = name.lastIndexOf('.');
+      if (index != -1) {
+        name = name.substring(0, index);
+      }
+      printingTemplate = "";
+      printFile = "";
+      printingFileType = FileType.WordML;
+    }
+    opponents = new Opponents();
+    if (version >= 5) {
+      opponents.readFromFile(file, f.getName(), true);
+    }
     while (line != null && !line.equals("-End Characters-")) {
       line = file.readLine();
       testEmpty(line);
     }
     options.loadCorrectFiles();
+    for (CharactersObserver o : observers) {
+      if (o instanceof GroupObserver) {
+        ((GroupObserver)o).groupLoaded();
+      }
+    }
     if (characters.size() > 0 && activeHero == null)
       setActiveHero(characters.get(0));
+    currentFileName = f.getAbsolutePath();
   }
 
   private void testEmpty(String s) throws IOException {
@@ -266,8 +366,114 @@ public class Group extends AbstractObservable<CharactersObserver> {
   }
 
   public void prepareNewGroup() {
+    removeAllCharacters();
+    opponents = new Opponents();
     options.getDefaults();
     options.loadCorrectFiles();
+    name = "";
+    printFile = "";
+    loadedNewerVersion = false;
+    currentFileName = "";
+    for (CharactersObserver o : observers) {
+      if (o instanceof GroupObserver) {
+        ((GroupObserver)o).groupLoaded();
+      }
+    }
+  }
+  
+
+  public List<String> getFightingTalentsInDocument() {
+    return null;
+  }
+  
+  private String name = "";
+
+  public String getName() {
+    return name;
+  }
+  
+  public void setName(String newName) {
+    if (!name.equals(newName)) {
+      name = newName;
+      changed = true;
+    }
+  }
+  
+  private String printFile = "";
+
+  public String getPrintFile() {
+    return printFile;
+  }
+  
+  public Printer getPrinter() {
+    return dsa.control.GroupPrinter.getInstance();
+  }
+  
+  private FileType printingFileType = FileType.ODT;
+
+  public FileType getPrintingFileType() {
+    return printingFileType;
+  }
+  
+  private String printingTemplate = "";
+
+  public String getPrintingTemplateFile() {
+    return printingTemplate;
+  }
+
+  public int getPrintingZFW() {
+    return 0;
+  }
+
+  public boolean hasPrintingCustomizations() {
+    return false;
+  }
+
+  public void setFightingTalentsInDocument(List<String> talents) {
+  }
+
+  public void setPrintFile(String file) {
+    if (!printFile.equals(file)) {
+      printFile = file;
+      changed = true;
+    }
+  }
+
+  public void setPrintingFileType(FileType fileType) {
+    if (printingFileType != fileType) {
+      printingFileType = fileType;
+      changed = true;
+    }
+  }
+
+  public void setPrintingTemplateFile(String filePath) {
+    if (!printingTemplate.equals(filePath)) {
+      printingTemplate = filePath;
+      changed = true;
+    }
+  }
+
+  public void setPrintingZFW(int zfw) {
+  }
+  
+  private boolean loadedNewerVersion = false;
+  
+  public boolean hasLoadedNewerVersion() {
+    return loadedNewerVersion;
+  }
+  
+  public void setHasLoadedNewerVersion(boolean newer) {
+    loadedNewerVersion = newer;
+  }
+  
+  private String currentFileName = "";
+  
+  public String getCurrentFileName() {
+    return currentFileName;
+  }
+  
+  public void setCurrentFileName(String fileName) {
+    currentFileName = fileName;
   }
 
 }

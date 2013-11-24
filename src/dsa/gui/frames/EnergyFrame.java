@@ -815,6 +815,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       if (missingLE > 0) {
         int first = Dice.roll(6);
         int second = Dice.roll(6);
+        int aeRoll = second;
         if (first < second) {
           int temp = first;
           first = second;
@@ -824,17 +825,24 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
         second = Math.min(second + bonusRegeneration, missingAE);
         currentHero.changeCurrentEnergy(Energy.LE, first);
         currentHero.changeCurrentEnergy(Energy.AE, second);
-        JOptionPane.showMessageDialog(this,
-            "LE: " + first + " Punkte regeneriert\n" + "AE: " + second
-                + " Punkte regeneriert", "Regeneration",
+        String text = "LE: " + first + " Punkte regeneriert\n";
+        text += "AE: " + second + " Punkte regeneriert";
+        if (hasBonus) {
+          text += "\n(Gewürfelt: " + aeRoll + ", Bonus: " + bonusRegeneration + ")";  
+        }
+        JOptionPane.showMessageDialog(this, text, "Regeneration",
             JOptionPane.INFORMATION_MESSAGE);
       }
       else {
-        int value = Dice.roll(6) + bonusRegeneration;
+        int aeRoll = Dice.roll(6);
+        int value = aeRoll + bonusRegeneration;
         value = Math.min(value, missingAE);
         currentHero.changeCurrentEnergy(Energy.AE, value);
-        JOptionPane.showMessageDialog(this, "AE: " + value
-            + " Punkte regeneriert.", "Regeneration",
+        String text = "AE: " + value + " Punkte regeneriert";
+        if (hasBonus) {
+          text += "\n(Gewürfelt: " + aeRoll + ", Bonus: " + bonusRegeneration + ")";
+        }
+        JOptionPane.showMessageDialog(this, text, "Regeneration",
             JOptionPane.INFORMATION_MESSAGE);
       }
     }

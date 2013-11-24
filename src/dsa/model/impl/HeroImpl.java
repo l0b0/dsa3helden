@@ -2499,6 +2499,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         line = file.readLine();
         testEmpty(line);
         data.increasesPerStep = parseInt(line, lineNr);
+        if (data.increasesPerStep == 0) {
+          Talent t = Talents.getInstance().getTalent(talent);
+          if (t != null) {
+            data.increasesPerStep = t.getMaxIncreasePerStep();
+          }
+        }
       }
       if (Talents.getInstance().getTalent(talent) == null) {
         javax.swing.JOptionPane.showMessageDialog(null, "Das Talent " + talent

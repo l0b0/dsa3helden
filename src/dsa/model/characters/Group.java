@@ -413,6 +413,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     opponents = new Opponents();
     options.getDefaults();
     options.loadCorrectFiles();
+    options.setChanged(false);
     name = "";
     printFile = "";
     loadedNewerVersion = false;

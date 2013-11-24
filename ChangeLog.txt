@@ -1,3 +1,12 @@
+Version 1.5.4
+-------------
+- Bei der AE-Regeneration wird der Bonus separat aufgeführt
+- Bugfix für manche alte nicht magiebegabte Helden, deren 
+  Talente nicht steigerbar waren
+- Startalter für Zwergencharaktere auf 35 gesetzt
+- Fehler in den Namensdaten für Weiden korrigiert
+- Neue Gruppen sind nicht sofort 'geändert'
+
 Version 1.5.3
 -------------
 - Titel und AP bereits erlebter Abenteuer werden verwaltet

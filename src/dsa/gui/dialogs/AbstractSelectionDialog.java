@@ -34,12 +34,15 @@ import javax.swing.event.DocumentListener;
 
 import dsa.gui.lf.BGDialog;
 import dsa.gui.tables.AbstractTable;
+import dsa.gui.util.ImageManager;
+import dsa.model.data.Thing;
 
 public abstract class AbstractSelectionDialog extends BGDialog {
 
   public interface SelectionDialogCallback {
     void itemSelected(String item);
     void itemChanged(String item);
+    void itemsBought(String item, int count, int finalPrice, dsa.model.data.Thing.Currency currency);
   }
 
   public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
@@ -70,7 +73,7 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   }
   
   private final String mSortingID;
-  private final boolean mSingleSelection;
+  protected final boolean mSingleSelection;
   
   protected final void initialize() {
     JPanel panel = mTable.getPanelWithTable();
@@ -78,8 +81,11 @@ public abstract class AbstractSelectionDialog extends BGDialog {
 
     JPanel lowerPanel = new JPanel();
     lowerPanel.setLayout(null);
-    lowerPanel.setPreferredSize(new java.awt.Dimension(200, 40));
+    lowerPanel.setPreferredSize(new java.awt.Dimension(showShopButton() ? 520 : 200, 40));
     lowerPanel.add(getAddButton());
+    if (showShopButton()) {
+      lowerPanel.add(getShopButton());
+    }
     lowerPanel.add(getCloseButton(mSortingID));
 
     addSubclassSpecificButtons(lowerPanel);
@@ -108,8 +114,12 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   public void setCallback(SelectionDialogCallback callback) {
     this.callback = callback;
   }
+  
+  protected abstract boolean showShopButton();
 
   JButton addButton;
+  
+  JButton shopButton;
 
   JButton closeButton;
 
@@ -156,10 +166,42 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   protected final JButton getCloseButton(String sortingID) {
     if (closeButton == null) {
       closeButton = new JButton(mSingleSelection ? "Abbrechen" : "Schließen");
-      closeButton.setBounds(160, 5, 140, 25);
+      closeButton.setBounds(showShopButton() ? 210 : 160, 5, 140, 25);
       closeButton.addActionListener(new Closer(sortingID));
     }
     return closeButton;
+  }
+  
+  protected int getDefaultPrice(String item) { 
+    return 0;
+  }
+  
+  protected Thing.Currency getCurrency(String item) {
+    return Thing.Currency.S;
+  }
+  
+  protected final JButton getShopButton() {
+    if (shopButton == null) {
+      shopButton = new JButton();
+      shopButton.setBounds(160, 5, 40, 25);
+      shopButton.setIcon(ImageManager.getIcon("money"));
+      shopButton.setToolTipText("Kaufen");
+      shopButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (callback == null) return;
+          String item = mTable.getSelectedItem();
+          Thing.Currency currency = getCurrency(item);
+          ShopDialog dialog = new ShopDialog(AbstractSelectionDialog.this, 
+              getDefaultPrice(item), currency);
+          dialog.setVisible(true);
+          if (dialog.wasClosedByOK()) {
+            callback.itemsBought(item, dialog.getCount(), 
+                dialog.getFinalPrice(), currency);
+          }
+        }
+      });
+    }
+    return shopButton;
   }
 
   private JTextField filterField;

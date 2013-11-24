@@ -169,4 +169,9 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
     getDeleteButton().setEnabled(false);
     getEditButton().setEnabled(false);
   }
+
+  protected boolean showShopButton() {
+    return false;
+  }
+  
 }

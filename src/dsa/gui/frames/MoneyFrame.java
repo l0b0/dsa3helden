@@ -41,6 +41,7 @@ import javax.swing.JScrollPane;
 import javax.swing.text.NumberFormatter;
 
 import dsa.gui.util.ImageManager;
+import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
@@ -74,6 +75,14 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
   dsa.model.characters.Hero currentHero = null;
 
   private boolean bank;
+  
+  class MyHeroObserver extends CharacterAdapter {
+    public void moneyChanged() {
+      updateData();
+    }
+  }
+  
+  private MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public MoneyFrame(String title, boolean bank) {
     super(title);
@@ -85,16 +94,25 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
 
       public void windowClosing(WindowEvent e) {
         Group.getInstance().removeObserver(MoneyFrame.this);
+        if (currentHero != null) {
+          currentHero.removeHeroObserver(myHeroObserver);
+        }
         done = true;
       }
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
           Group.getInstance().removeObserver(MoneyFrame.this);
+          if (currentHero != null) {
+            currentHero.removeHeroObserver(myHeroObserver);
+          }
           done = true;
         }
       }
     });
+    if (currentHero != null) {
+      currentHero.addHeroObserver(myHeroObserver);
+    }
     initialize();
     updateData();
   }
@@ -390,6 +408,12 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
     updateData();
+    if (oldCharacter != null) {
+      oldCharacter.removeHeroObserver(myHeroObserver);
+    }
+    if (newCharacter != null) {
+      newCharacter.addHeroObserver(myHeroObserver);
+    }
   }
 
   public void characterRemoved(Hero character) {
@@ -402,4 +426,5 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
 
   public void globalLockChanged() {
   }
+  
 } // @jve:decl-index=0:visual-constraint="10,10"

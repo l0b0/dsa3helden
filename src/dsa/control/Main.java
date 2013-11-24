@@ -101,9 +101,13 @@ public class Main {
       Shields.getInstance().readFile(dirPath + "Schilde.dat");
       Shields.getInstance().readUserDefinedFile(
           userDataPath + "Eigene_Parade.dat");
-      FrameLayouts.getInstance().readFromFile(dsa.util.Directories.getUserHomePath() + "Fensterlayout.dat", secondStart);
-      if (FrameLayouts.getInstance().getStoredLayouts().length == 0) {
-        FrameLayouts.getInstance().readDefaultLayouts(dirPath + "StandardLayouts.dat");
+      FrameLayouts layouts = FrameLayouts.getInstance();
+      layouts.readFromFile(FrameLayouts.getDefaultLayoutsFilename());
+      if (layouts.getStoredLayouts().length == 0) {
+        layouts.readFromFile(FrameLayouts.getOldLayoutsFilename());
+      }
+      if (layouts.getStoredLayouts().length == 0) {
+        layouts.readDefaultLayouts(dirPath + "StandardLayouts.dat");
       }
     }
     catch (java.io.IOException e) {

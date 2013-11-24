@@ -45,6 +45,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
 import dsa.model.data.ExtraThingData;
+import dsa.model.data.Thing.Currency;
 
 public final class ArmoursFrame extends AbstractDnDFrame implements CharactersObserver,
     OptionsListener {
@@ -59,6 +60,10 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
                 "Fehler", JOptionPane.WARNING_MESSAGE);
         return;
       }
+      itemAdded(item);
+    }
+    
+    private void itemAdded(String item) {
       currentHero.addArmour(item);
       Armour armour = Armours.getInstance().getArmour(item);
       if (armour != null)
@@ -75,6 +80,23 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
         mTable.addArmour(Armours.getInstance().getArmour(item));
         calcSums();
         currentHero.fireWeightChanged();
+      }
+    }
+
+    @Override
+    public void itemsBought(String item, int count, int finalPrice,
+        Currency currency) {
+      boolean alreadyThere = Arrays.asList(currentHero.getArmours()).contains(item);
+      if (alreadyThere || count > 1) {
+        JOptionPane
+        .showMessageDialog(
+            ArmoursFrame.this,
+            "Ein Held kann jede Rüstung nur einfach tragen.\nDu kannst die Rüstung statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+            "Fehler", JOptionPane.WARNING_MESSAGE);        
+      }
+      if (!alreadyThere) {
+        itemAdded(item);
+        currentHero.pay(finalPrice / count, currency);
       }
     }
   }

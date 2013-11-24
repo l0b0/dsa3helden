@@ -33,6 +33,7 @@ import dsa.model.characters.Group;
 import dsa.model.data.Animal;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.util.Optional;
 
 public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectionDialog {
 
@@ -91,7 +92,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     if (newButton == null) {
       newButton = new JButton(ImageManager.getIcon("increase"));
       newButton.setToolTipText("Neuen Gegenstand anlegen");
-      newButton.setBounds(315, 5, 40, 25);
+      newButton.setBounds(365, 5, 40, 25);
       newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this);
@@ -108,7 +109,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     if (editButton == null) {
       editButton = new JButton(ImageManager.getIcon("edit"));
       editButton.setToolTipText("Gegenstand bearbeiten");
-      editButton.setBounds(405, 5, 40, 25);
+      editButton.setBounds(455, 5, 40, 25);
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Thing thing = Things.getInstance().getThing(mTable.getSelectedItem());
@@ -133,7 +134,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
       deleteButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       deleteButton.setDisabledIcon(ImageManager.getIcon("decrease"));
       deleteButton.setToolTipText("Gegenstand löschen");
-      deleteButton.setBounds(360, 5, 40, 25);
+      deleteButton.setBounds(410, 5, 40, 25);
       deleteButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           removeThing();
@@ -174,4 +175,16 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     getEditButton().setEnabled(enabled);
   }
 
+  protected boolean showShopButton() {
+    return true;
+  }
+  
+  protected int getDefaultPrice(String item) {
+    Optional<Integer> value = Things.getInstance().getThing(item).getValue();
+    return value.hasValue() ? value.getValue().intValue() : 0;
+  }
+  
+  protected Thing.Currency getCurrency(String item) {
+    return Things.getInstance().getThing(item).getCurrency();
+  }
 }

@@ -38,6 +38,7 @@ import dsa.model.characters.GroupObserver;
 import dsa.model.characters.Hero;
 import dsa.model.data.Opponent;
 import dsa.model.data.Opponents;
+import dsa.model.data.Thing.Currency;
 
 public final class OpponentsFrame extends SubFrame 
     implements GroupObserver, OpponentTable.ValueChanger, OpponentDialog.NameChecker {
@@ -53,6 +54,11 @@ public final class OpponentsFrame extends SubFrame
     }
 
     public void itemChanged(String item) {
+    }
+
+    @Override
+    public void itemsBought(String item, int count, int finalPrice,
+        Currency currency) {
     }
   }
 

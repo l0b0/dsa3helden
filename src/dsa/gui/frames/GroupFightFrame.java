@@ -465,6 +465,9 @@ public class GroupFightFrame extends SubFrame
       // only used in the attack dialog
     }
     
+    public void moneyChanged() {
+    }
+    
   }
 
   public void optionsChanged() {

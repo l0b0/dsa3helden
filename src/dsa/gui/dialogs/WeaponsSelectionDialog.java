@@ -32,6 +32,7 @@ import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.util.Optional;
 
 public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
 
@@ -86,7 +87,7 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
     if (newButton == null) {
       newButton = new JButton(ImageManager.getIcon("increase"));
       newButton.setToolTipText("Neue Waffe anlegen");
-      newButton.setBounds(315, 5, 40, 25);
+      newButton.setBounds(365, 5, 40, 25);
       newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           WeaponDialog dialog = new WeaponDialog(WeaponsSelectionDialog.this);
@@ -105,7 +106,7 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
     if (editButton == null) {
       editButton = new JButton(ImageManager.getIcon("edit"));
       editButton.setToolTipText("Waffe bearbeiten");
-      editButton.setBounds(405, 5, 40, 25);
+      editButton.setBounds(455, 5, 40, 25);
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Weapon weapon = Weapons.getInstance().getWeapon(mTable.getSelectedItem());
@@ -130,7 +131,7 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
       deleteButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       deleteButton.setDisabledIcon(ImageManager.getIcon("decrease"));
       deleteButton.setToolTipText("Waffe löschen");
-      deleteButton.setBounds(360, 5, 40, 25);
+      deleteButton.setBounds(410, 5, 40, 25);
       deleteButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           removeWeapon();
@@ -163,4 +164,12 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
     getEditButton().setEnabled(enabled);
   }
 
+  protected boolean showShopButton() {
+    return !mSingleSelection;
+  }
+  
+  protected int getDefaultPrice(String item) {
+    Optional<Integer> value = Weapons.getInstance().getWeapon(item).getWorth();
+    return value.hasValue() ? value.getValue().intValue() : 0;
+  }
 }

@@ -178,35 +178,39 @@ public final class StepFrame extends SubFrame
       remainingStepsLabel = new JLabel("");
       remainingStepsLabel.setBounds(new java.awt.Rectangle(218, 40, 110, 22));
       jContentPane = new JPanel();
-      jContentPane.setLayout(null);
-      jContentPane.add(jLabel, null);
-      jContentPane.add(getApField(), null);
-      jContentPane.add(getApLockBtn(), null);
-      jContentPane.add(getApPlusBtn(), null);
-      jContentPane.add(jLabel1, null);
-      jContentPane.add(getStepField(), null);
-      jContentPane.add(jLabel2, null);
-      jContentPane.add(getNextStepField(), null);
-      jContentPane.add(jLabel3, null);
-      jContentPane.add(getRufField(), null);
-      jContentPane.add(jLabel4, null);
-      jContentPane.add(getTalentTriesLabel(), null);
-      jContentPane.add(jLabel5, null);
-      jContentPane.add(spellTriesLabel, null);
-      jContentPane.add(jLabel6, null);
-      jContentPane.add(freeTriesLabel, null);
-      jContentPane.add(getClearButton(), null);
-      jContentPane.add(missingLabel, null);
-      jContentPane.add(remainingStepsLabel, null);
+      jContentPane.setLayout(new BorderLayout());
+      JPanel upperPanel = new JPanel();
+      upperPanel.setLayout(null);
+      upperPanel.add(jLabel, null);
+      upperPanel.add(getApField(), null);
+      upperPanel.add(getApLockBtn(), null);
+      upperPanel.add(getApPlusBtn(), null);
+      upperPanel.add(jLabel1, null);
+      upperPanel.add(getStepField(), null);
+      upperPanel.add(jLabel2, null);
+      upperPanel.add(getNextStepField(), null);
+      upperPanel.add(jLabel3, null);
+      upperPanel.add(getRufField(), null);
+      upperPanel.add(jLabel4, null);
+      upperPanel.add(getTalentTriesLabel(), null);
+      upperPanel.add(jLabel5, null);
+      upperPanel.add(spellTriesLabel, null);
+      upperPanel.add(jLabel6, null);
+      upperPanel.add(freeTriesLabel, null);
+      upperPanel.add(getClearButton(), null);
+      upperPanel.add(missingLabel, null);
+      upperPanel.add(remainingStepsLabel, null);
       JPanel stepIncreasePanel = new JPanel();
       stepIncreasePanel.setOpaque(false);
       stepIncreasePanel.setBorder(BorderFactory.createTitledBorder(
           BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Stufenanstieg"));
       stepIncreasePanel.setBounds(new java.awt.Rectangle(3, 125, 303, 98));
-      jContentPane.add(stepIncreasePanel, null);
-      JPanel adventurePanel = getJPanel4();
+      upperPanel.add(stepIncreasePanel, null);
+      upperPanel.setPreferredSize(new java.awt.Dimension(310, 225));
+      jContentPane.add(upperPanel, BorderLayout.NORTH);
+      JPanel adventurePanel = getAdventurePanel();
       adventurePanel.setBounds(new java.awt.Rectangle(3, 230, 303, 150));
-      jContentPane.add(adventurePanel, null);
+      jContentPane.add(adventurePanel, BorderLayout.CENTER);
     }
     return jContentPane;
   }
@@ -231,7 +235,7 @@ public final class StepFrame extends SubFrame
    *  
    * @return javax.swing.JPanel 
    */
-  private JPanel getJPanel4() {
+  private JPanel getAdventurePanel() {
     if (jPanel4 == null) {
       jPanel4 = new JPanel();
       jPanel4.setLayout(new BorderLayout());

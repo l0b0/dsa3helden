@@ -58,6 +58,7 @@ import dsa.model.data.Animal;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.model.data.Thing.Currency;
 import dsa.util.Optional;
 
 public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListener {
@@ -190,10 +191,16 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
-        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing));
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), 1);
       }
       public void itemChanged(String item) {
         Things.getInstance().thingChanged(item);
+      }
+      @Override
+      public void itemsBought(String item, int count, int finalPrice,
+          Currency currency) {
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), count);
+        dsa.model.characters.Group.getInstance().getActiveHero().pay(finalPrice, currency);
       }
     });
     dialog.setVisible(true);
@@ -602,6 +609,10 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
   }
 
   protected boolean addItem(String item, ExtraThingData extraData) {
+    return addItem(item, extraData, 1);
+  }
+  
+  protected boolean addItem(String item, ExtraThingData extraData, int count) {
     if (extraData.getType() == ExtraThingData.Type.Weapon) {
       dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
       item = w.getName();
@@ -610,6 +621,7 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
       Thing thing = Things.getInstance().getThing(item);
       if (thing != null) {
         mTable.addThing(thing);
+        mTable.setCount(item, count);
       }
       else if (extraData.getType() != ExtraThingData.Type.Thing) {
         try {
@@ -618,6 +630,8 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
           int weight = extraData.getPropertyInt("Weight");
           thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
           Things.getInstance().addThing(thing);
+          mTable.addThing(thing);
+          mTable.setCount(item, count);
         }
         catch (ExtraThingData.PropertyException e) {
           e.printStackTrace();
@@ -631,8 +645,9 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
       }
     }
     else
-      mTable.setCount(item, animal.getThingCount(item) + 1);
-    animal.addThing(item, extraData);
+      mTable.setCount(item, animal.getThingCount(item) + count);
+    for (int i = 0; i < count; ++i)
+      animal.addThing(item, extraData);
     removeButton.setEnabled(true);
     calcSums();
     return true;

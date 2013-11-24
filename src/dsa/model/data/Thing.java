@@ -30,7 +30,14 @@ public class Thing {
   String name;
 
   public enum Currency {
-    D, S, H, K
+    D, S, H, K;
+    
+    public String getLongName() {
+      if (this == D) return "Dukaten (Mittelreich / LF)";
+      else if (this == S) return "Silbertaler (Mittelreich / LF)";
+      else if (this == H) return "Heller (Mittelreich / LF)";
+      else return "Kreuzer (Mittelreich / LF)";
+    }
   };
 
   private Optional<Integer> value;

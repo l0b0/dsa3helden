@@ -120,6 +120,7 @@ public class LookAndFeels {
   public static void setLastLookAndFeel() throws Exception {
     try {
       internalSetLookAndFeel(getCurrentLookAndFeel());
+      de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setExtendedFileChooserEnabled(false);
     }
     catch (Exception e) {
       e.printStackTrace();

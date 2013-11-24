@@ -28,6 +28,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.prefs.Preferences;
@@ -272,6 +273,27 @@ public class FrameLayouts {
     findCurrentLayout();
   }
   
+  private static String getLocalHostName()
+  {
+    try {
+      return java.net.InetAddress.getLocalHost().getHostName();
+    }
+    catch (UnknownHostException e) {
+      return "Unknown";
+    }
+  }
+  
+  public static String getDefaultLayoutsFilename()
+  {
+    return dsa.util.Directories.getUserDataPath() + "Fensterlayout_" 
+      + getLocalHostName() + ".dat";
+  }
+  
+  public static String getOldLayoutsFilename()
+  {
+    return dsa.util.Directories.getUserHomePath() + "Fensterlayout.dat";
+  }
+
   public void storeToFile(String filename) throws IOException {
     saveCurrentLayout();
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
@@ -316,7 +338,7 @@ public class FrameLayouts {
     
   }
   
-  public void readFromFile(String filename, boolean secondStart) throws IOException {
+  public void readFromFile(String filename/*, boolean secondStart*/) throws IOException {
     layouts.clear();
     File file = new File(filename);
     if (!file.exists()) return;
@@ -332,7 +354,7 @@ public class FrameLayouts {
         layouts.add(layout);
       }
       lastLayout = FrameLayout.createFromPersistency(in, version);
-      if (!secondStart) lastLayout.discardBounds();
+      // if (!secondStart) lastLayout.discardBounds();
     }
     finally {
       if (in != null) in.close();

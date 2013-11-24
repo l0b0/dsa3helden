@@ -458,4 +458,7 @@ public interface Hero extends Printable, Fighter {
   
   boolean isDifference();
   void setStepDifference(int difference);
+  
+  boolean canPay(int price, dsa.model.data.Thing.Currency currency);
+  void pay(int price, dsa.model.data.Thing.Currency currency);
 }

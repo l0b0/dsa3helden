@@ -190,6 +190,7 @@ public class HeroComparisonDialog extends BGDialog {
     int result = chooser.showOpenDialog(this);
     if (result == JFileChooser.APPROVE_OPTION) {
       textField.setText(chooser.getSelectedFile().getAbsolutePath());
+      Directories.setLastUsedDirectory(this.getParent(), "Heros", chooser.getSelectedFile());
     }
   }
 

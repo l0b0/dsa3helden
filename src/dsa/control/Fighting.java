@@ -187,6 +187,8 @@ public final class Fighting {
     else {
       category = Weapons.getInstance().getWeapon(s).getType();
     }
+    if (category == -1) 
+      category = Weapons.getCategoryIndex("Raufen");
     return new Optional<Integer>(getNormalATSkill(hero, category) + atMod);    
   }
 
@@ -215,6 +217,8 @@ public final class Fighting {
       else {
         category = Weapons.getInstance().getWeapon(s).getType();
       }
+      if (category == -1)
+        category = Weapons.getCategoryIndex("Raufen");
       return new Optional<Integer>(getNormalPASkill(hero, category) + paMod);
     }
     else {
@@ -524,7 +528,7 @@ public final class Fighting {
       if (fightMode.equals("Eine Waffe")) {
         return getCloseRangeWeapons(hero);
       }
-      else if (fightMode.equals("Waffe + Parade")) {
+      else if (fightMode.startsWith("Waffe + Parade")) {
         return getCloseRangeWeapons(hero);
       }
       else if (fightMode.equals("Zwei Waffen")) {
@@ -547,7 +551,7 @@ public final class Fighting {
     }
     else {
       // left hand
-      if (fightMode.equals("Waffe + Parade")) {
+      if (fightMode.startsWith("Waffe + Parade")) {
         return java.util.Arrays.asList(hero.getShields());
       }
       else if (fightMode.equals("Zwei Waffen")) {

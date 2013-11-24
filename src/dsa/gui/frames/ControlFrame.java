@@ -164,7 +164,7 @@ public final class ControlFrame extends SubFrame
       dropTarget = new DropTarget(this, this);
     }
   }
-
+  
   /**
    * 
    * 
@@ -172,7 +172,7 @@ public final class ControlFrame extends SubFrame
   public void saveAndExit() {
     if (!GroupOperations.autoSaveAll(this)) return;
     try {
-      FrameLayouts.getInstance().storeToFile(Directories.getUserHomePath() + "Fensterlayout.dat");
+      FrameLayouts.getInstance().storeToFile(FrameLayouts.getDefaultLayoutsFilename());
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this, "Fensterlayouts konnten nicht gespeichert werden. Grund:\n" 
@@ -472,6 +472,18 @@ public final class ControlFrame extends SubFrame
       groupButton.setToolTipText("Gruppe");
       alwaysPane.add(groupButton);
       frameButtons.put("Gruppe", groupButton);
+      
+      saveAllButton = new JButton(ImageManager.getIcon("saveall"));
+      saveAllButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          GroupOperations.saveAllHeroes(ControlFrame.this);
+          GroupOperations.saveGroup(ControlFrame.this);
+          rebuildLastGroupsMenu();
+        }
+      });
+      saveAllButton.setToolTipText("Alles speichern");
+      saveAllButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
+      alwaysPane.add(saveAllButton);
     }
     return alwaysPane;
   }
@@ -483,6 +495,8 @@ public final class ControlFrame extends SubFrame
   private JButton newHeroButton;
   
   private JButton printHeroButton;
+  
+  private JButton saveAllButton;
 
   /**
    * This method initializes jTabbedPane
@@ -1622,7 +1636,12 @@ public final class ControlFrame extends SubFrame
     
     public void actionPerformed(ActionEvent e) {
       listenForFrames = false;
-      FrameLayouts.getInstance().restoreLayout(layout);
+      if (!((JToggleButton)e.getSource()).isSelected()) {
+        FrameManagement.getInstance().closeAllFrames(ControlFrame.this);
+      }
+      else {
+        FrameLayouts.getInstance().restoreLayout(layout);
+      }
       listenForFrames = true;
       rebuildLayoutsPanel();
     }

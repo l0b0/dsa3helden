@@ -76,7 +76,7 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
     if (newButton == null) {
       newButton = new JButton(ImageManager.getIcon("increase"));
       newButton.setToolTipText("Neue Rüstung anlegen");
-      newButton.setBounds(315, 5, 40, 25);
+      newButton.setBounds(365, 5, 40, 25);
       newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           ArmourDialog dialog = new ArmourDialog(ArmourSelectionDialog.this);
@@ -95,7 +95,7 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
     if (editButton == null) {
       editButton = new JButton(ImageManager.getIcon("edit"));
       editButton.setToolTipText("Rüstung bearbeiten");
-      editButton.setBounds(405, 5, 40, 25);
+      editButton.setBounds(455, 5, 40, 25);
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Armour armour = Armours.getInstance().getArmour(mTable.getSelectedItem());
@@ -120,7 +120,7 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
       deleteButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       deleteButton.setDisabledIcon(ImageManager.getIcon("decrease"));
       deleteButton.setToolTipText("Rüstung löschen");
-      deleteButton.setBounds(360, 5, 40, 25);
+      deleteButton.setBounds(410, 5, 40, 25);
       deleteButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           removeArmour();
@@ -149,6 +149,15 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
                     && Armours.getInstance().getArmour(armour).isUserDefined();
     getDeleteButton().setEnabled(enabled);
     getEditButton().setEnabled(enabled);
+  }
+
+  @Override
+  protected boolean showShopButton() {
+    return true;
+  }
+  
+  protected int getDefaultPrice(String item) {
+    return Armours.getInstance().getArmour(item).getWorth();
   }
 
 }

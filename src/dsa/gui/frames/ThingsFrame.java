@@ -42,6 +42,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.model.data.Thing.Currency;
 import dsa.util.Optional;
 
 public final class ThingsFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
@@ -161,10 +162,16 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
-        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing));
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), 1);
       }
       public void itemChanged(String item) {
         Things.getInstance().thingChanged(item);
+      }
+      @Override
+      public void itemsBought(String item, int count, int finalPrice,
+          Currency currency) {
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), count);
+        currentHero.pay(finalPrice, currency);
       }
     });
     dialog.setVisible(true);
@@ -268,8 +275,12 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
 
   public void globalLockChanged() {
   }
-
+  
   protected boolean addItem(String item, ExtraThingData extraData) {
+    return addItem(item, extraData, 1);
+  }
+
+  protected boolean addItem(String item, ExtraThingData extraData, int count) {
     if (extraData.getType() == ExtraThingData.Type.Weapon) {
       dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
       item = w.getName();
@@ -286,6 +297,7 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
           int weight = extraData.getPropertyInt("Weight");
           thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
           Things.getInstance().addThing(thing);
+          mTable.addThing(thing);
         }
         catch (ExtraThingData.PropertyException e) {
           e.printStackTrace();
@@ -298,9 +310,9 @@ public final class ThingsFrame extends AbstractDnDFrame implements CharactersObs
         return false;
       }
     }
-    else
-      mTable.setCount(item, currentHero.getThingCount(item) + 1);
-    currentHero.addThing(item, extraData);
+    mTable.setCount(item, currentHero.getThingCount(item) + count);
+    for (int i = 0; i < count; ++i)
+      currentHero.addThing(item, extraData);
     removeButton.setEnabled(true);
     calcSums();
     return true;

@@ -49,6 +49,7 @@ import dsa.model.data.Adventure;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
+import dsa.model.data.Currencies;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
@@ -57,6 +58,7 @@ import dsa.model.data.Thing;
 import dsa.model.data.Things;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.model.data.Thing.Currency;
 import dsa.model.talents.Talent;
 import dsa.util.AbstractObservable;
 import dsa.util.Directories;
@@ -4374,6 +4376,186 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         }
         changed = true;
       }
+    }
+  }
+
+  @Override
+  public boolean canPay(int price, Currency currency) {
+    Currencies currencies = Currencies.getInstance();
+    
+    int priceCurrency = currencies.getIndex(currency.getLongName());
+    int kreuzerIndex = currencies.getIndex(Currency.K.getLongName());
+    
+    int kreuzerPrice = currencies.changeValueIndex(price, priceCurrency, kreuzerIndex);
+    
+    int kreuzerSum = 0;
+    for (int i = 0; i < this.currencies.size(); ++i) {
+      int c = this.currencies.get(i);
+      int v = money.get(i);
+      int k = currencies.changeValueIndex(v, c, kreuzerIndex);
+      kreuzerSum += k;
+    }
+    
+    return kreuzerSum >= kreuzerPrice;
+  }
+
+  @Override
+  public void pay(int price, Currency currency) {
+    final Currencies currencies = Currencies.getInstance();
+    int priceCurrency = currencies.getIndex(currency.getLongName());
+    final int kreuzerIndex = currencies.getIndex(Currency.K.getLongName());
+    
+    int kreuzerPriceToPay = currencies.changeValueIndex(price, priceCurrency, kreuzerIndex);
+    
+    // sort the available currencies according to value, descending
+    Integer[] myCurrencies = new Integer[this.currencies.size()];
+    this.currencies.toArray(myCurrencies);
+    java.util.Arrays.sort(myCurrencies, new java.util.Comparator<Integer>() {
+
+      public int compare(Integer arg0, Integer arg1) {
+        int value0InKreuzers = currencies.changeValueIndex(1, arg0, kreuzerIndex);
+        int value1InKreuzers = currencies.changeValueIndex(1, arg1, kreuzerIndex);
+        if (value0InKreuzers < value1InKreuzers)
+          return 1;
+        else if (value0InKreuzers > value1InKreuzers)
+          return -1;
+        else
+          return 0;
+      }
+    });
+    
+    // for easier calculation, make a map from currency to value
+    java.util.HashMap<Integer, Integer> myMoney = new java.util.HashMap<Integer, Integer>();
+    for (int i = 0; i < this.currencies.size(); ++i) {
+      int newCoins = this.money.get(i);
+      if (myMoney.containsKey(this.currencies.get(i))) {
+        newCoins += myMoney.get(this.currencies.get(i));
+      }
+      myMoney.put(this.currencies.get(i), newCoins);
+    }
+    
+    // first pay with as few coins as possible: i.e., with the most valuable
+    // coins first
+    boolean hasMoreValuableCoin = false;
+    int i = 0;
+    int higherCurrencyIndex = 0;
+    while (kreuzerPriceToPay > 0 && i < myCurrencies.length) {
+      int availableCoins = myMoney.get(myCurrencies[i]);
+      int currencyValue = currencies.changeValueIndex(1, myCurrencies[i], kreuzerIndex);
+      if ((currencyValue > kreuzerPriceToPay) && (availableCoins > 0)) {
+        // coin is worth too much
+        hasMoreValuableCoin = true;
+        higherCurrencyIndex = i;
+        ++i;
+        continue;
+      }
+      if ((availableCoins * currencyValue < kreuzerPriceToPay) && hasMoreValuableCoin) {
+        // the current currency isn't worth enough
+        // by definition (precondition), we have enough money altogether
+        // this means either we can pay with smaller coins (see below)
+        // or we change one or more of the more valuable coins
+        
+        // it could be that we don't need to change into this currency
+        // because the smaller ones are still enough to pay. 
+        int kreuzerSum = availableCoins * currencyValue;
+        for (int j = i+1; j < myCurrencies.length; ++j) {
+          int lowerCurrencyValue = currencies.changeValueIndex(1, myCurrencies[j], kreuzerIndex);
+          int lowerCurrencyCoins = myMoney.get(myCurrencies[j]);
+          kreuzerSum += lowerCurrencyValue * lowerCurrencyCoins;
+          if (kreuzerSum >= kreuzerPriceToPay)
+            break;
+        }
+        
+        if (kreuzerSum < kreuzerPriceToPay) {
+          // we do need to change
+        
+          // by the algorithm above, changing *one* of the more valuable coins
+          // is enough to pay for the remaining amount. 
+          
+          // we change the least valuable coin which is enough to pay
+  
+          // one coin less from the higher currency
+          myMoney.put(myCurrencies[higherCurrencyIndex], myMoney.get(myCurrencies[higherCurrencyIndex]) - 1);
+          // more coins of the lower currency
+          availableCoins += currencies.changeValueIndex(1, myCurrencies[higherCurrencyIndex], myCurrencies[i]);
+          myMoney.put(myCurrencies[i], availableCoins);
+          // if another following currency isn't worth enough, the remaining amount can be 
+          // paid by changing a coin of this currency! There is now at least one coin more
+          // than needed in this currency (because the higher currency was worth more than
+          // needed).
+          // hasMoreValuableCoin = true;
+          assert(availableCoins > 0);
+          if (currencyValue > kreuzerPriceToPay) {
+            // we changed into a currency which is still worth too much
+            higherCurrencyIndex = i;
+            ++i;
+            continue;
+          }
+        }
+      }
+      
+      assert(availableCoins > 0);
+      assert(1 * currencyValue <= kreuzerPriceToPay);
+      
+      int nrOfCoins = 0;
+      while ((nrOfCoins < availableCoins) && (currencyValue * (nrOfCoins + 1) <= kreuzerPriceToPay))
+        ++nrOfCoins;
+      myMoney.put(myCurrencies[i], availableCoins - nrOfCoins);
+      kreuzerPriceToPay -= nrOfCoins * currencyValue;
+      ++i;
+    }
+    
+    if (kreuzerPriceToPay > 0) {
+      // we do not have the right currency to fit to the price
+      // the trader will have to give us change back
+      
+      // find the currency into which must be changed
+      Currency remainderCurrency = Currency.K;
+      if (kreuzerPriceToPay % 1000 == 0) remainderCurrency = Currency.D;
+      else if (kreuzerPriceToPay % 100 == 0) remainderCurrency = Currency.S;
+      else if (kreuzerPriceToPay % 10 == 0) remainderCurrency = Currency.H;
+      int newCurrency = currencies.getIndex(remainderCurrency.getLongName());
+      assert(!myMoney.containsKey(newCurrency));
+      int newCurrencyValue = currencies.changeValueIndex(1, newCurrency, kreuzerIndex);
+      assert (kreuzerPriceToPay % newCurrencyValue == 0);
+      
+      // find the smallest coin that the do have and which is enough to pay
+      for (i = myCurrencies.length - 1; i >= 0; --i) {
+        int currencyValue = currencies.changeValueIndex(1, myCurrencies[i], kreuzerIndex);
+        if (currencyValue > kreuzerPriceToPay && myMoney.get(myCurrencies[i]) > 0) {
+          myMoney.put(myCurrencies[i], myMoney.get(myCurrencies[i]) - 1);
+          int newCoins = currencies.changeValueIndex(1, myCurrencies[i], newCurrency);
+          int coinsPaid = kreuzerPriceToPay / newCurrencyValue;
+          newCoins -= coinsPaid;
+          kreuzerPriceToPay -= coinsPaid * newCurrencyValue;
+          assert(kreuzerPriceToPay == 0);
+          myMoney.put(newCurrency, newCoins);
+          break;
+        }        
+      }
+    }
+    assert(kreuzerPriceToPay == 0);
+    
+    // now, put back the right amount of money
+    for (i = 0; i < money.size(); ++i) {
+      int c = this.currencies.get(i);
+      if (myMoney.containsKey(c)) {
+        money.set(i, myMoney.get(c));
+        myMoney.remove(c);
+      }
+      else {
+        // the currency is used more than once and was already removed
+        money.set(i, 0);        
+      }
+    }
+    for (Integer additionalCurrency : myMoney.keySet()) {
+      // this should really only be one: new change from the trader
+      this.currencies.add(additionalCurrency);
+      money.add(myMoney.get(additionalCurrency));
+    }
+    
+    for (CharacterObserver observer : observers) {
+      observer.moneyChanged();
     }
   }  
 }

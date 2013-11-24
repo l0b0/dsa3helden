@@ -77,7 +77,7 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
     if (newButton == null) {
       newButton = new JButton(ImageManager.getIcon("increase"));
       newButton.setToolTipText("Neues Schild / neue Parierwaffe anlegen");
-      newButton.setBounds(315, 5, 40, 25);
+      newButton.setBounds(365, 5, 40, 25);
       newButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           ShieldDialog dialog = new ShieldDialog(ShieldSelectionDialog.this);
@@ -96,7 +96,7 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
     if (editButton == null) {
       editButton = new JButton(ImageManager.getIcon("edit"));
       editButton.setToolTipText("Schild / Parierwaffe bearbeiten");
-      editButton.setBounds(405, 5, 40, 25);
+      editButton.setBounds(455, 5, 40, 25);
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Shield shield = Shields.getInstance().getShield(mTable.getSelectedItem());
@@ -121,7 +121,7 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
       deleteButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       deleteButton.setDisabledIcon(ImageManager.getIcon("decrease"));
       deleteButton.setToolTipText("Schild / Parierwaffe löschen");
-      deleteButton.setBounds(360, 5, 40, 25);
+      deleteButton.setBounds(410, 5, 40, 25);
       deleteButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           removeShield();
@@ -154,4 +154,11 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
     getEditButton().setEnabled(enabled);
   }
 
+  protected boolean showShopButton() {
+    return true;
+  }
+  
+  protected int getDefaultPrice(String item) {
+    return Shields.getInstance().getShield(item).getWorth();
+  }
 }

@@ -42,6 +42,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.model.data.Thing.Currency;
 import dsa.util.Optional;
 
 public final class WarehouseFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
@@ -160,6 +161,12 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
       public void itemChanged(String item) {
         Things.getInstance().thingChanged(item);
       }
+      @Override
+      public void itemsBought(String item, int count, int finalPrice,
+          Currency currency) {
+        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), count);
+        currentHero.pay(finalPrice, currency);
+      }
     });
     dialog.setVisible(true);
   }
@@ -261,6 +268,10 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
   }
 
   protected boolean addItem(String item, ExtraThingData extraData) {
+    return addItem(item, extraData, 1);
+  }
+  
+  protected boolean addItem(String item, ExtraThingData extraData, int count) {
     if (extraData.getType() == ExtraThingData.Type.Weapon) {
       dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
       item = w.getName();
@@ -277,6 +288,7 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
           int weight = extraData.getPropertyInt("Weight");
           thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
           Things.getInstance().addThing(thing);
+          mTable.addThing(thing);
         }
         catch (ExtraThingData.PropertyException e) {
           e.printStackTrace();
@@ -289,9 +301,9 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
         return false;
       }
     }
-    else
-      mTable.setCount(item, currentHero.getThingInWarehouseCount(item) + 1);
-    currentHero.addThingToWarehouse(item, extraData);
+    mTable.setCount(item, currentHero.getThingInWarehouseCount(item) + count);
+    for (int i = 0; i < count; ++i) 
+      currentHero.addThingToWarehouse(item, extraData);
     removeButton.setEnabled(true);
     calcSums();
     return true;

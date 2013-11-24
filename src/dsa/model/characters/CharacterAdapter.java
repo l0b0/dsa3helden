@@ -135,4 +135,7 @@ public abstract class CharacterAdapter implements CharacterObserver {
   
   public void opponentWeaponChanged(int weaponNr) {
   }
+  
+  public void moneyChanged() {
+  }
 }

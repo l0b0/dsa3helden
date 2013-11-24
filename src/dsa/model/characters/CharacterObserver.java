@@ -70,4 +70,6 @@ public interface CharacterObserver extends dsa.util.Observer {
   void fightingStateChanged();
   
   void opponentWeaponChanged(int weaponNr);
+  
+  void moneyChanged();
 }

@@ -165,4 +165,8 @@ public class OpponentSelectionDialog extends AbstractSelectionDialog
     }
     else return true;
   }
+
+  protected boolean showShopButton() {
+    return false;
+  }
 }

@@ -1,3 +1,15 @@
+Version 1.7.0
+-------------
+- Dialog, um Gegenstände zu kaufen
+- Button für 'alles speichern'
+- Bugfix: zuletzt benutzte Verzeichnisse wurden mit Synthetica-L&Fs 
+  nicht berücksichtigt
+- Bugfix: Kampfmodus "Waffe + Parade (separat)" funktionierte nicht mehr
+- Bei Klick auf gedrückten Layout-Button werden alle Fenster geschlossen
+- Layouts werden im selbst gewählten Verzeichnis gespeichert, aber 
+  spezifisch für einen verwendeten Rechner
+- Abenteuerliste im Erfahrungsfenster größenveränderlich
+
 Version 1.6.1
 -------------
 - Tooltips im Fenster Kampf (Spieler), die Änderungen 

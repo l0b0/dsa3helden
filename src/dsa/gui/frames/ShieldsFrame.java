@@ -43,6 +43,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
+import dsa.model.data.Thing.Currency;
 
 public final class ShieldsFrame extends AbstractDnDFrame implements CharactersObserver, ShieldsTable.BFChanger {
 
@@ -56,14 +57,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
                 "Fehler", JOptionPane.WARNING_MESSAGE);
         return;
       }
-      currentHero.addShield(item);
-      Shield shield = Shields.getInstance().getShield(item);
-      if (shield != null)
-        mTable.addShield(shield);
-      else
-        mTable.addUnknownShield(item);
-      removeButton.setEnabled(true);
-      calcSums();
+      itemAdded(item);
     }
 
     public void itemChanged(String item) {
@@ -72,6 +66,34 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
         mTable.addShield(Shields.getInstance().getShield(item));
         currentHero.fireWeightChanged();
       }
+    }
+
+    @Override
+    public void itemsBought(String item, int count, int finalPrice,
+        Currency currency) {
+      boolean alreadyThere = Arrays.asList(currentHero.getShields()).contains(item);
+      if (alreadyThere || count > 1) {
+        JOptionPane
+        .showMessageDialog(
+            ShieldsFrame.this,
+            "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+            "Fehler", JOptionPane.WARNING_MESSAGE);
+      }
+      if (!alreadyThere) {
+        itemAdded(item);
+        currentHero.pay(finalPrice / count, currency);
+      }
+    }
+    
+    private void itemAdded(String item) {
+      currentHero.addShield(item);
+      Shield shield = Shields.getInstance().getShield(item);
+      if (shield != null)
+        mTable.addShield(shield);
+      else
+        mTable.addUnknownShield(item);
+      removeButton.setEnabled(true);
+      calcSums();      
     }
   }
 

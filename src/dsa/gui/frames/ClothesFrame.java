@@ -41,6 +41,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
+import dsa.model.data.Thing.Currency;
 
 public final class ClothesFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
 
@@ -141,6 +142,10 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
                   "Fehler", JOptionPane.WARNING_MESSAGE);
           return;
         }
+        itemAdded(item);
+      }
+      
+      private void itemAdded(String item) {
         currentHero.addClothes(item);
         Thing thing = Things.getInstance().getThing(item);
         if (thing != null)
@@ -149,8 +154,26 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
           mTable.addUnknownThing(item);
         removeButton.setEnabled(true);
       }
+      
       public void itemChanged(String item) {
         Things.getInstance().thingChanged(item);
+      }
+
+      @Override
+      public void itemsBought(String item, int count, int finalPrice,
+          Currency currency) {
+        boolean alreadyThere = java.util.Arrays.asList(currentHero.getClothes()).contains(item);
+        if (alreadyThere || count > 1) {
+          JOptionPane
+          .showMessageDialog(
+              ClothesFrame.this,
+              "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+              "Fehler", JOptionPane.WARNING_MESSAGE);          
+        }
+        if (!alreadyThere) {
+          itemAdded(item);
+          currentHero.pay(finalPrice / count, currency);
+        }
       }
     });
     dialog.setVisible(true);

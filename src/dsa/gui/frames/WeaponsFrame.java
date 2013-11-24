@@ -45,6 +45,7 @@ import dsa.model.characters.Property;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.model.data.Thing.Currency;
 import dsa.util.Optional;
 
 public final class WeaponsFrame extends AbstractDnDFrame implements
@@ -204,11 +205,18 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     WeaponsSelectionDialog dialog = new WeaponsSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
-        weaponSelected(item);
+        weaponSelected(item, 1);
       }
 
       public void itemChanged(String item) {
         weaponChanged(item);
+      }
+
+      @Override
+      public void itemsBought(String item, int count, int finalPrice,
+          Currency currency) {
+        weaponSelected(item, count);
+        currentHero.pay(finalPrice, currency);
       }
     });
     dialog.setVisible(true);
@@ -286,7 +294,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     validate();
   }
 
-  private void weaponSelected(String item) {
+  private void weaponSelected(String item, int count) {
     Weapon weapon = Weapons.getInstance().getWeapon(item);
     if (weapon != null
         && Weapons.getCategoryName(weapon.getType()).equals("Schußwaffen")
@@ -298,19 +306,21 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
           JOptionPane.INFORMATION_MESSAGE);
       return;
     }
-    String name = currentHero.addWeapon(item);
-    if (weapon != null && currentHero.getWeaponCount(item) == 1) {
-      Optional<Integer> projectiles = new Optional<Integer>();
-      if (weapon.isProjectileWeapon()) {
-        projectiles.setValue(0);
+    for (int i = 0; i < count; ++i) {
+      String name = currentHero.addWeapon(item);
+      if (weapon != null && currentHero.getWeaponCount(item) == 1) {
+        Optional<Integer> projectiles = new Optional<Integer>();
+        if (weapon.isProjectileWeapon()) {
+          projectiles.setValue(0);
+        }
+        mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero
+            .getWeaponCount(name), projectiles);
       }
-      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero
-          .getWeaponCount(name), projectiles);
+      else if (weapon != null)
+        mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
+      else
+        mTable.addUnknownWeapon(item);
     }
-    else if (weapon != null)
-      mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
-    else
-      mTable.addUnknownWeapon(item);
     removeButton.setEnabled(true);
     calcSums();
   }

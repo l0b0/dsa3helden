@@ -43,6 +43,8 @@ public class Main {
   private Main() {}
 
   private static java.util.List<String> startFiles = null;
+  
+  private static boolean showStartMessage = false;
 
   public static void main(String[] args) {
     System.setErr(new ErrorReportStream());
@@ -74,6 +76,7 @@ public class Main {
         else {
           SubFrame.loadAllBounds(true);
         }
+        showStartMessage = true;
         prefs.putBoolean("initialized_" + Version.getCurrentVersionString(),
             true);
       }
@@ -142,6 +145,17 @@ public class Main {
             }
           }
         }
+      }
+      if (showStartMessage) {
+        javax.swing.JOptionPane.showMessageDialog(mainFrame, 
+            "Ich habe vor, 2008 ein neues Projekt zu beginnen.\nDies bedeutet"
+          + ", dass es für die Heldenverwaltung vorerst keine größeren neuen"
+          + "\nFeatures geben wird.\n\n"
+          + "Falls Du aber noch ein Feature dringend vermisst, schreibe mir bitte"
+          + " eine Mail.\nIch überlege dann noch einmal, ob ich es nicht doch noch"
+          + " hinzufüge.\n\n(Diese Meldung erscheint nur einmal.)", 
+            "Heldenverwaltung", 
+            javax.swing.JOptionPane.INFORMATION_MESSAGE);
       }
     }
     catch (Exception e) {

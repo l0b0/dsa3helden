@@ -23,6 +23,7 @@ import dsa.gui.lf.BGDialog;
 import dsa.gui.tables.OpponentWeaponTable;
 import dsa.model.DiceSpecification;
 import dsa.model.data.Opponent;
+import dsa.util.Optional;
 
 import java.awt.Dimension;
 import javax.swing.JPanel;
@@ -132,7 +133,8 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     for (int i = 0; i < weapons.size(); ++i) {
       DiceSpecification tp = o.getTP(i);
       int at = o.getAT(i).getValue();
-      int pa = o.getPA(i).getValue();
+      Optional<Integer> pa = o.getNrOfParades() > i ? 
+          new Optional<Integer>(o.getPA(i).getValue()) : new Optional<Integer>(null);
       weaponTable.addWeapon(weapons.get(i), tp, at, pa);
     }
     weaponTable.setFirstSelectedRow();
@@ -361,7 +363,7 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     DiceSpecification tp = DiceSpecification.parse("1W6");
     int at = 10;
     int pa = 10;
-    weaponTable.addWeapon(name, tp, at, pa);
+    weaponTable.addWeapon(name, tp, at, new Optional<Integer>(pa));
     removeWeaponButton.setEnabled(true);
     opponent.addWeapon(name, tp, at, pa);
   }

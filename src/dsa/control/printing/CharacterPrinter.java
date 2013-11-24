@@ -249,6 +249,8 @@ public class CharacterPrinter extends AbstractPrinter {
     printAnimals(character, table);
 
     printMagicAttributes(character, table, "");
+    
+    printAdventures(character, table);
     // ...
 
   }

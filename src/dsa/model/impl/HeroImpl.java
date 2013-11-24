@@ -45,6 +45,7 @@ import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.characters.LEAEIncreaseException;
 import dsa.model.characters.Property;
+import dsa.model.data.Adventure;
 import dsa.model.data.Animal;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
@@ -134,6 +135,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     skin = "";
     farRangedFightParams = new FarRangedFightParams();
     checkForMirakel();
+    adventures = new ArrayList<Adventure>();
   }
 
   int spellToTalentMoves;
@@ -240,6 +242,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.loadedNewerVersion = false;
     hero.targets = new ArrayList<String>(targets);
     hero.farRangedFightParams = (FarRangedFightParams) farRangedFightParams.clone();
+    hero.adventures = new ArrayList<Adventure>(adventures);
     return hero;
   }
 
@@ -1074,7 +1077,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static final int FILE_VERSION = 43;
+  private static final int FILE_VERSION = 44;
 
   /*
    * (non-Javadoc)
@@ -1259,6 +1262,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println(farRangedFightParams.writeToString());
       // version 43
       file.println(magicDilletant ? "1" : "0");
+      // version 44
+      printAdventures(file);
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1378,6 +1383,15 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       Armour armour = Armours.getInstance().getArmour(armourName);
       file.println(armourName + ";" + armour.getRS() + ";" + armour.getBE()
           + ";" + armour.getWeight() + ";" + armour.getWorth());
+    }
+  }
+  
+  private void printAdventures(PrintWriter file) throws IOException {
+    file.println(adventures.size());
+    for (Adventure adventure : adventures) {
+      file.println(adventure.getName());
+      file.println(adventure.getAp());
+      adventure.setChanged(false);
     }
   }
   
@@ -1778,6 +1792,10 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       magicDilletant = "1".equals(line);
     }
     else magicDilletant = false;
+    adventures.clear();
+    if (version > 43) {
+      lineNr = readAdventures(file, lineNr);
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -2063,6 +2081,24 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       Animal animal = new Animal("");
       lineNr = animal.readFromFile(file, lineNr);
       animals.add(animal);
+    }
+    return lineNr;
+  }
+  
+  private int readAdventures(BufferedReader file, int lineNr) throws IOException {
+    String line = file.readLine();
+    lineNr++;
+    testEmpty(line);
+    int nrOfAdventures = parseInt(line, lineNr);
+    for (int i = 0; i < nrOfAdventures; ++i) {
+      String name = file.readLine();
+      lineNr++;
+      testEmpty(line);
+      line = file.readLine();
+      lineNr++;
+      testEmpty(line);
+      int ap = parseInt(line, lineNr);
+      adventures.add(new Adventure(i, name, ap));
     }
     return lineNr;
   }
@@ -2538,6 +2574,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       if (animals.get(i).isChanged()) return true;
     }
     if (farRangedFightParams.isChanged()) return true;
+    for (Adventure adventure : adventures) {
+      if (adventure.isChanged()) return true;
+    }
     return false;
   }
 
@@ -4184,4 +4223,23 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       changed = true;
     }
   }
+  
+  private List<Adventure> adventures;
+
+  public void addAdventure(Adventure adventure) {
+    adventures.add(adventure);
+    changed = true;
+  }
+
+  public Adventure[] getAdventures() {
+    Adventure[] result = new Adventure[adventures.size()];
+    adventures.toArray(result);
+    return result;
+  }
+
+  public void removeAdventure(int index) {
+    adventures.remove(index);
+    changed = true;
+  }
+  
 }

@@ -28,6 +28,7 @@ import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Printable;
 import dsa.model.characters.Property;
+import dsa.model.data.Adventure;
 import dsa.model.data.Talents;
 import dsa.model.talents.Talent;
 import dsa.util.LookupTable;
@@ -264,5 +265,22 @@ abstract class AbstractPrinter implements Printer {
     }
   }
 
+  protected static void printAdventures(Hero character, LookupTable table) {
+    if (character != null) {
+      Adventure[] adventures = character.getAdventures();
+      for (Adventure adventure : adventures) {
+        table.addItem("Abenteuer", adventure.getName(), true);
+        table.addItem("AbtAP", adventure.getAp(), true);
+      }
+      if (adventures.length == 0) {
+        table.addItem("Abenteuer", "");
+        table.addItem("AbtAP", "");        
+      }
+    }
+    else {
+      table.addItem("Abenteuer", "");
+      table.addItem("AbtAP", "");
+    }
+  }
 
 }

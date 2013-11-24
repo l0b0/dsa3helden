@@ -1,3 +1,9 @@
+Version 1.5.3
+-------------
+- Titel und AP bereits erlebter Abenteuer werden verwaltet
+- Bugfix im Zusammenhang mit selbst erstellten Gegnern, die
+  weniger Paraden als Waffen haben
+
 Version 1.5.2
 -------------
 - AE-Kosten von Zaubern werden verwaltet
@@ -247,7 +253,7 @@ Version 0.7.0
 - Regelupdates für neue Hausregeln
 - Verwaltung von Schilden / Parierwaffen
 - Layout der Buttons im Hauptfenster leicht geändert
-- Bugfix: wenn kein Fenster offen war, wurde trotzem nach dem Start
+- Bugfix: wenn kein Fenster offen war, wurde trotzdem nach dem Start
   eines geöffnet
 - Bugfix: wenn kein Fenster offen war, wurde u.U. die Sicherheits-
   abfrage vor dem Beenden übergangen

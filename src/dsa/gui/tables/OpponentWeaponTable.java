@@ -36,6 +36,7 @@ import dsa.gui.util.table.SpinnerCellEditor;
 import dsa.gui.util.table.TableSorter;
 import dsa.gui.util.table.TextFieldCellEditor;
 import dsa.model.DiceSpecification;
+import dsa.util.Optional;
 
 public final class OpponentWeaponTable extends AbstractTable 
     implements SpinnerCellEditor.EditorClient, TextFieldCellEditor.EditorClient {
@@ -63,9 +64,14 @@ public final class OpponentWeaponTable extends AbstractTable
     return 3;
   }
   
+  private static Optional<Integer> NULL_INT = new Optional<Integer>();
+  
   private class MyTableModel extends DefaultTableModel {
     public Class<?> getColumnClass(int columnIndex) {
-      if (columnIndex != getNameColumn() && columnIndex != getTPColumn()) {
+      if (columnIndex == getPAColumn()) {
+        return NULL_INT.getClass();
+      }
+      else if (columnIndex != getNameColumn() && columnIndex != getTPColumn()) {
         return Integer.class;
       }
       else if (columnIndex == getTPColumn()) {
@@ -75,6 +81,9 @@ public final class OpponentWeaponTable extends AbstractTable
     }
 
     public boolean isCellEditable(int row, int column) {
+      if (getColumnClass(column) == NULL_INT.getClass()) {
+        return ((Optional)getValueAt(row, column)).hasValue();
+      }
       return true;
     }
   }
@@ -200,7 +209,7 @@ public final class OpponentWeaponTable extends AbstractTable
     }
   }
   
-  public void addWeapon(String name, DiceSpecification tp, int at, int pa) {
+  public void addWeapon(String name, DiceSpecification tp, int at, Optional<Integer> pa) {
     Object[] rowData = new Object[4];
     rowData[getNameColumn()] = name;
     rowData[getTPColumn()] = tp;

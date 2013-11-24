@@ -199,7 +199,7 @@ public class Opponent extends AbstractObservable<Opponent.OpponentObserver> impl
     String paValues = outerTokens.length > 11 ? outerTokens[i++] : "";
     int neededValues = nrOfAttacks < weaponCount ? weaponCount : nrOfParades;
     innerTokens = new StringTokenizer(paValues, "/");
-    if (innerTokens.countTokens() != neededValues) {
+    if (innerTokens.countTokens() < neededValues) {
       throw new ParseException(inputLine, 11);
     }
     pas = new ArrayList<Integer>();

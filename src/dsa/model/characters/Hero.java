@@ -25,6 +25,7 @@ import java.util.List;
 
 import dsa.model.Date;
 import dsa.model.Fighter;
+import dsa.model.data.Adventure;
 import dsa.model.data.Animal;
 import dsa.model.data.ExtraThingData;
 
@@ -440,4 +441,10 @@ public interface Hero extends Printable, Fighter {
   boolean isMagicDilletant();
 
   void setIsMagicDilettant(boolean dt);
+  
+  void addAdventure(Adventure adventure);
+  
+  void removeAdventure(int index);
+  
+  Adventure[] getAdventures();
 }

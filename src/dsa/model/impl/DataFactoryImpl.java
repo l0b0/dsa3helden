@@ -143,8 +143,8 @@ public class DataFactoryImpl extends DataFactory {
   }
   
   private static void addDiffThing(HeroImpl diff, String thing, int type) {
-    if (type == 0) diff.addThing(thing);
-    else if (type == 1) diff.addThingToWarehouse(thing);
+    if (type == 0) diff.addThing(thing, "");
+    else if (type == 1) diff.addThing(thing, "Lager");
     else if (type == 2) diff.addClothes(thing);
     else if (type == 3) diff.addArmour(thing);
     else if (type == 4) diff.addShield(thing);
@@ -158,7 +158,7 @@ public class DataFactoryImpl extends DataFactory {
     String[] st = new String[1];
     
     if (type == 0) st = second.getThings();
-    else if (type == 1) st = second.getThingsInWarehouse();
+    else if (type == 1) st = second.getThingsInContainer("Lager");
     else if (type == 2) st = second.getClothes();
     else if (type == 3) st = second.getArmours();
     else if (type == 4) st = second.getShields();
@@ -172,7 +172,7 @@ public class DataFactoryImpl extends DataFactory {
     String[] ft = new String[1];
     
     if (type == 0) ft = first.getThings();
-    else if (type == 1) ft = first.getThingsInWarehouse();
+    else if (type == 1) ft = first.getThingsInContainer("Lager");
     else if (type == 2) ft = first.getClothes();
     else if (type == 3) ft = first.getArmours();
     else if (type == 4) ft = first.getShields();
@@ -184,8 +184,8 @@ public class DataFactoryImpl extends DataFactory {
     for (String thing : secondThings) {
       if (!firstThings.contains(thing)) {
         
-        if (type == 0) diff.removeThing(thing);
-        else if (type == 1) diff.removeThingFromWarehouse(thing);
+        if (type == 0) diff.removeThing(thing, false);
+        else if (type == 1) diff.removeThing(thing, true);
         else if (type == 2) diff.removeClothes(thing);
         else if (type == 3) diff.removeArmour(thing);
         else if (type == 4) diff.removeShield(thing);

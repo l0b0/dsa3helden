@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import dsa.gui.dialogs.ItemProviders.ShieldsProvider;
 import dsa.gui.tables.ShieldsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
@@ -36,24 +37,15 @@ import dsa.model.data.Shields;
 public final class ShieldSelectionDialog extends AbstractSelectionDialog {
 
   public ShieldSelectionDialog(javax.swing.JFrame owner) {
-    super(owner, "Schild / Parierwaffe hinzufügen", new ShieldsTable(),
+    super(owner, "Schild / Parierwaffe hinzufügen", new ShieldsProvider(),
         "Parade");
     initialize();
     fillTable();
   }
-
-  protected void fillTable() {
-    Shields shields = Shields.getInstance();
-    ShieldsTable table = (ShieldsTable) mTable;
-    listen = false;
-    for (Shield shield : shields.getAllShields()) {
-      if (isDisplayed(shield.getName())) table.addShield(shield);
-    }
-    listen = true;
-    updateDeleteButton();
+  
+  protected boolean showSingularBox() {
+    return true;
   }
-
-  boolean listen = true;
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
@@ -82,9 +74,11 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
         public void actionPerformed(ActionEvent e) {
           ShieldDialog dialog = new ShieldDialog(ShieldSelectionDialog.this);
           dialog.setVisible(true);
-          if (dialog.getCreatedShield() != null) {
-            Shields.getInstance().addShield(dialog.getCreatedShield());
-            ((ShieldsTable) mTable).addShield(dialog.getCreatedShield());
+          Shield shield = dialog.getCreatedShield(); 
+          if (shield != null) {
+            Shields.getInstance().addShield(shield);
+            if (!shield.isSingular() || showSingularItems())
+              ((ShieldsTable) mTable).addShield(shield);
           }
         }
       });
@@ -105,7 +99,8 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
           dialog.setVisible(true);
           if (dialog.getCreatedShield() != null) {
             ((ShieldsTable) mTable).removeShield(shield.getName());
-            ((ShieldsTable) mTable).addShield(shield);
+            if (!shield.isSingular() || showSingularItems())
+              ((ShieldsTable) mTable).addShield(shield);
             if (getCallback() != null) {
               getCallback().itemChanged(shield.getName());
             }
@@ -146,19 +141,11 @@ public final class ShieldSelectionDialog extends AbstractSelectionDialog {
     Shields.getInstance().removeShield(shield);
   }
 
-  private void updateDeleteButton() {
+  protected void updateDeleteButton() {
     String shield = mTable.getSelectedItem();
     boolean enabled = shield != null && shield.length() > 0
                     && Shields.getInstance().getShield(shield).isUserDefined();
     getDeleteButton().setEnabled(enabled);
     getEditButton().setEnabled(enabled);
-  }
-
-  protected boolean showShopButton() {
-    return true;
-  }
-  
-  protected int getDefaultPrice(String item) {
-    return Shields.getInstance().getShield(item).getWorth();
   }
 }

@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import dsa.gui.dialogs.ItemProviders.ArmoursProvider;
 import dsa.gui.tables.ArmoursTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
@@ -36,23 +37,14 @@ import dsa.model.data.Armours;
 public final class ArmourSelectionDialog extends AbstractSelectionDialog {
 
   public ArmourSelectionDialog(javax.swing.JFrame owner) {
-    super(owner, "Rüstung hinzufügen", new ArmoursTable(), "Rüstungen");
+    super(owner, "Rüstung hinzufügen", new ArmoursProvider(), "Rüstungen");
     initialize();
     fillTable();
   }
-
-  protected void fillTable() {
-    Armours armours = Armours.getInstance();
-    ArmoursTable table = (ArmoursTable) mTable;
-    listen = false;
-    for (Armour armour : armours.getAllArmours()) {
-      if (isDisplayed(armour.getName())) table.addArmour(armour);
-    }
-    listen = true;
-    updateDeleteButton();
+  
+  protected boolean showSingularBox() {
+    return true;
   }
-
-  boolean listen = true;
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
@@ -81,9 +73,11 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
         public void actionPerformed(ActionEvent e) {
           ArmourDialog dialog = new ArmourDialog(ArmourSelectionDialog.this);
           dialog.setVisible(true);
-          if (dialog.getArmour() != null) {
-            Armours.getInstance().addArmour(dialog.getArmour());
-            ((ArmoursTable) mTable).addArmour(dialog.getArmour());
+          Armour armour = dialog.getArmour();
+          if (armour != null) {
+            Armours.getInstance().addArmour(armour);
+            if (!armour.isSingular() || showSingularItems())
+              ((ArmoursTable) mTable).addArmour(armour);
           }
         }
       });
@@ -104,7 +98,8 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
           dialog.setVisible(true);
           if (dialog.getArmour() != null) {
             ((ArmoursTable) mTable).removeArmour(armour.getName());
-            ((ArmoursTable) mTable).addArmour(armour);
+            if (!armour.isSingular() || showSingularItems())
+              ((ArmoursTable) mTable).addArmour(armour);
             if (getCallback() != null) {
               getCallback().itemChanged(armour.getName());
             }
@@ -143,21 +138,12 @@ public final class ArmourSelectionDialog extends AbstractSelectionDialog {
     Armours.getInstance().removeArmour(armour);
   }
 
-  private void updateDeleteButton() {
+  protected void updateDeleteButton() {
     String armour = mTable.getSelectedItem();
     boolean enabled = armour != null && armour.length() > 0
                     && Armours.getInstance().getArmour(armour).isUserDefined();
     getDeleteButton().setEnabled(enabled);
     getEditButton().setEnabled(enabled);
-  }
-
-  @Override
-  protected boolean showShopButton() {
-    return true;
-  }
-  
-  protected int getDefaultPrice(String item) {
-    return Armours.getInstance().getArmour(item).getWorth();
   }
 
 }

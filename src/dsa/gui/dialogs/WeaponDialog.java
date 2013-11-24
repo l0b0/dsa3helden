@@ -117,6 +117,8 @@ public final class WeaponDialog extends BGDialog {
 
   private JTextField wvField = null;
 
+  private JCheckBox singularBox = null;
+
   public Weapon getCreatedWeapon() {
     return weapon;
   }
@@ -142,6 +144,7 @@ public final class WeaponDialog extends BGDialog {
     bfSpinner.setValue(weapon.getBF());
     categoryCombo.setSelectedItem(Weapons.getCategoryName(weapon.getType()));
     constDamageSpinner.setValue(weapon.getConstDamage());
+    singularBox.setSelected(weapon.isSingular());
     if (weapon.isFarRangedWeapon()) {
       distancesField.setEnabled(true);
       String distances = "";
@@ -218,7 +221,7 @@ public final class WeaponDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new Dimension(339, 419));
+    this.setSize(new Dimension(339, 448));
     this.setContentPane(getJContentPane());
     this.setTitle("Waffe hinzufügen");
     this.getRootPane().setDefaultButton(getOkButton());
@@ -302,7 +305,7 @@ public final class WeaponDialog extends BGDialog {
       jLabel.setText("Name:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
-      jPanel.setBounds(new Rectangle(8, 8, 309, 343));
+      jPanel.setBounds(new Rectangle(8, 8, 309, 373));
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
       jPanel.add(jLabel, null);
@@ -338,6 +341,7 @@ public final class WeaponDialog extends BGDialog {
       jPanel.add(jLabel14, null);
       jPanel.add(jLabel15, null);
       jPanel.add(getWvField(), null);
+      jPanel.add(getSingularBox(), null);
     }
     return jPanel;
   }
@@ -490,7 +494,7 @@ public final class WeaponDialog extends BGDialog {
   private JButton getOkButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new Rectangle(50, 360, 101, 21));
+      okButton.setBounds(new Rectangle(50, 390, 101, 21));
       okButton.setText("OK");
       okButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -614,10 +618,11 @@ public final class WeaponDialog extends BGDialog {
       ptw = new Optional<Integer>(((Number)ptWorthSpinner.getValue()).intValue());
       ptm = new Optional<Integer>(((Number)ptWeightSpinner.getValue()).intValue());
     }
+    boolean singular = singularBox.isSelected();
     if (createWeapon) {
       weapon = new Weapon(w6damage, constDamage, category, name, bf, kk, weight,
           true, twoHanded, projectile, new Optional<Integer>(worth),
-          wv, ptt, ptw, ptm);
+          wv, ptt, ptw, ptm, singular);
     }
     else {
       weapon.setW6damage(w6damage);
@@ -632,6 +637,7 @@ public final class WeaponDialog extends BGDialog {
       weapon.setProjectileType(ptt);
       weapon.setProjectileWeight(ptm);
       weapon.setProjectileWorth(ptw);
+      weapon.setIsSingular(singular);
       if (!projectile) weapon.setWV(wv.getAT(), wv.getPA());
     }
     if (projectile) {
@@ -649,7 +655,7 @@ public final class WeaponDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new Rectangle(180, 360, 101, 21));
+      cancelButton.setBounds(new Rectangle(180, 390, 101, 21));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -791,6 +797,20 @@ public final class WeaponDialog extends BGDialog {
       wvField.setBounds(new Rectangle(210, 190, 81, 21));
     }
     return wvField;
+  }
+
+  /**
+   * This method initializes singularBox	
+   * 	
+   * @return javax.swing.JCheckBox	
+   */
+  private JCheckBox getSingularBox() {
+    if (singularBox == null) {
+      singularBox = new JCheckBox();
+      singularBox.setBounds(new Rectangle(10, 340, 131, 21));
+      singularBox.setText("Einzelstück");
+    }
+    return singularBox;
   }
 
 } //  @jve:decl-index=0:visual-constraint="10,10"

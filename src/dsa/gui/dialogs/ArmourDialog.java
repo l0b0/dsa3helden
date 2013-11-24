@@ -32,6 +32,9 @@ import javax.swing.JComboBox;
 import javax.swing.JButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import javax.swing.JCheckBox;
 
 public class ArmourDialog extends BGDialog {
 
@@ -69,6 +72,8 @@ public class ArmourDialog extends BGDialog {
 
   private JComboBox worthCombo = null;
 
+  private JCheckBox singularBox = null;
+
   /**
    * This method initializes
    * 
@@ -104,6 +109,7 @@ public class ArmourDialog extends BGDialog {
       worth /= 10;
     }
     worthSpinner.setValue(worth);
+    singularBox.setSelected(armour.isSingular());
     this.armour = armour;
   }
   
@@ -143,14 +149,16 @@ public class ArmourDialog extends BGDialog {
     if (worthCombo.getSelectedIndex() == 1) {
       worth *= 10;
     }
+    boolean singular = singularBox.isSelected();
     if (newArmour) {
-      armour = new Armour(name, rs, be, weight, worth);
+      armour = new Armour(name, rs, be, weight, worth, singular);
     }
     else {
       armour.setBE(be);
       armour.setRS(rs);
       armour.setWorth(worth);
       armour.setWeight(weight);
+      armour.setIsSingular(singular);
     }
     return true;
   }
@@ -160,7 +168,7 @@ public class ArmourDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new java.awt.Dimension(335,215));
+    this.setSize(new Dimension(335, 240));
     this.setContentPane(getJContentPane());
     this.setTitle("Rüstung hinzufügen");
     this.getRootPane().setDefaultButton(getOKButton());
@@ -207,7 +215,7 @@ public class ArmourDialog extends BGDialog {
       jLabel.setText("Name:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
-      jPanel.setBounds(new java.awt.Rectangle(10,10,301,131));
+      jPanel.setBounds(new Rectangle(10, 10, 301, 161));
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
       jPanel.add(jLabel, null);
@@ -222,6 +230,7 @@ public class ArmourDialog extends BGDialog {
       jPanel.add(jLabel4, null);
       jPanel.add(getWorthSpinner(), null);
       jPanel.add(getWorthCombo(), null);
+      jPanel.add(getSingularBox(), null);
     }
     return jPanel;
   }
@@ -305,7 +314,7 @@ public class ArmourDialog extends BGDialog {
   private JButton getOKButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new java.awt.Rectangle(50,150,101,21));
+      okButton.setBounds(new Rectangle(50, 180, 101, 21));
       okButton.setText("OK");
       okButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -326,7 +335,7 @@ public class ArmourDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new java.awt.Rectangle(170,150,101,21));
+      cancelButton.setBounds(new Rectangle(170, 180, 101, 21));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -346,7 +355,7 @@ public class ArmourDialog extends BGDialog {
   private JSpinner getWorthSpinner() {
     if (worthSpinner == null) {
       worthSpinner = new JSpinner();
-      worthSpinner.setBounds(new java.awt.Rectangle(91,102,50,19));
+      worthSpinner.setBounds(new Rectangle(90, 100, 51, 21));
       worthSpinner.setModel(new SpinnerNumberModel(100, 0, 5000, 1));
     }
     return worthSpinner;
@@ -365,6 +374,20 @@ public class ArmourDialog extends BGDialog {
       worthCombo.addItem("Dukaten");
     }
     return worthCombo;
+  }
+
+  /**
+   * This method initializes singularBox	
+   * 	
+   * @return javax.swing.JCheckBox	
+   */
+  private JCheckBox getSingularBox() {
+    if (singularBox == null) {
+      singularBox = new JCheckBox();
+      singularBox.setBounds(new Rectangle(10, 130, 131, 21));
+      singularBox.setText("Einzelstück");
+    }
+    return singularBox;
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

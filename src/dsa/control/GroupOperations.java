@@ -24,6 +24,7 @@ import javax.swing.filechooser.FileFilter;
 import dsa.gui.dialogs.HeroComparisonDialog;
 import dsa.gui.dialogs.HeroWizard;
 import dsa.gui.dialogs.ThingsImportDialog;
+import dsa.gui.dialogs.TradezoneDialog;
 import dsa.gui.dialogs.YearSelectionDialog;
 import dsa.gui.frames.FrameManagement;
 import dsa.gui.frames.PhysFrame;
@@ -761,6 +762,15 @@ public final class GroupOperations {
     SubFrame baseDataFrame = FrameManagement.getInstance().getFrame("Grunddaten");
     if (baseDataFrame != null) {
       ((PhysFrame)baseDataFrame).groupDateChanged();
+    }
+  }
+  
+  public static void selectGroupRegion(JFrame parent) {
+    TradezoneDialog dialog = new TradezoneDialog(parent);
+    dialog.setVisible(true);
+    String newZone = dialog.getSelectedZone();
+    if (newZone != null) {
+      Group.getInstance().setTradezone(newZone);
     }
   }
 

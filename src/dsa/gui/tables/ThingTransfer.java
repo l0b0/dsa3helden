@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import dsa.model.data.ExtraThingData;
+import dsa.model.data.IExtraThingData;
 
 public class ThingTransfer implements Transferable {
 
@@ -35,7 +35,7 @@ public class ThingTransfer implements Transferable {
     Thing, Weapon, Armour, Shield
   }
 
-  public ThingTransfer(Flavors flavor, String value, ExtraThingData extraData) {
+  public ThingTransfer(Flavors flavor, String value, IExtraThingData extraData) {
     this.flavor = flavor;
     this.value = value;
     this.extraData = extraData;
@@ -45,7 +45,7 @@ public class ThingTransfer implements Transferable {
 
   private final String value;
   
-  private final ExtraThingData extraData;
+  private final IExtraThingData extraData;
 
   public static class ThingFlavor extends DataFlavor {
     public ThingFlavor(String mimeType, Flavors flavor)

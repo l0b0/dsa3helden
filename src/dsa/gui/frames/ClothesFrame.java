@@ -24,13 +24,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import dsa.gui.dialogs.ShopDialog;
 import dsa.gui.dialogs.ThingSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.dialogs.ItemProviders.ThingsProvider;
 import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
@@ -39,9 +42,9 @@ import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 import dsa.model.data.ExtraThingData;
+import dsa.model.data.IExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
-import dsa.model.data.Thing.Currency;
 
 public final class ClothesFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
 
@@ -94,6 +97,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
     rightPanel.setPreferredSize(new java.awt.Dimension(70, 50));
     rightPanel.add(getAddButton(), null);
     rightPanel.add(getRemoveButton(), null);
+    rightPanel.add(getBuyButton(), null);
     panel.add(rightPanel, BorderLayout.EAST);
 
     this.setContentPane(panel);
@@ -114,6 +118,8 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   JButton addButton;
 
   JButton removeButton;
+  
+  JButton buyButton;
 
   JButton getAddButton() {
     if (addButton == null) {
@@ -142,53 +148,83 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
                   "Fehler", JOptionPane.WARNING_MESSAGE);
           return;
         }
-        itemAdded(item);
-      }
-      
-      private void itemAdded(String item) {
-        currentHero.addClothes(item);
-        Thing thing = Things.getInstance().getThing(item);
-        if (thing != null)
-          mTable.addThing(thing);
-        else
-          mTable.addUnknownThing(item);
-        removeButton.setEnabled(true);
+        clothesAdded(item);
       }
       
       public void itemChanged(String item) {
         Things.getInstance().thingChanged(item);
       }
-
-      @Override
-      public void itemsBought(String item, int count, int finalPrice,
-          Currency currency) {
-        boolean alreadyThere = java.util.Arrays.asList(currentHero.getClothes()).contains(item);
-        if (alreadyThere || count > 1) {
-          JOptionPane
-          .showMessageDialog(
-              ClothesFrame.this,
-              "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-              "Fehler", JOptionPane.WARNING_MESSAGE);          
-        }
-        if (!alreadyThere) {
-          itemAdded(item);
-          currentHero.pay(finalPrice / count, currency);
-        }
-      }
     });
     dialog.setVisible(true);
   }
+  
+  protected void clothesAdded(String item) {
+    currentHero.addClothes(item);
+    Thing thing = Things.getInstance().getThing(item);
+    if (thing != null)
+      mTable.addThing(thing);
+    else
+      mTable.addUnknownThing(item);
+    removeButton.setEnabled(true);    
+  }
+  
+  protected boolean clothesBought(String item, int count) {
+    boolean alreadyThere = java.util.Arrays.asList(currentHero.getClothes()).contains(item);
+    if (alreadyThere || count > 1) {
+      JOptionPane
+      .showMessageDialog(
+          ClothesFrame.this,
+          "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+          "Fehler", JOptionPane.WARNING_MESSAGE);       
+      return false;
+    }
+    return true;
+  }
 
+  JButton getBuyButton() {
+    if (buyButton == null) {
+      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton.setBounds(5, 35, 60, 25);
+      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          buyItem();
+        }
+      });
+    }
+    return buyButton;
+  }
+  
+  private void buyItem() {
+    ShopDialog dialog = new ShopDialog(this, new ThingsProvider(false));
+    dialog.setVisible(true);
+    if (dialog.wasClosedByOK()) {
+      Map<String, Integer> cart = dialog.getBoughtItems();
+      boolean allowed = true;
+      for (String item : cart.keySet()) {
+        if (!clothesBought(item, cart.get(item))) {
+          allowed = false;
+          break;
+        }
+      }
+      if (allowed) {
+        for (String item : cart.keySet()) {
+          clothesAdded(item);
+        }
+        currentHero.pay(dialog.getFinalPrice(), dialog.getCurrency());
+      }
+    }
+  }
   JButton getRemoveButton() {
     if (removeButton == null) {
       removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
-      removeButton.setBounds(5, 35, 60, 25);
+      removeButton.setBounds(5, 65, 60, 25);
       removeButton.setToolTipText("Kleidung entfernen");
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
-          removeItem(name);
+          removeItem(name, false);
         }
       });
     }
@@ -213,10 +249,12 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
       }
       removeButton.setEnabled(isChangeAllowed() && currentHero.getClothes().length > 0);
       addButton.setEnabled(isChangeAllowed());
+      buyButton.setEnabled(isChangeAllowed());
     }
     else {
       addButton.setEnabled(false);
       removeButton.setEnabled(false);
+      buyButton.setEnabled(false);
     }
     mTable.setFirstSelectedRow();
   }
@@ -246,7 +284,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   @Override
-  protected boolean addItem(String item, ExtraThingData extraData) {
+  protected boolean addItem(String item, IExtraThingData extraData) {
     if (extraData.getType() != ExtraThingData.Type.Thing) {
       return false;
     }
@@ -272,14 +310,14 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   @Override
-  protected void removeItem(String item) {
+  protected void removeItem(String item, boolean alwaysWithContents) {
     currentHero.removeClothes(item);
     mTable.removeSelectedThing();
     removeButton.setEnabled(currentHero.getClothes().length > 0);
   }
 
   @Override
-  protected ExtraThingData getExtraDnDData(String item) {
+  protected IExtraThingData getExtraDnDData(String item) {
     return new ExtraThingData(ExtraThingData.Type.Thing);
   }
 

@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
-public class ExtraThingData {
-  
-  public static enum Type { Thing, Weapon, Armour, Shield };
+public final class ExtraThingData extends IExtraThingData {
   
   public static class PropertyException extends Exception {
     public PropertyException(String message) {
@@ -22,6 +20,12 @@ public class ExtraThingData {
   public ExtraThingData(Type type) {
     this.type = type;
     this.properties = new HashMap<String, String>();
+  }
+  
+  public ExtraThingData(Type type, BufferedReader in, int lineNr, int version) throws IOException {
+    this.type = type;
+    this.properties = new HashMap<String, String>();
+    read(in, lineNr, version);
   }
   
   public Type getType() {
@@ -66,13 +70,9 @@ public class ExtraThingData {
     properties = new HashMap<String, String>();
   }
   
-  public int read(BufferedReader in, int lineNr) throws IOException {
-    String line = in.readLine(); testEmpty(line); ++lineNr;
-    int version = parseInt(line, lineNr);
+  private void read(BufferedReader in, int lineNr, int version) throws IOException {
+    String line = null;
     if (version > 0) {
-      line = in.readLine(); testEmpty(line); ++lineNr;
-      int typeIndex = parseInt(line, lineNr);
-      type = Type.values()[typeIndex];
       line = in.readLine(); testEmpty(line); ++lineNr;
       int size = parseInt(line, lineNr);
       for (int i = 0; i < size; ++i) {
@@ -85,24 +85,8 @@ public class ExtraThingData {
       line = in.readLine(); testEmpty(line); ++lineNr;
     }
     while (line != null && !line.trim().equals("--End of extra thing data--"));
-    return lineNr;
   }
-  
-  private static void testEmpty(String line) throws IOException {
-    if (line == null) {
-      throw new IOException("Premature end of data");
-    }
-  }
-  
-  private static int parseInt(String line, int lineNr) throws IOException {
-    try {
-      return Integer.parseInt(line);
-    }
-    catch (NumberFormatException e) {
-      throw new IOException("Not an integer: " + line + " (at line " + lineNr + ")");
-    }
-  }
-  
+
   private Type type;
   
   private HashMap<String, String> properties;

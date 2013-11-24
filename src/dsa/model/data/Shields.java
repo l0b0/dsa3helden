@@ -104,7 +104,7 @@ public class Shields {
       lineNr++;
       while (line != null) {
         StringTokenizer t = new StringTokenizer(line, ";");
-        if (t.countTokens() != 9)
+        if (t.countTokens() < 9)
           throw new IOException("Zeile" + lineNr + ": Falsches Format!");
         String name = t.nextToken();
         int paMod = parseInt(t.nextToken(), lineNr);
@@ -115,8 +115,11 @@ public class Shields {
         int bf = parseInt(t.nextToken(), lineNr);
         int weight = parseInt(t.nextToken(), lineNr);
         int worth = parseInt(t.nextToken(), lineNr);
+        boolean singular = false;
+        if (t.hasMoreTokens())
+          singular = parseInt(t.nextToken(), lineNr) == 1;
         Shield shield = new Shield(name, atMod, paMod, paMod2, beMod, fkMod,
-            bf, weight, worth, userDefined);
+            bf, weight, worth, userDefined, singular);
         shields.put(name, shield);
         names.add(name);
         line = in.readLine();
@@ -139,7 +142,8 @@ public class Shields {
         if (s.isUserDefined()) {
           String line = s.getName() + ";" + s.getPaMod() + ";" + s.getPaMod2()
               + ";" + s.getAtMod() + ";" + s.getBeMod() + ";" + s.getFkMod()
-              + ";" + s.getBF() + ";" + s.getWeight() + ";" + s.getWorth();
+              + ";" + s.getBF() + ";" + s.getWeight() + ";" + s.getWorth()
+              + ";" + s.isSingular();
           out.println(line);
         }
       }

@@ -17,11 +17,26 @@
  along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package dsa.util;
+package dsa.gui.dialogs.ItemProviders;
 
-public interface Observable<T extends Observer> {
-  
-  void addObserver(T observer);
-  void removeObserver(T observer);
+import dsa.gui.tables.OpponentTable;
+import dsa.model.data.Opponents;
+
+public class OpponentProvider extends ItemProvider {
+
+  public OpponentProvider() {
+    super(new OpponentTable(false));
+  }
+  /* (non-Javadoc)
+   * @see dsa.gui.dialogs.ItemProviders.ItemProvider#fillTable(boolean)
+   */
+  @Override
+  public void fillTable(boolean showSingularItems) {
+    Opponents opponents = Opponents.getOpponentsDB();
+    OpponentTable table = (OpponentTable) getTable();
+    for (String opponent : opponents.getOpponentNames()) {
+      if (isDisplayed(opponent)) table.addOpponent(opponents.getOpponent(opponent));
+    }
+  }
 
 }

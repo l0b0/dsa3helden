@@ -673,8 +673,6 @@ public final class ControlFrame extends SubFrame
           fillAnimalsList(Group.getInstance().getActiveHero(), false);
         }
 
-        public void thingRemoved(String thing) {
-        }
       };
       animal.addListener(l);
       animalListeners.put(animal.getName(), l);
@@ -1094,6 +1092,14 @@ public final class ControlFrame extends SubFrame
   }
 
   private javax.swing.JLabel sumLabel, sumLabel2, sumLabel3;
+  
+  private static String getTopLevelContainer(Hero hero, String thing) {
+    String container = thing;
+    while (hero.getThingCount(container) > 0) {
+      container = hero.getThingContainer(container);
+    }
+    return container;
+  }
 
   private void calcSums() {
     long weight = 0;
@@ -1106,9 +1112,11 @@ public final class ControlFrame extends SubFrame
     }
     Things things = Things.getInstance();
     for (String name : currentHero.getThings()) {
-      Thing thing = things.getThing(name);
-      if (thing != null) {
-        weight += (long) thing.getWeight() * currentHero.getThingCount(name);
+      if ("Ausrüstung".equals(getTopLevelContainer(currentHero, name))) {
+        Thing thing = things.getThing(name);
+        if (thing != null) {
+          weight += (long) thing.getWeight() * currentHero.getThingCount(name);
+        }
       }
     }
     float weightStones = weight / 40.0f;
@@ -1358,7 +1366,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new ThingsFrame();
+            frame = new ThingsFrame(Group.getInstance().getActiveHero(), "Ausrüstung");
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.thingsButton.setSelected(false);
@@ -1381,7 +1389,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new WarehouseFrame();
+            frame = new ThingsFrame(Group.getInstance().getActiveHero(), "Lager");
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.thingsInWarehouseButton.setSelected(false);
@@ -1391,7 +1399,7 @@ public final class ControlFrame extends SubFrame
           }
         }
 
-        private WarehouseFrame frame = null;
+        private ThingsFrame frame = null;
       });
       temp.add(thingsInWarehouseButton);
       frameButtons.put("Lager", thingsInWarehouseButton);
@@ -2161,6 +2169,7 @@ public final class ControlFrame extends SubFrame
     groupMenu.addSeparator();
     groupMenu.add(getGroupPrintItem());
     groupMenu.add(getGroupTimeItem());
+    groupMenu.add(getGroupRegionItem());
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
         .userNodeForPackage(dsa.gui.PackageID.class);
     int nrOfLastGroups = prefs.getInt("LastUsedGroupsCount", 0);
@@ -2295,6 +2304,20 @@ public final class ControlFrame extends SubFrame
     return groupTimeItem;
   }
   
+  private JMenuItem getGroupRegionItem() {
+    if (groupZoneItem == null) {
+      groupZoneItem = new JMenuItem();
+      groupZoneItem.setText("Handelsregion ...");
+      groupZoneItem.setMnemonic(java.awt.event.KeyEvent.VK_R);
+      groupZoneItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          GroupOperations.selectGroupRegion(ControlFrame.this);
+        }
+      });
+    }
+    return groupZoneItem;
+  }
+  
   /**
    * This method initializes newItem
    * 
@@ -2343,6 +2366,8 @@ public final class ControlFrame extends SubFrame
   private JMenuItem groupPrintItem = null;
   
   private JMenuItem groupTimeItem = null;
+  
+  private JMenuItem groupZoneItem = null;
 
   /**
    * This method initializes jMenuItem

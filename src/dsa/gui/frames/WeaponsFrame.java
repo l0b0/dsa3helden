@@ -25,14 +25,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import dsa.gui.dialogs.ShopDialog;
 import dsa.gui.dialogs.WeaponsSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.dialogs.ItemProviders.WeaponsProvider;
 import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.WeaponsTable;
 import dsa.gui.util.ImageManager;
@@ -43,9 +46,9 @@ import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 import dsa.model.data.ExtraThingData;
+import dsa.model.data.IExtraThingData;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
-import dsa.model.data.Thing.Currency;
 import dsa.util.Optional;
 
 public final class WeaponsFrame extends AbstractDnDFrame implements
@@ -108,6 +111,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     rightPanel.setPreferredSize(new java.awt.Dimension(70, 50));
     rightPanel.add(getAddButton(), null);
     rightPanel.add(getRemoveButton(), null);
+    rightPanel.add(getBuyButton(), null);
     panel.add(rightPanel, BorderLayout.EAST);
     
     JPanel lowerPanel = new JPanel();
@@ -136,6 +140,8 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   JButton addButton;
 
   JButton removeButton;
+  
+  JButton buyButton;
 
   JLabel sumLabel;
 
@@ -201,6 +207,31 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     return addButton;
   }
 
+  JButton getBuyButton() {
+    if (buyButton == null) {
+      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton.setBounds(5, 35, 60, 25);
+      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          buyItem();
+        }
+      });
+    }
+    return buyButton;
+  }
+  
+  private void buyItem() {
+    ShopDialog dialog = new ShopDialog(this, new WeaponsProvider());
+    dialog.setVisible(true);
+    if (dialog.wasClosedByOK()) {
+      Map<String, Integer> cart = dialog.getBoughtItems();
+      for (String item : cart.keySet()) {
+        weaponSelected(item, cart.get(item));
+      }
+      currentHero.pay(dialog.getFinalPrice(), dialog.getCurrency());
+    }
+  }
   protected void selectItem() {
     WeaponsSelectionDialog dialog = new WeaponsSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
@@ -211,13 +242,6 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
       public void itemChanged(String item) {
         weaponChanged(item);
       }
-
-      @Override
-      public void itemsBought(String item, int count, int finalPrice,
-          Currency currency) {
-        weaponSelected(item, count);
-        currentHero.pay(finalPrice, currency);
-      }
     });
     dialog.setVisible(true);
   }
@@ -226,7 +250,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     if (removeButton == null) {
       removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
-      removeButton.setBounds(5, 35, 60, 25);
+      removeButton.setBounds(5, 65, 60, 25);
       removeButton.setToolTipText("Waffe entfernen");
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -259,10 +283,12 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
       }
       removeButton.setEnabled(!currentHero.isDifference() && currentHero.getWeapons().length > 0);
       addButton.setEnabled(!currentHero.isDifference());
+      buyButton.setEnabled(!currentHero.isDifference());
     }
     else {
       addButton.setEnabled(false);
       removeButton.setEnabled(false);
+      buyButton.setEnabled(false);
     }
     mTable.setFirstSelectedRow();
     calcSums();
@@ -332,7 +358,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   }
 
   @Override
-  protected boolean addItem(String item, ExtraThingData extraData) {
+  protected boolean addItem(String item, IExtraThingData extraData) {
     Weapon weapon = Weapons.getInstance().getWeapon(item);
     if (weapon == null) {
       return false;
@@ -343,8 +369,8 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     int bf = 0;
     if (extraData.getType() == ExtraThingData.Type.Weapon) {
       try {
-        bf = extraData.getPropertyInt("BF");
-        projNr = extraData.getPropertyInt("Projectiles");
+        bf = ((ExtraThingData)extraData).getPropertyInt("BF");
+        projNr = ((ExtraThingData)extraData).getPropertyInt("Projectiles");
       }
       catch (ExtraThingData.PropertyException e) {
         e.printStackTrace();
@@ -372,14 +398,14 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   }
 
   @Override
-  protected void removeItem(String item) {
+  protected void removeItem(String item, boolean alwayswithContents) {
     currentHero.removeWeapon(item);
     removeButton.setEnabled(currentHero.getWeapons().length > 0);
     updateData();
   }
 
   @Override
-  protected ExtraThingData getExtraDnDData(String item) {
+  protected IExtraThingData getExtraDnDData(String item) {
     ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Weapon);
     data.setProperty("BF", currentHero.getBF(item, 1));
     data.setProperty("Projectiles", currentHero.getNrOfProjectiles(item));
@@ -389,6 +415,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
           .getWorth().getValue() : 0);
       data.setProperty("Weight", weapon.getWeight());
       data.setProperty("Category", "Waffe");
+      data.setProperty("Singular", weapon.isSingular() ? 1 : 0);
     }
     return data;
   }

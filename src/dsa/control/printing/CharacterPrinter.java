@@ -285,12 +285,14 @@ public class CharacterPrinter extends AbstractPrinter {
         weight *= animal.getThingCount(things[k]);
         weightSum += weight;
         table.addItem("TGG" + i, weight, true);
+        table.addItem("TGB" + i, animal.getThingContainer(things[k]), true);
       }
       table.addItem("TGSU" + i, (weightSum / 40.0f));
       for (int k = things.length + 1; k <= 30; ++k) {
         table.addItem("TGN" + i, "", true);
         table.addItem("TGC" + i, "", true);
         table.addItem("TGG" + i, "", true);
+        table.addItem("TGB" + i, "", true);
       }
     }
     while (animalIndex < 5) {
@@ -434,28 +436,32 @@ public class CharacterPrinter extends AbstractPrinter {
       table.addItem("guz", tweight, true);
       table.addItem("Gc", count, true);
       overallWeight += tweight;
+      table.addItem("GB", character.getThingContainer(thingName));
     }
     table.addItem("GSU", (weight / 40.0f));
     if (character.getThings().length == 0) {
       table.addItem("gna", "");
       table.addItem("guz", "");
       table.addItem("Gc", "");
+      table.addItem("GB", "");
     }
 
-    for (String thingName : character.getThingsInWarehouse()) {
+    for (String thingName : character.getThingsInContainer("Lager")) {
       table.addItem("Lna", thingName, true);
       int tweight = dsa.model.data.Things.getInstance().getThing(thingName)
           .getWeight();
-      int count = character.getThingInWarehouseCount(thingName);
+      int count = character.getThingCount(thingName);
       tweight *= count;
       weight += tweight;
       table.addItem("Luz", tweight, true);
       table.addItem("Lc", count, true);
+      table.addItem("LB", character.getThingContainer(thingName));
     }
-    if (character.getThingsInWarehouse().length == 0) {
+    if (character.getThingsInContainer("Lager").length == 0) {
       table.addItem("Lna", "");
       table.addItem("Luz", "");
       table.addItem("Lc", "");
+      table.addItem("LB", "");
     }
 
     for (String clothesName : character.getClothes()) {

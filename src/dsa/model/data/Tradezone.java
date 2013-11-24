@@ -17,11 +17,37 @@
  along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package dsa.util;
+package dsa.model.data;
 
-public interface Observable<T extends Observer> {
+import java.util.HashMap;
+import java.util.Set;
+
+public class Tradezone {
+
+  Tradezone(String id, String name) {
+    this.id = id;
+    this.name = name;
+    this.borders = new HashMap<String, Boolean>();
+  }
   
-  void addObserver(T observer);
-  void removeObserver(T observer);
-
+  public final String getID() { return id; }
+  
+  public final String getName() { return name; }
+  
+  void addBorder(String id, boolean isSeaBorder) {
+    borders.put(id, isSeaBorder);
+  }
+  
+  Set<String> getBorders() {
+    return java.util.Collections.unmodifiableSet(borders.keySet());
+  }
+  
+  boolean isSeaBorder(String id) {
+    return borders.get(id);
+  }
+  
+  private final String id;
+  private final String name;
+  
+  private HashMap<String, Boolean> borders;
 }

@@ -40,14 +40,16 @@ public class Shield {
   private int worth;
 
   private boolean userDefined;
+  
+  private boolean singular;
 
   public Shield(String n, int a, int p, int p2, int be, int fk, int bf, int w,
-      int m) {
-    this(n, a, p, p2, be, fk, bf, w, m, true);
+      int m, boolean s) {
+    this(n, a, p, p2, be, fk, bf, w, m, true, s);
   }
 
   Shield(String n, int a, int p, int p2, int be, int fk, int bf, int w, int m,
-      boolean ud) {
+      boolean ud, boolean s) {
     name = n;
     atMod = a;
     paMod = p;
@@ -58,6 +60,7 @@ public class Shield {
     weight = w;
     worth = m;
     userDefined = ud;
+    singular = s;
   }
 
   public int getAtMod() {
@@ -99,6 +102,10 @@ public class Shield {
   public boolean isUserDefined() {
     return userDefined;
   }
+  
+  public boolean isSingular() {
+    return singular;
+  }
 
   public void setAtMod(int atMod) {
     this.atMod = atMod;
@@ -130,5 +137,9 @@ public class Shield {
 
   public void setWorth(int worth) {
     this.worth = worth;
+  }
+  
+  public void setSingular(boolean singular) {
+    this.singular = singular;
   }
 }

@@ -26,7 +26,6 @@ import dsa.model.DiceSpecification;
 import dsa.model.data.Opponent;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
-import dsa.model.data.Thing.Currency;
 import dsa.util.Optional;
 
 import java.awt.Dimension;
@@ -422,11 +421,6 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
         DiceSpecification tp = DiceSpecification.create(
             weapon.getW6damage(), 6, weapon.getConstDamage());
         addWeapon(name, tp, at, pa);
-      }
-
-      @Override
-      public void itemsBought(String item, int count, int finalPrice,
-          Currency currency) {
       }
     });
     dialog.setVisible(true);    

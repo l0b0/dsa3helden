@@ -25,6 +25,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -32,7 +33,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ShieldSelectionDialog;
+import dsa.gui.dialogs.ShopDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.dialogs.ItemProviders.ShieldsProvider;
 import dsa.gui.tables.ShieldsTable;
 import dsa.gui.tables.ThingTransfer;
 import dsa.gui.util.ImageManager;
@@ -41,9 +44,9 @@ import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
 import dsa.model.data.ExtraThingData;
+import dsa.model.data.IExtraThingData;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
-import dsa.model.data.Thing.Currency;
 
 public final class ShieldsFrame extends AbstractDnDFrame implements CharactersObserver, ShieldsTable.BFChanger {
 
@@ -68,33 +71,33 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       }
     }
 
-    @Override
-    public void itemsBought(String item, int count, int finalPrice,
-        Currency currency) {
-      boolean alreadyThere = Arrays.asList(currentHero.getShields()).contains(item);
-      if (alreadyThere || count > 1) {
-        JOptionPane
-        .showMessageDialog(
-            ShieldsFrame.this,
-            "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-            "Fehler", JOptionPane.WARNING_MESSAGE);
-      }
-      if (!alreadyThere) {
-        itemAdded(item);
-        currentHero.pay(finalPrice / count, currency);
-      }
-    }
-    
     private void itemAdded(String item) {
-      currentHero.addShield(item);
-      Shield shield = Shields.getInstance().getShield(item);
-      if (shield != null)
-        mTable.addShield(shield);
-      else
-        mTable.addUnknownShield(item);
-      removeButton.setEnabled(true);
-      calcSums();      
+      shieldAdded(item);
     }
+  }
+  
+  private void shieldAdded(String item) {
+    currentHero.addShield(item);
+    Shield shield = Shields.getInstance().getShield(item);
+    if (shield != null)
+      mTable.addShield(shield);
+    else
+      mTable.addUnknownShield(item);
+    removeButton.setEnabled(true);
+    calcSums();          
+  }
+  
+  private boolean shieldBought(String item, int count) {
+    boolean alreadyThere = Arrays.asList(currentHero.getShields()).contains(item);
+    if (alreadyThere || count > 1) {
+      JOptionPane
+      .showMessageDialog(
+          ShieldsFrame.this,
+          "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+          "Fehler", JOptionPane.WARNING_MESSAGE);
+      return false;
+    }
+    return true;
   }
 
   private class MyObserver extends CharacterAdapter {
@@ -151,6 +154,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     rightPanel.setPreferredSize(new java.awt.Dimension(70, 50));
     rightPanel.add(getAddButton(), null);
     rightPanel.add(getRemoveButton(), null);
+    rightPanel.add(getBuyButton(), null);
     panel.add(rightPanel, BorderLayout.EAST);
 
     this.setContentPane(panel);
@@ -184,6 +188,8 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   JButton addButton;
 
   JButton removeButton;
+  
+  JButton buyButton;
 
   JButton getAddButton() {
     if (addButton == null) {
@@ -200,6 +206,41 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     return addButton;
   }
 
+  JButton getBuyButton() {
+    if (buyButton == null) {
+      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton.setBounds(5, 35, 60, 25);
+      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          buyItem();
+        }
+      });
+    }
+    return buyButton;
+  }
+  
+  private void buyItem() {
+    ShopDialog dialog = new ShopDialog(this, new ShieldsProvider());
+    dialog.setVisible(true);
+    if (dialog.wasClosedByOK()) {
+      Map<String, Integer> cart = dialog.getBoughtItems();
+      boolean allowed = true;
+      for (String item : cart.keySet()) {
+        if (!shieldBought(item, cart.get(item))) {
+          allowed = false;
+          break;
+        }
+      }
+      if (allowed) {
+        for (String item : cart.keySet()) {
+          shieldAdded(item);
+        }
+        currentHero.pay(dialog.getFinalPrice(), dialog.getCurrency());
+      }
+    }
+  }
+
   protected void selectItem() {
     ShieldSelectionDialog dialog = new ShieldSelectionDialog(this);
     dialog.setCallback(new ShieldSelectionCallback());
@@ -210,7 +251,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     if (removeButton == null) {
       removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
-      removeButton.setBounds(5, 35, 60, 25);
+      removeButton.setBounds(5, 65, 60, 25);
       removeButton.setToolTipText("Paradewerkzeug entfernen");
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -252,11 +293,13 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       calcSums();
       removeButton.setEnabled(!currentHero.isDifference() && currentHero.getShields().length > 0);
       addButton.setEnabled(!currentHero.isDifference());
+      buyButton.setEnabled(!currentHero.isDifference());
     }
     else {
       // sumLabel.setText("Gesamt: RS 0; BE 0; Gewicht 0 Stein");
       addButton.setEnabled(false);
       removeButton.setEnabled(false);
+      buyButton.setEnabled(false);
     }
     mTable.setFirstSelectedRow();
   }
@@ -283,7 +326,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   @Override
-  protected boolean addItem(String item, ExtraThingData extraData) {
+  protected boolean addItem(String item, IExtraThingData extraData) {
     if (Arrays.asList(currentHero.getShields()).contains(item)) {
       JOptionPane
           .showMessageDialog(
@@ -300,7 +343,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     currentHero.addShield(item);
     if (extraData.getType() == ExtraThingData.Type.Shield) {
       try {
-        currentHero.setBF(item, extraData.getPropertyInt("BF"));
+        currentHero.setBF(item, ((ExtraThingData)extraData).getPropertyInt("BF"));
       }
       catch (ExtraThingData.PropertyException e) {
         e.printStackTrace();
@@ -312,12 +355,12 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   @Override
-  protected void removeItem(String item) {
+  protected void removeItem(String item, boolean alwaysWithContents) {
     currentHero.removeShield(item);
   }
 
   @Override
-  protected ExtraThingData getExtraDnDData(String item) {
+  protected IExtraThingData getExtraDnDData(String item) {
     ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Shield);
     data.setProperty("BF", currentHero.getBF(item));
     Shield shield = Shields.getInstance().getShield(item);
@@ -325,6 +368,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       data.setProperty("Worth", shield.getWorth());
       data.setProperty("Weight", shield.getWeight());
       data.setProperty("Category", shield.getFkMod() > 0 ? "Rüstung" : "Waffe");
+      data.setProperty("Singular", shield.isSingular() ? 1 : 0);
     }
     return data;
   }

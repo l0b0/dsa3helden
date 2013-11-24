@@ -32,6 +32,7 @@ import dsa.model.data.Currencies;
 import dsa.model.data.Shields;
 import dsa.model.data.Talents;
 import dsa.model.data.Things;
+import dsa.model.data.Tradezones;
 import dsa.model.data.Weapons;
 import dsa.model.data.Armours;
 
@@ -82,6 +83,7 @@ public class Main {
         + java.io.File.separator;
       String userDataPath = dsa.util.Directories.getUserDataPath();
       DataFactory.setFactory(new dsa.model.impl.DataFactoryImpl());
+      Tradezones.getInstance().readFile(dirPath + "Handelszonen.dat");
       Talents.getInstance().loadNormalTalents(dirPath + "Talente.dat");
       Talents.getInstance().loadFightingTalents(dirPath + "Kampftalente.dat");
       Talents.getInstance().loadSpells(dirPath + "Zauber.dat");

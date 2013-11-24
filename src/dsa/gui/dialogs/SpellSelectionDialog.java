@@ -21,13 +21,13 @@ package dsa.gui.dialogs;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import dsa.gui.dialogs.ItemProviders.SpellProvider;
 import dsa.gui.tables.SpellTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
@@ -39,35 +39,15 @@ import dsa.model.talents.Talent;
 public final class SpellSelectionDialog extends AbstractSelectionDialog {
 
   public SpellSelectionDialog(javax.swing.JFrame owner, Hero character) {
-    super(owner, "Zauber hinzufügen", new SpellTable(character.getInternalType()), "Zauber");
-    mHero = character;
+    super(owner, "Zauber hinzufügen", new SpellProvider(character.getInternalType()), "Zauber");
     initialize();
     fillTable();
   }
-
-  private final Hero mHero;
 
   public void updateTable() {
     mTable.clear();
     fillTable();
   }
-
-  @Override
-  protected void fillTable() {
-    List<Talent> talents = Talents.getInstance().getTalentsInCategory("Zauber");
-    SpellTable table = (SpellTable) mTable;
-    table.setMagicDilletant(mHero.isMagicDilletant());
-    listen = false;
-    for (Talent t : talents) {
-      if (!mHero.hasTalent(t.getName()) && isDisplayed(t.getName())) {
-        table.addSpell((Spell) t);
-      }
-    }
-    listen = true;
-    updateDeleteButton();
-  }
-
-  boolean listen = true;
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
@@ -156,7 +136,7 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
     Talents.getInstance().removeUserSpell(spell);
   }
 
-  private void updateDeleteButton() {
+  protected void updateDeleteButton() {
     String spell = mTable.getSelectedItem();
     if (spell != null && spell.length() > 0) {
       Talent t = Talents.getInstance().getTalent(spell);
@@ -170,8 +150,4 @@ public final class SpellSelectionDialog extends AbstractSelectionDialog {
     getEditButton().setEnabled(false);
   }
 
-  protected boolean showShopButton() {
-    return false;
-  }
-  
 }

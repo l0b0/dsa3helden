@@ -23,16 +23,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.StringTokenizer;
 
+import dsa.model.AbstractThingCarrier;
 import dsa.model.DiceSpecification;
+import dsa.model.characters.Group;
+import dsa.model.data.Thing.Currency;
 
-public class Animal implements Cloneable {
+public class Animal extends AbstractThingCarrier implements Cloneable {
 
   public interface Listener {
     void nameChanged(String oldName, String newName);
-    void thingRemoved(String thing);
   }
 
   public enum AttributeType {
@@ -149,7 +150,7 @@ public class Animal implements Cloneable {
     changed = false;
   }
 
-  private static final int VERSION = 3;
+  private static final int VERSION = 4;
 
   public void writeToFile(PrintWriter out) throws IOException {
     printSubclassSpecificData(out);
@@ -167,36 +168,22 @@ public class Animal implements Cloneable {
       out.println(attributeInfos.get(i).title);
     }
     // version 2
-    out.println(things.size());
-    for (java.util.Map.Entry<String, Integer> entry : things.entrySet()) {
-      out.println(entry.getKey());
-      out.println(entry.getValue());
+    String[] things = getThings();
+    out.println(things.length);
+    for (String thing : things) {
+      out.println(thing);
+      out.println(getThingCount(thing));
     }
     // version 3
-    out.println(extraThingData.size());
-    for (java.util.Map.Entry<String, ExtraThingData> entry : extraThingData.entrySet()) {
-      out.println(entry.getKey());
-      entry.getValue().store(out);
-    }
+    printExtraThingData(out);
+    // version 4
+    printContainers(out);
     out.println("-- End of Animal --");
     changed = false;
   }
 
   protected void printSubclassSpecificData(PrintWriter out) throws IOException {
     // nothing to do in this class
-  }
-
-  private static int parseInt(String line, int lineNr) throws IOException {
-    try {
-      return Integer.parseInt(line);
-    }
-    catch (NumberFormatException e) {
-      throw new IOException("Zeile " + lineNr + ": Wert ist keine Zahl!");
-    }
-  }
-
-  private static void testEmpty(String line) throws IOException {
-    if (line == null) throw new IOException("Unerwartetes Dateiende!");
   }
 
   public int readFromFile(BufferedReader in, int lineNr) throws IOException {
@@ -256,7 +243,7 @@ public class Animal implements Cloneable {
         attributes.add(value);
       }
     }
-    things.clear();
+    clearThings();
     if (version > 1) {
       line = in.readLine();
       lineNr++;
@@ -271,32 +258,18 @@ public class Animal implements Cloneable {
         lineNr++;
         testEmpty(line);
         int thingNr = parseInt(line, lineNr);
-        things.put(thing, thingNr);
+        addThingsFromFile(thing, name, thingNr);
       }
     }
-    extraThingData.clear();
+    clearExtraThingData();
     if (version > 2) {
-      line = in.readLine();
-      lineNr++;
-      testEmpty(line);
-      int extraDataCount = parseInt(line, lineNr);
-      for (int i = 0; i < extraDataCount; ++i) {
-        line = in.readLine();
-        lineNr++;
-        testEmpty(line);
-        String key = line;
-        ExtraThingData value = new ExtraThingData();
-        lineNr = value.read(in, lineNr);
-        extraThingData.put(key, value);
-      }
+      lineNr = readExtraThingData(in, lineNr, 1);
     }
-    for (String thing : things.keySet()) {
-      for (int i = 1; i <= things.get(thing); ++i) {
-        if (!extraThingData.containsKey(thing + i)) {
-          extraThingData.put(thing + i, new ExtraThingData(ExtraThingData.Type.Thing));
-        }
-      }
+    clearThingContainers();
+    if (version > 3) {
+      lineNr = readContainers(in, lineNr);
     }
+    initForOldVersions(name);
     do {
       line = in.readLine();
       lineNr++;
@@ -407,67 +380,28 @@ public class Animal implements Cloneable {
       clone.attributeInfos.add((AttributeMetaInfo) attributeInfos.get(i)
           .clone());
     }
-    clone.things = new HashMap<String, Integer>();
-    clone.things.putAll(things);
-    clone.extraThingData = new HashMap<String, ExtraThingData>();
-    clone.extraThingData.putAll(extraThingData);
     clone.changed = false;
     return clone;
   }
   
-  private java.util.Map<String, Integer> things 
-    = new HashMap<String, Integer>();
-  
-  public String[] getThings() {
-    String[] thingArray = new String[things.size()];
-    thingArray = things.keySet().toArray(thingArray);
-    return thingArray;
-  }
-  
-  public int getThingCount(String thing) {
-    if (things.containsKey(thing)) {
-      return things.get(thing);
-    }
-    else {
-      return 0;
-    }
-  }
-  
-  public void addThing(String thing) {
-    addThing(thing, new ExtraThingData(ExtraThingData.Type.Thing));
-  }
-  
-  public void addThing(String thing, ExtraThingData extraData) {
-    if (things.containsKey(thing)) {
-      things.put(thing, things.get(thing).intValue() + 1);
-    }
-    else {
-      things.put(thing, 1);
-    }
-    extraThingData.put(thing + things.get(thing), extraData);
+  protected void setChanged() {
     changed = true;
   }
-  
-  public void removeThing(String thing) {
-    if (!things.containsKey(thing)) return;
-    int count = things.get(thing);
-    extraThingData.remove(thing + count);
-    if (count == 1) {
-      things.remove(thing);
-    }
-    else {
-      things.put(thing, count - 1);
-    }
-    for (Listener listener : listeners) {
-      listener.thingRemoved(thing);
-    }
-    changed = true;
-  }
-  
-  public ExtraThingData getExtraThingData(String thing, int number) {
-    return extraThingData.get(thing + number);
-  }
-  
-  private java.util.Map<String, ExtraThingData> extraThingData = new HashMap<String, ExtraThingData>();
 
+  /* (non-Javadoc)
+   * @see dsa.model.ThingCarrier#isDifference()
+   */
+  @Override
+  public boolean isDifference() {
+    return Group.getInstance().getActiveHero().isDifference();
+  }
+
+  /* (non-Javadoc)
+   * @see dsa.model.ThingCarrier#pay(int, dsa.model.data.Thing.Currency)
+   */
+  @Override
+  public void pay(int price, Currency currency) {
+    Group.getInstance().getActiveHero().pay(price, currency);
+  }
+  
 }

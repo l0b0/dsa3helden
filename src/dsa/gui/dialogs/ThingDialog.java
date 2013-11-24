@@ -36,6 +36,8 @@ import dsa.gui.lf.BGDialog;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 import dsa.util.Optional;
+import java.awt.Rectangle;
+import javax.swing.JCheckBox;
 
 public final class ThingDialog extends BGDialog {
 
@@ -96,6 +98,8 @@ public final class ThingDialog extends BGDialog {
     weightSpinner.setValue(weight);
     currencyCombo.setSelectedIndex(thing.getCurrency().ordinal());
     valueSpinner.setValue(thing.getValue().hasValue() ? thing.getValue().getValue() : 0);
+    singularBox.setSelected(thing.isSingular());
+    containerBox.setSelected(thing.isContainer());
   }
 
   private void preFillComboBoxes() {
@@ -121,7 +125,7 @@ public final class ThingDialog extends BGDialog {
    * @return void
    */
   private void initialize() {
-    this.setSize(374, 257);
+    this.setSize(374, 243);
     this.setTitle("Gegenstand hinzufügen");
     this.setContentPane(getJContentPane());
     this.getRootPane().setDefaultButton(getOkButton());
@@ -136,16 +140,16 @@ public final class ThingDialog extends BGDialog {
   private JPanel getJContentPane() {
     if (jContentPane == null) {
       jLabel3 = new JLabel();
-      jLabel3.setBounds(new java.awt.Rectangle(16, 135, 66, 15));
+      jLabel3.setBounds(new Rectangle(20, 110, 81, 21));
       jLabel3.setText("Gewicht:");
       jLabel2 = new JLabel();
-      jLabel2.setBounds(new java.awt.Rectangle(16, 97, 38, 15));
+      jLabel2.setBounds(new Rectangle(20, 80, 81, 21));
       jLabel2.setText("Wert:");
       jLabel1 = new JLabel();
-      jLabel1.setBounds(new java.awt.Rectangle(16, 59, 75, 15));
+      jLabel1.setBounds(new Rectangle(20, 50, 81, 21));
       jLabel1.setText("Kategorie:");
       jLabel = new JLabel();
-      jLabel.setBounds(new java.awt.Rectangle(16, 21, 57, 15));
+      jLabel.setBounds(new Rectangle(20, 20, 81, 21));
       jLabel.setText("Name:");
       jContentPane = new JPanel();
       jContentPane.setLayout(null);
@@ -158,6 +162,8 @@ public final class ThingDialog extends BGDialog {
       jContentPane.add(jLabel2, null);
       jContentPane.add(jLabel3, null);
       jContentPane.add(getWeightSpinner(), null);
+      jContentPane.add(getContainerBox(), null);
+      jContentPane.add(getSingularBox(), null);
       jContentPane.add(getWeightCombo(), null);
       jContentPane.add(getOkButton(), null);
       jContentPane.add(getCancelButton(), null);
@@ -174,7 +180,7 @@ public final class ThingDialog extends BGDialog {
   private JTextField getNameField() {
     if (nameField == null) {
       nameField = new JTextField();
-      nameField.setBounds(new java.awt.Rectangle(105, 19, 239, 19));
+      nameField.setBounds(new Rectangle(110, 20, 231, 21));
     }
     return nameField;
   }
@@ -188,7 +194,7 @@ public final class ThingDialog extends BGDialog {
     if (categoryCombo == null) {
       categoryCombo = new JComboBox();
       categoryCombo.setEditable(true);
-      categoryCombo.setBounds(new java.awt.Rectangle(105, 57, 239, 19));
+      categoryCombo.setBounds(new Rectangle(110, 50, 231, 21));
     }
     return categoryCombo;
   }
@@ -201,7 +207,7 @@ public final class ThingDialog extends BGDialog {
   private JSpinner getValueSpinner() {
     if (valueSpinner == null) {
       valueSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100000, 1));
-      valueSpinner.setBounds(new java.awt.Rectangle(105, 95, 60, 19));
+      valueSpinner.setBounds(new Rectangle(110, 80, 61, 21));
     }
     return valueSpinner;
   }
@@ -214,7 +220,7 @@ public final class ThingDialog extends BGDialog {
   private JComboBox getCurrencyCombo() {
     if (currencyCombo == null) {
       currencyCombo = new JComboBox();
-      currencyCombo.setBounds(new java.awt.Rectangle(190, 95, 153, 19));
+      currencyCombo.setBounds(new Rectangle(180, 80, 161, 21));
     }
     return currencyCombo;
   }
@@ -227,7 +233,7 @@ public final class ThingDialog extends BGDialog {
   private JSpinner getWeightSpinner() {
     if (weightSpinner == null) {
       weightSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100000, 1));
-      weightSpinner.setBounds(new java.awt.Rectangle(105, 133, 60, 19));
+      weightSpinner.setBounds(new Rectangle(110, 110, 61, 21));
     }
     return weightSpinner;
   }
@@ -240,12 +246,16 @@ public final class ThingDialog extends BGDialog {
   private JComboBox getWeightCombo() {
     if (weightCombo == null) {
       weightCombo = new JComboBox();
-      weightCombo.setBounds(new java.awt.Rectangle(190, 133, 153, 19));
+      weightCombo.setBounds(new Rectangle(180, 110, 161, 21));
     }
     return weightCombo;
   }
 
   private Thing thing = null;
+
+  private JCheckBox singularBox = null;
+
+  private JCheckBox containerBox = null;
 
   public Thing getThing() {
     return thing;
@@ -259,7 +269,7 @@ public final class ThingDialog extends BGDialog {
   private JButton getOkButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new java.awt.Rectangle(53, 187, 100, 25));
+      okButton.setBounds(new Rectangle(50, 180, 111, 21));
       okButton.setText("OK");
       okButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -294,9 +304,11 @@ public final class ThingDialog extends BGDialog {
     if (weightCombo.getSelectedIndex() == 1) {
       weight *= 40;
     }
+    boolean singular = singularBox.isSelected();
+    boolean container = containerBox.isSelected();
     if (newThing) {
       thing = new Thing(name, new Optional<Integer>(value), currency,
-          weight, category, true);
+          weight, category, true, singular, container);
       Things.getInstance().addThing(thing);
     }
     else {
@@ -304,6 +316,8 @@ public final class ThingDialog extends BGDialog {
       thing.setValue(new Optional<Integer>(value));
       thing.setCurrency(currency);
       thing.setWeight(weight);
+      thing.setIsSingular(singular);
+      thing.setIsContainer(container);
     }
     dispose();
   }
@@ -316,7 +330,7 @@ public final class ThingDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new java.awt.Rectangle(207, 187, 100, 25));
+      cancelButton.setBounds(new Rectangle(210, 180, 100, 21));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -335,7 +349,8 @@ public final class ThingDialog extends BGDialog {
   private JPanel getJPanel() {
     if (jPanel == null) {
       jPanel = new JPanel();
-      jPanel.setBounds(new java.awt.Rectangle(5, 9, 348, 158));
+      jPanel.setLayout(null);
+      jPanel.setBounds(new Rectangle(10, 10, 341, 161));
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
     }
@@ -344,6 +359,34 @@ public final class ThingDialog extends BGDialog {
 
   public final String getHelpPage() {
     return "Gegenstand_hinzufuegen";
+  }
+
+  /**
+   * This method initializes singularBox	
+   * 	
+   * @return javax.swing.JCheckBox	
+   */
+  private JCheckBox getSingularBox() {
+    if (singularBox == null) {
+      singularBox = new JCheckBox();
+      singularBox.setBounds(new Rectangle(20, 140, 151, 21));
+      singularBox.setText("Einzelstück");
+    }
+    return singularBox;
+  }
+
+  /**
+   * This method initializes containerBox	
+   * 	
+   * @return javax.swing.JCheckBox	
+   */
+  private JCheckBox getContainerBox() {
+    if (containerBox == null) {
+      containerBox = new JCheckBox();
+      containerBox.setBounds(new Rectangle(180, 140, 161, 21));
+      containerBox.setText("Behältnis");
+    }
+    return containerBox;
   }
 
 } //  @jve:decl-index=0:visual-constraint="10,10"

@@ -114,7 +114,7 @@ public final class RitualProbeDialog extends BGDialog {
     setEscapeButton(getCancelButton());
     this.getDifficultySpinner().requestFocusInWindow();
     JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) this.getDifficultySpinner().getEditor();
-    editor.getTextField().setText("0");
+    editor.getTextField().setText(editor.getTextField().getText());
     editor.getTextField().selectAll();
   }
 

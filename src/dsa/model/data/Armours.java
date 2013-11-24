@@ -62,10 +62,14 @@ public class Armours {
   public void saveUserDefinedArmours(String filename) throws IOException {
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
     out.println("*** User-Defined Armours ***");
-    out.println(2); // version    
+    out.println(4); // version    
     for (Armour armour : theArmours.values()) {
       if (armour.isUserDefined()) {
-        out.println(armour.getName());
+        String name = armour.getName();
+        if (armour.isSingular()) {
+          name += "*";
+        }
+        out.println(name);
         out.println(armour.getRS());
         out.println(armour.getBE());
         out.println(armour.getWeight());
@@ -159,7 +163,25 @@ public class Armours {
             throw new IOException("Zeile " + lineNr + ": Wert keine Zahl!");
           }
         }
-        Armour armour = new Armour(name, rs, be, weight, worth, userDefined);
+        boolean singular = false;
+        if (userDefined && hasVersion && version == 3) {
+          line = in.readLine();
+          lineNr++;
+          if (line == null) throw new IOException("EOF statt Wert!");
+          try {
+            singular = Integer.parseInt(line) == 1;
+          }
+          catch (NumberFormatException e) {
+            throw new IOException("Zeile " + lineNr + ": Einzelstück-Flag keine Zahl!");
+          }
+        }
+        else if (userDefined && hasVersion && version > 3) {
+          if (name.endsWith("*")) {
+            name = name.substring(0, name.length() - 1);
+            singular = true;
+          }
+        }
+        Armour armour = new Armour(name, rs, be, weight, worth, userDefined, singular);
         theArmours.put(name, armour);
         line = in.readLine();
         lineNr++;

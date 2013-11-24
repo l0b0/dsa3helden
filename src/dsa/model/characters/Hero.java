@@ -25,14 +25,14 @@ import java.util.List;
 
 import dsa.model.Date;
 import dsa.model.Fighter;
+import dsa.model.ThingCarrier;
 import dsa.model.data.Adventure;
 import dsa.model.data.Animal;
-import dsa.model.data.ExtraThingData;
 
 /**
  * 
  */
-public interface Hero extends Printable, Fighter {
+public interface Hero extends Printable, Fighter, ThingCarrier {
   
   long CLOTHES = 1;
   long THINGS = 2;
@@ -187,15 +187,12 @@ public interface Hero extends Printable, Fighter {
 
   void removeTalentIncreaseTry(String talent, boolean succeded);
 
-  // more will follow
-
   void addHeroObserver(CharacterObserver observer);
 
   void removeHeroObserver(CharacterObserver observer);
 
   void storeToFile(java.io.File file, File realFile) throws java.io.IOException;
 
-  // void ReadFromFile(java.io.BufferedReader file) throws java.io.IOException;
   boolean isChanged();
 
   String getRuf();
@@ -264,18 +261,6 @@ public interface Hero extends Printable, Fighter {
 
   void removeShield(String name);
 
-  String[] getThings();
-
-  void addThing(String name);
-  
-  void addThing(String name, ExtraThingData extraData);
-
-  ExtraThingData getExtraThingData(String thing, boolean inWarehouse, int thingNumber);
-
-  void removeThing(String name);
-
-  int getThingCount(String thing);
-
   String getBGFile();
 
   String getBGEditor();
@@ -333,16 +318,6 @@ public interface Hero extends Printable, Fighter {
   String getSoulAnimal();
 
   void setSoulAnimal(String animal);
-
-  void addThingToWarehouse(String item);
-  
-  void addThingToWarehouse(String item, ExtraThingData extraData);
-
-  int getThingInWarehouseCount(String item);
-
-  void removeThingFromWarehouse(String name);
-
-  String[] getThingsInWarehouse();
 
   void addClothes(String item);
 
@@ -418,8 +393,6 @@ public interface Hero extends Printable, Fighter {
 
   void changeAU(int difference);
   
-  void fireWeightChanged();
-  
   void setNrOfProjectiles(String weaponName, int nrOfProjectiles);
   
   int getNrOfProjectiles(String weaponName);
@@ -456,9 +429,7 @@ public interface Hero extends Printable, Fighter {
   
   void setSO(int so);
   
-  boolean isDifference();
   void setStepDifference(int difference);
   
   boolean canPay(int price, dsa.model.data.Thing.Currency currency);
-  void pay(int price, dsa.model.data.Thing.Currency currency);
 }

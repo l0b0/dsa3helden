@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import dsa.gui.dialogs.ItemProviders.OpponentProvider;
 import dsa.gui.tables.OpponentTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.data.Opponent;
@@ -37,7 +38,7 @@ public class OpponentSelectionDialog extends AbstractSelectionDialog
     implements OpponentDialog.NameChecker {
 
   public OpponentSelectionDialog(javax.swing.JFrame owner) {
-    super(owner, "Gegner hinzufügen", new OpponentTable(false), 
+    super(owner, "Gegner hinzufügen", new OpponentProvider(), 
         "Gegner");
     initialize();
     fillTable();
@@ -46,19 +47,6 @@ public class OpponentSelectionDialog extends AbstractSelectionDialog
   public String getHelpPage() {
     return "Gegner_hinzufuegen";
   }
-
-  protected void fillTable() {
-    Opponents opponents = Opponents.getOpponentsDB();
-    OpponentTable table = (OpponentTable) mTable;
-    listen = false;
-    for (String opponent : opponents.getOpponentNames()) {
-      if (isDisplayed(opponent)) table.addOpponent(opponents.getOpponent(opponent));
-    }
-    listen = true;
-    updateDeleteButton();
-  }
-
-  boolean listen = true;
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
@@ -149,7 +137,7 @@ public class OpponentSelectionDialog extends AbstractSelectionDialog
     Opponents.getOpponentsDB().removeOpponent(opponent);
   }
 
-  private void updateDeleteButton() {
+  protected void updateDeleteButton() {
     String opponent = mTable.getSelectedItem();
     boolean enabled = (opponent != null) && (opponent.length() > 0)
                     && Opponents.getOpponentsDB().getOpponent(opponent) != null 
@@ -166,7 +154,4 @@ public class OpponentSelectionDialog extends AbstractSelectionDialog
     else return true;
   }
 
-  protected boolean showShopButton() {
-    return false;
-  }
 }

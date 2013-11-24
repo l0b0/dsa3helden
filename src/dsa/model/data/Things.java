@@ -54,8 +54,21 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
     String name2 = Strings.getStringWithoutChangeTag(name);
     if (theThings.containsKey(name2))
       return theThings.get(name2);
-    else
-      return null;
+    else {
+      for (String tName : theThings.keySet()) {
+        if (name2.startsWith(tName)) {
+          String test = name2.substring(tName.length() + 1);
+          try {
+            Integer.parseInt(test);
+            return theThings.get(tName);
+          }
+          catch (NumberFormatException e) {
+            continue;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   public void addThing(Thing thing) {
@@ -108,11 +121,21 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
       lineNr++;
       while (line != null) {
         StringTokenizer tokenizer = new StringTokenizer(line, ";");
-        if (tokenizer.countTokens() != 6)
+        if (tokenizer.countTokens() != 7)
           throw new IOException("Zeile " + lineNr
               + ": Syntaxfehler in Ausrüstung!");
         String name = tokenizer.nextToken();
-        tokenizer.nextToken(); // Regionen
+        String tradezones = tokenizer.nextToken();
+        if ("-".equals(tradezones.trim())) {
+          tradezones = "";
+        }
+        StringTokenizer tokenizer2 = new StringTokenizer(tradezones.trim());
+        while (tokenizer2.hasMoreTokens()) {
+          String zone = tokenizer2.nextToken();
+          if (Tradezones.getInstance().getTradezone(zone) == null) {
+            throw new IOException("Zeile " + lineNr + ": Unbekannte Handelszone!");
+          }
+        }
         String valueS = tokenizer.nextToken().trim();
         if (valueS.endsWith("+"))
           valueS = valueS.substring(0, valueS.length() - 1);
@@ -155,9 +178,11 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
               + ": Ausrüstung hat falsches Gewicht!");
         }
         String category = tokenizer.nextToken();
+        boolean isContainer = tokenizer.nextToken().equals("1");
         // one token remains, either 1 or 0, don't know what it means
         Thing thing = new Thing(name, new dsa.util.Optional<Integer>(value),
-            currency, weight, category, false);
+            currency, weight, category, false, false, isContainer);
+        thing.setTradezones(tradezones);
         theThings.put(name, thing);
         line = in.readLine();
         lineNr++;
@@ -203,7 +228,7 @@ public class Things extends AbstractObservable<ThingsListenerBase> {
     try {
       out.println(userDefinedThings.size());
       for (Thing t : userDefinedThings)
-        t.writeToStream(out);
+        t.writeToStream(out, t.getName());
       out.flush();
     }
     finally {

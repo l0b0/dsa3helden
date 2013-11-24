@@ -1,3 +1,11 @@
+Version 1.8.0
+-------------
+- selbst angelegte Gegenstände können Einzelstücke sein
+- Handelszonen hinzugefügt
+- Einkaufsdialog überarbeitet: automatische Handelszonen, Warenkorb
+- Gegenstände können Behälter sein und andere Gegenstände enthalten
+- Umlaute aus Namen von Heldendateien entfernt wegen Problemen mit Ubuntu
+
 Version 1.7.0
 -------------
 - Dialog, um Gegenstände zu kaufen

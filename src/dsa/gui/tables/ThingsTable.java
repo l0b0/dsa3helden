@@ -247,15 +247,21 @@ public class ThingsTable extends AbstractTable {
         Optional<MyValue> oldValue = (Optional<MyValue>) mModel.getValueAt(i,
             getValueColumn());
         if (oldValue.hasValue()) {
-          long newValue = (long) oldValue.getValue().value * count / oldCount;
+          double newValue = oldValue.getValue().value * count / oldCount;
           Thing.Currency currency = oldValue.getValue().currency;
           while (currency != Thing.Currency.K) {
-            newValue *= 10;
+            newValue *= 10.0;
             currency = Thing.Currency.values()[currency.ordinal() + 1];
           }
           while (currency != Thing.Currency.D && newValue > 100) {
-            newValue /= 10;
+            newValue /= 10.0;
             currency = Thing.Currency.values()[currency.ordinal() - 1];
+          }
+          if (oldCount < count) {
+            while (currency != Thing.Currency.D && currency.ordinal() > oldValue.getValue().currency.ordinal()) {
+              newValue /= 10.0;
+              currency = Thing.Currency.values()[currency.ordinal() - 1];
+            }
           }
           mModel.setValueAt(new Optional<MyValue>(new MyValue(currency,
               (int) newValue)), i, getValueColumn());

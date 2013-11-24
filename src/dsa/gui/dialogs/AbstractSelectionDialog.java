@@ -21,9 +21,9 @@ package dsa.gui.dialogs;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.regex.Pattern;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -32,37 +32,37 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import dsa.gui.dialogs.ItemProviders.ItemProvider;
 import dsa.gui.lf.BGDialog;
 import dsa.gui.tables.AbstractTable;
-import dsa.gui.util.ImageManager;
-import dsa.model.data.Thing;
 
 public abstract class AbstractSelectionDialog extends BGDialog {
 
   public interface SelectionDialogCallback {
     void itemSelected(String item);
     void itemChanged(String item);
-    void itemsBought(String item, int count, int finalPrice, dsa.model.data.Thing.Currency currency);
   }
 
-  public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
+  public AbstractSelectionDialog(JFrame owner, String title, ItemProvider provider,
       String tableSortingID) {
-    this(owner, title, table, tableSortingID, false);
+    this(owner, title, provider, tableSortingID, false);
   }
   
-  public AbstractSelectionDialog(JFrame owner, String title, AbstractTable table,
+  public AbstractSelectionDialog(JFrame owner, String title, ItemProvider provider,
       String tableSortingID, boolean singleSelection) {
     super(owner, true);
-    mTable = table;
+    mTable = provider.getTable();
+    mProvider = provider;
     setTitle(title);
     mSortingID = tableSortingID;
     mSingleSelection = singleSelection;
   }
   
-  public AbstractSelectionDialog(JDialog owner, String title, AbstractTable table,
+  public AbstractSelectionDialog(JDialog owner, String title, ItemProvider provider,
       String tableSortingID, boolean singleSelection) {
     super(owner, true);
-    mTable = table;
+    mTable = provider.getTable();
+    mProvider = provider;
     setTitle(title);
     mSortingID = tableSortingID;
     mSingleSelection = singleSelection;
@@ -75,17 +75,20 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   private final String mSortingID;
   protected final boolean mSingleSelection;
   
+  protected boolean showSingularBox() { return false; }
+  
+  protected final boolean showSingularItems() {
+    return getSingularBox().isSelected();
+  }
+  
   protected final void initialize() {
     JPanel panel = mTable.getPanelWithTable();
     this.setContentPane(panel);
 
     JPanel lowerPanel = new JPanel();
     lowerPanel.setLayout(null);
-    lowerPanel.setPreferredSize(new java.awt.Dimension(showShopButton() ? 520 : 200, 40));
+    lowerPanel.setPreferredSize(new java.awt.Dimension(200, 40));
     lowerPanel.add(getAddButton());
-    if (showShopButton()) {
-      lowerPanel.add(getShopButton());
-    }
     lowerPanel.add(getCloseButton(mSortingID));
 
     addSubclassSpecificButtons(lowerPanel);
@@ -99,6 +102,9 @@ public abstract class AbstractSelectionDialog extends BGDialog {
     label1.setBounds(5, 5, 50, 19);
     upperPanel.add(label1);
     upperPanel.add(getFilterField());
+    if (showSingularBox()) {
+      upperPanel.add(getSingularBox());
+    }
     panel.add(upperPanel, java.awt.BorderLayout.NORTH);
 
     mTable.restoreSortingState(mSortingID);
@@ -115,12 +121,8 @@ public abstract class AbstractSelectionDialog extends BGDialog {
     this.callback = callback;
   }
   
-  protected abstract boolean showShopButton();
-
   JButton addButton;
   
-  JButton shopButton;
-
   JButton closeButton;
 
   private SelectionDialogCallback callback = null;
@@ -130,6 +132,7 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   }
 
   protected AbstractTable mTable;
+  protected ItemProvider mProvider;
 
   ActionListener myListener = new ActionListener() {
     public void actionPerformed(ActionEvent e) {
@@ -166,50 +169,18 @@ public abstract class AbstractSelectionDialog extends BGDialog {
   protected final JButton getCloseButton(String sortingID) {
     if (closeButton == null) {
       closeButton = new JButton(mSingleSelection ? "Abbrechen" : "Schließen");
-      closeButton.setBounds(showShopButton() ? 210 : 160, 5, 140, 25);
+      closeButton.setBounds(160, 5, 140, 25);
       closeButton.addActionListener(new Closer(sortingID));
     }
     return closeButton;
   }
   
-  protected int getDefaultPrice(String item) { 
-    return 0;
-  }
-  
-  protected Thing.Currency getCurrency(String item) {
-    return Thing.Currency.S;
-  }
-  
-  protected final JButton getShopButton() {
-    if (shopButton == null) {
-      shopButton = new JButton();
-      shopButton.setBounds(160, 5, 40, 25);
-      shopButton.setIcon(ImageManager.getIcon("money"));
-      shopButton.setToolTipText("Kaufen");
-      shopButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          if (callback == null) return;
-          String item = mTable.getSelectedItem();
-          Thing.Currency currency = getCurrency(item);
-          ShopDialog dialog = new ShopDialog(AbstractSelectionDialog.this, 
-              getDefaultPrice(item), currency);
-          dialog.setVisible(true);
-          if (dialog.wasClosedByOK()) {
-            callback.itemsBought(item, dialog.getCount(), 
-                dialog.getFinalPrice(), currency);
-          }
-        }
-      });
-    }
-    return shopButton;
-  }
-
   private JTextField filterField;
 
   protected final JTextField getFilterField() {
     if (filterField == null) {
       filterField = new JTextField();
-      filterField.setBounds(55, 5, 250, 19);
+      filterField.setBounds(55, 5, 195, 20);
       filterField.getDocument().addDocumentListener(new DocumentListener() {
         public void insertUpdate(DocumentEvent e) {
           filter();
@@ -227,30 +198,38 @@ public abstract class AbstractSelectionDialog extends BGDialog {
     }
     return filterField;
   }
-
-  private Pattern mFilter = Pattern.compile(".*");
-
-  protected final boolean isDisplayed(String item) {
-    return mFilter.matcher(item.toLowerCase(java.util.Locale.GERMAN)).matches();
+  
+  protected final JCheckBox getSingularBox() {
+    if (singularBox == null) {
+      singularBox = new JCheckBox("Einzelstücke");
+      singularBox.setBounds(260, 5, 120, 20);
+      singularBox.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          mTable.clear();
+          fillTable();
+        }
+      });
+    }
+    return singularBox;
   }
+  
+  private JCheckBox singularBox;
 
   private void filter() {
     String s = getFilterField().getText();
-    if (s == null) s = "";
-    if (s.equals("")) s = "*";
-    if (!s.endsWith("*")) s = s + "*";
-    s = s.replaceAll("\\*", ".*");
-    s = s.toLowerCase(java.util.Locale.GERMAN);
-    try {
-      mFilter = Pattern.compile(s);
-    }
-    catch (java.util.regex.PatternSyntaxException e) {
-      mFilter = Pattern.compile(".*");
-    }
+    mProvider.setFilter(s);
     mTable.clear();
     fillTable();
   }
+  
+  protected boolean listen = true;
 
-  protected abstract void fillTable();
-
+  protected final void fillTable() {
+    listen = false;
+    mProvider.fillTable(showSingularItems());
+    listen = true;
+    updateDeleteButton();    
+  }
+  
+  protected abstract void updateDeleteButton();
 }

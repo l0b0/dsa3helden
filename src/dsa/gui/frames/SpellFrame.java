@@ -46,7 +46,6 @@ import dsa.gui.util.table.FormattedTextFieldCellEditor;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.data.SpellStartValues;
-import dsa.model.data.Thing.Currency;
 import dsa.model.talents.Spell;
 import dsa.model.talents.Talent;
 import dsa.util.Optional;
@@ -279,11 +278,6 @@ public final class SpellFrame extends TalentFrame {
     }
 
     private final SpellSelectionDialog dialog;
-
-    @Override
-    public void itemsBought(String item, int count, int finalPrice,
-        Currency currency) {
-    }
   }
 
   protected void addSpell() {

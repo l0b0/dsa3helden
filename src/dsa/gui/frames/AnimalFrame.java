@@ -38,6 +38,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -48,20 +49,13 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import dsa.gui.dialogs.AnimalProbeDialog;
-import dsa.gui.dialogs.ThingSelectionDialog;
-import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
-import dsa.gui.tables.ThingTransfer;
-import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.DiceSpecification;
 import dsa.model.data.Animal;
-import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
-import dsa.model.data.Thing.Currency;
-import dsa.util.Optional;
 
-public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListener {
+public class AnimalFrame extends AbstractThingsFrame {
 
   private static final int GAP = 10;
 
@@ -77,8 +71,9 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
   
   JPanel center, grid;
   
-  private void updateData()
+  protected void updateData()
   {
+    super.updateData();
     if (grid != null) center.remove(grid);
     grid = getGrid();
     center.add(grid, BorderLayout.NORTH);
@@ -86,7 +81,7 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
   }
 
   public AnimalFrame(Animal a, boolean setSize) {
-    super(ThingTransfer.Flavors.Thing, a.getName());
+    super(a, a.getName());
     this.animal = a;
     JPanel contentPane = new JPanel(new BorderLayout());
     this.setContentPane(contentPane);
@@ -109,6 +104,11 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     center.add(grid, BorderLayout.NORTH);
 
     thingsPanel = getThingsPanel();
+
+    thingsPanel.setBorder(BorderFactory.createTitledBorder(
+        BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
+        "Gegenstände"));
+    
     center.add(thingsPanel, BorderLayout.CENTER);
     
     contentPane.add(center, BorderLayout.CENTER);
@@ -116,142 +116,67 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
       pack();
     }
     
-    calcSums();
-
     listener = new Animal.Listener() {
       public void nameChanged(String oldName, String newName) {
         AnimalFrame.this.setTitle(newName);
       }
-      public void thingRemoved(String thing) {
-        int count = animal.getThingCount(thing);
-        if (count == 0) {
-          mTable.removeThing(thing);
-        }
-        else {
-          mTable.setCount(thing, count);
-        }
-        calcSums();
-      }
     };
     animal.addListener(listener);
-    Things.getInstance().addObserver(this);
     this.addWindowListener(new WindowAdapter() {
       boolean done = false;
       public void windowClosing(WindowEvent e) {
         animal.removeListener(listener);
-        Things.getInstance().removeObserver(AnimalFrame.this);
         done = true;
       }
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
           animal.removeListener(listener);
-          Things.getInstance().removeObserver(AnimalFrame.this);
         }
       }
     });
+    
+    updateData();
   }
   
   public String getHelpPage() {
     return "Tier";
   }
   
-  private ThingsTable mTable;
-  JLabel sumLabel;
-
-  JLabel getSumLabel() {
-    if (sumLabel == null) {
-      sumLabel = new JLabel("");
-      sumLabel.setForeground(java.awt.Color.BLUE);
-      sumLabel.setBounds(5, 5, 440, 25);
-    }
-    return sumLabel;
+  protected Rectangle getSumLabelPos() {
+    return new Rectangle(5, 5, 440, 25);
   }
 
-  JButton addButton;
-
-  JButton removeButton;
-
-  JButton getAddButton() {
-    if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
-      addButton.setBounds(5, 5, 60, 25);
-      addButton.setToolTipText("Gegenstand hinzufügen");
-      addButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          selectItem();
-        }
-      });
-    }
-    return addButton;
+  protected Rectangle getAddButtonPos() {
+    return new Rectangle(5, 5, 60, 25);
   }
 
-  protected void selectItem() {
-    ThingSelectionDialog dialog = new ThingSelectionDialog(this);
-    dialog.setCallback(new SelectionDialogCallback() {
-      public void itemSelected(String item) {
-        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), 1);
-      }
-      public void itemChanged(String item) {
-        Things.getInstance().thingChanged(item);
-      }
-      @Override
-      public void itemsBought(String item, int count, int finalPrice,
-          Currency currency) {
-        addItem(item, new ExtraThingData(ExtraThingData.Type.Thing), count);
-        dsa.model.characters.Group.getInstance().getActiveHero().pay(finalPrice, currency);
-      }
-    });
-    dialog.setVisible(true);
+  protected Rectangle getBuyButtonPos() {
+     return new Rectangle(5, 35, 60, 25);
   }
-
-  JButton getRemoveButton() {
-    if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
-      removeButton.setBounds(5, 35, 60, 25);
-      removeButton.setToolTipText("Gegenstand entfernen");
-      removeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          String name = mTable.getSelectedItem();
-          removeItem(name);
-        }
-      });
-    }
-    return removeButton;
+  
+  protected Rectangle getRemoveButtonPos() {
+     return new Rectangle(5, 65, 60, 25);
   }
+  
+  protected Rectangle getEditButtonPos() {
+    return new Rectangle(5, 95, 60, 25);
+  }
+  
+  protected String calcSumLabelText() {
+    String text = super.calcSumLabelText();
 
-  private void calcSums() {
     long weight = 0;
-    long value = 0;
     Things things = Things.getInstance();
     for (String name : animal.getThings()) {
       Thing thing = things.getThing(name);
       if (thing != null) {
         long count = animal.getThingCount(name);
         weight += count * (long) thing.getWeight();
-        if (thing.getValue().hasValue()) {
-          if (thing.getCurrency() == Thing.Currency.D)
-            value += count * (long) thing.getValue().getValue() * 1000L;
-          else if (thing.getCurrency() == Thing.Currency.S)
-            value += count * (long) thing.getValue().getValue() * 100L;
-          else if (thing.getCurrency() == Thing.Currency.K)
-            value += count * (long) thing.getValue().getValue() * 10L;
-          else if (thing.getCurrency() == Thing.Currency.H)
-            value += count * (long) thing.getValue().getValue();
-        }
       }
     }
     float weightStones = weight / 40.0f;
-    float valueD = value / 1000.0f;
 
-    NumberFormat format = NumberFormat.getNumberInstance();
-    format.setGroupingUsed(true);
-    format.setMaximumFractionDigits(2);
-    format.setMinimumFractionDigits(0);
-    format.setMinimumIntegerDigits(1);
-    
     int tk = -1;
     for (int i = 0; i < animal.getNrOfAttributes(); ++i) {
       String attrName = animal.getAttributeTitle(i);
@@ -264,10 +189,14 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
       }
     }
 
-    String text = "Gesamt: Wert ca. " + format.format(valueD)
-        + " Dukaten, Gewicht ca. ";
+    NumberFormat format = NumberFormat.getNumberInstance();
+    format.setGroupingUsed(true);
     format.setMaximumFractionDigits(3);
-    text += format.format(weightStones) + " Stein; TK: ";
+    format.setMinimumFractionDigits(0);
+    format.setMinimumIntegerDigits(1);
+
+    text += "(Gesamt: ";
+    text += format.format(weightStones) + " Stein); TK: ";
     text += (tk == -1) ? "??" : tk;
     text += " Stein";
     if (weightStones <= tk) {
@@ -276,61 +205,12 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     else {
       sumLabel.setForeground(java.awt.Color.RED);
     }
-    sumLabel.setText(text);
+    
+    return text;
   }
   
   private static final Color DARK_GREEN = new Color(0, 175, 0);
   
-  private JPanel getThingsPanel() {
-    mTable = new ThingsTable(true);
-    registerForDnD(mTable);
-    JPanel thingsTablePanel = mTable.getPanelWithTable();
-
-    JPanel lowerPanel = new JPanel();
-    lowerPanel.setLayout(null);
-    lowerPanel.setPreferredSize(new java.awt.Dimension(150, 40));
-    lowerPanel.add(getSumLabel(), null);
-    thingsTablePanel.add(lowerPanel, BorderLayout.SOUTH);
-
-    JPanel rightPanel = new JPanel();
-    rightPanel.setLayout(null);
-    rightPanel.setPreferredSize(new java.awt.Dimension(70, 50));
-    rightPanel.add(getAddButton(), null);
-    rightPanel.add(getRemoveButton(), null);
-    thingsTablePanel.add(rightPanel, BorderLayout.EAST);
-
-    thingsTablePanel.setPreferredSize(new Dimension(200, 200));
-        
-    if (animal != null) {
-      Things things = Things.getInstance();
-      for (String name : animal.getThings()) {
-        Thing thing = things.getThing(name);
-        if (thing != null) {
-          mTable.addThing(thing);
-        }
-        else
-          mTable.addUnknownThing(name);
-        mTable.setCount(name, animal.getThingCount(name));
-      }
-      calcSums();
-      removeButton.setEnabled(animal.getThings().length > 0);
-      addButton.setEnabled(true);
-    }
-    else {
-      sumLabel
-          .setText("Gesamt: Wert 0 Dukaten, Gewicht 0 Stein");
-      addButton.setEnabled(false);
-      removeButton.setEnabled(false);
-    }
-    mTable.setFirstSelectedRow();
-    
-    thingsTablePanel.setBorder(BorderFactory.createTitledBorder(
-        BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
-        "Gegenstände"));
-
-    return thingsTablePanel;
-  }
-
   private JPanel getGrid() {
     JPanel grid = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -608,67 +488,6 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     return index;
   }
 
-  protected boolean addItem(String item, ExtraThingData extraData) {
-    return addItem(item, extraData, 1);
-  }
-  
-  protected boolean addItem(String item, ExtraThingData extraData, int count) {
-    if (extraData.getType() == ExtraThingData.Type.Weapon) {
-      dsa.model.data.Weapon w = dsa.model.data.Weapons.getInstance().getWeapon(item);
-      item = w.getName();
-    }
-    if (animal.getThingCount(item) == 0) {
-      Thing thing = Things.getInstance().getThing(item);
-      if (thing != null) {
-        mTable.addThing(thing);
-        mTable.setCount(item, count);
-      }
-      else if (extraData.getType() != ExtraThingData.Type.Thing) {
-        try {
-          String category = extraData.getProperty("Category");
-          int value = extraData.getPropertyInt("Worth");
-          int weight = extraData.getPropertyInt("Weight");
-          thing = new Thing(item, new Optional<Integer>(value), Thing.Currency.S, weight, category, true);
-          Things.getInstance().addThing(thing);
-          mTable.addThing(thing);
-          mTable.setCount(item, count);
-        }
-        catch (ExtraThingData.PropertyException e) {
-          e.printStackTrace();
-          return false;
-        }
-      }
-      else {
-        JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
-            "Gegenstand hinzufügen", JOptionPane.ERROR_MESSAGE);
-        return false;
-      }
-    }
-    else
-      mTable.setCount(item, animal.getThingCount(item) + count);
-    for (int i = 0; i < count; ++i)
-      animal.addThing(item, extraData);
-    removeButton.setEnabled(true);
-    calcSums();
-    return true;
-  }
-  
-  protected ExtraThingData getExtraDnDData(String item) {
-    return animal.getExtraThingData(item, animal.getThingCount(item));
-  }
-
-  protected void removeItem(String name) {
-    int oldCount = animal.getThingCount(name);
-    animal.removeThing(name);
-    if (oldCount != 1) {
-      mTable.setCount(name, oldCount - 1);
-    }
-    // else
-      // mTable.RemoveSelectedThing();
-    removeButton.setEnabled(animal.getThings().length > 0);
-    calcSums();
-  }
-
   private final Animal.Listener listener;
 
   private final Animal animal;
@@ -807,12 +626,4 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     }
   }
 
-  public void thingChanged(String thing) {
-    if (mTable.containsItem(thing)) {
-      mTable.removeThing(thing);
-      mTable.addThing(Things.getInstance().getThing(thing));
-      mTable.setCount(thing, animal.getThingCount(thing));
-      calcSums();
-    }
-  }
 }

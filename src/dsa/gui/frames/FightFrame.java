@@ -62,7 +62,6 @@ import dsa.model.data.Shields;
 import dsa.model.data.Talents;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
-import dsa.model.data.Thing.Currency;
 import dsa.model.talents.Talent;
 import dsa.util.Optional;
 
@@ -2025,11 +2024,6 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     
     private final JComboBox mBox;
-
-    @Override
-    public void itemsBought(String item, int count, int finalPrice,
-        Currency currency) {
-    }
   };
 
   private void selectOpponentWeapon(final JComboBox box) {

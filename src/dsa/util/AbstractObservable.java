@@ -19,7 +19,7 @@
  */
 package dsa.util;
 
-public abstract class AbstractObservable<T extends Observer> {
+public abstract class AbstractObservable<T extends Observer> implements Observable<T> {
 
   protected java.util.LinkedList<T> observers;
 

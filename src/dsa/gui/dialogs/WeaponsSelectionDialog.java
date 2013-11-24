@@ -27,12 +27,12 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import dsa.gui.dialogs.ItemProviders.WeaponsProvider;
 import dsa.gui.tables.WeaponsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
-import dsa.util.Optional;
 
 public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
 
@@ -41,29 +41,20 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
   }
   
   public WeaponsSelectionDialog(javax.swing.JFrame owner, boolean singleSelection) {
-    super(owner, "Waffe hinzufügen", new WeaponsTable(false), "Waffen", singleSelection);
+    super(owner, "Waffe hinzufügen", new WeaponsProvider(), "Waffen", singleSelection);
     initialize();
     fillTable();
   }
 
   public WeaponsSelectionDialog(javax.swing.JDialog owner, boolean singleSelection) {
-    super(owner, "Waffe hinzufügen", new WeaponsTable(false), "Waffen", singleSelection);
+    super(owner, "Waffe hinzufügen", new WeaponsProvider(), "Waffen", singleSelection);
     initialize();
     fillTable();
   }
-
-  protected void fillTable() {
-    Weapons weapons = Weapons.getInstance();
-    WeaponsTable table = (WeaponsTable) mTable;
-    listen = false;
-    for (Weapon weapon : weapons.getAllWeapons()) {
-      if (isDisplayed(weapon.getName())) table.addWeapon(weapon, 1);
-    }
-    listen = true;
-    updateDeleteButton();
+  
+  protected boolean showSingularBox() {
+    return true;
   }
-
-  boolean listen = true;
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
@@ -93,8 +84,10 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
           WeaponDialog dialog = new WeaponDialog(WeaponsSelectionDialog.this);
           dialog.setVisible(true);
           if (dialog.getCreatedWeapon() != null) {
-            Weapons.getInstance().addWeapon(dialog.getCreatedWeapon());
-            ((WeaponsTable) mTable).addWeapon(dialog.getCreatedWeapon(), 1);
+            Weapon weapon = dialog.getCreatedWeapon();
+            Weapons.getInstance().addWeapon(weapon);
+            if (!weapon.isSingular() || showSingularItems())
+              ((WeaponsTable) mTable).addWeapon(weapon, 1);
           }
         }
       });
@@ -115,7 +108,8 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
           dialog.setVisible(true);
           if (dialog.getCreatedWeapon() != null) {
             ((WeaponsTable) mTable).removeWeapon(weapon.getName());
-            ((WeaponsTable) mTable).addWeapon(weapon, 1);
+            if (!weapon.isSingular() || showSingularItems())
+              ((WeaponsTable) mTable).addWeapon(weapon, 1);
             if (getCallback() != null) {
               getCallback().itemChanged(weapon.getName());
             }
@@ -156,20 +150,11 @@ public final class WeaponsSelectionDialog extends AbstractSelectionDialog {
     Weapons.getInstance().removeWeapon(weapon);
   }
 
-  private void updateDeleteButton() {
+  protected void updateDeleteButton() {
     String weapon = mTable.getSelectedItem();
     boolean enabled = weapon != null && weapon.length() > 0
                     && Weapons.getInstance().getWeapon(weapon).isUserDefined();
     getDeleteButton().setEnabled(enabled);
     getEditButton().setEnabled(enabled);
-  }
-
-  protected boolean showShopButton() {
-    return !mSingleSelection;
-  }
-  
-  protected int getDefaultPrice(String item) {
-    Optional<Integer> value = Weapons.getInstance().getWeapon(item).getWorth();
-    return value.hasValue() ? value.getValue().intValue() : 0;
   }
 }

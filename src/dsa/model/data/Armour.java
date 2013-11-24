@@ -32,22 +32,29 @@ public class Armour {
   int worth;
 
   boolean userDefined;
+  
+  boolean singular;
 
-  public Armour(String aName, int aRS, int aBE, int aWeight, int aWorth) {
-    this(aName, aRS, aBE, aWeight, aWorth, true);
+  public Armour(String aName, int aRS, int aBE, int aWeight, int aWorth, boolean singular) {
+    this(aName, aRS, aBE, aWeight, aWorth, true, singular);
   }
 
-  Armour(String aName, int aRS, int aBE, int aWeight, int aWorth, boolean ud) {
+  Armour(String aName, int aRS, int aBE, int aWeight, int aWorth, boolean ud, boolean singular) {
     name = aName;
     rs = aRS;
     be = aBE;
     weight = aWeight;
     worth = aWorth;
     userDefined = ud;
+    this.singular = singular;
   }
 
   public boolean isUserDefined() {
     return userDefined;
+  }
+  
+  public boolean isSingular() {
+    return singular;
   }
 
   /**
@@ -106,6 +113,10 @@ public class Armour {
   
   public void setWeight(int i) {
     weight = i;
+  }
+  
+  public void setIsSingular(boolean singular) {
+    this.singular = singular;
   }
 
 }

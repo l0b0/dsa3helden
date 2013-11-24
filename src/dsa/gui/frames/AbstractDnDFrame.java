@@ -48,7 +48,7 @@ import javax.swing.UIManager;
 
 import dsa.gui.tables.AbstractTable;
 import dsa.gui.tables.ThingTransfer;
-import dsa.model.data.ExtraThingData;
+import dsa.model.data.IExtraThingData;
 
 abstract class AbstractDnDFrame extends SubFrame {
 
@@ -57,19 +57,32 @@ abstract class AbstractDnDFrame extends SubFrame {
     mFlavor = flavor;
   }
   
+  private static String sourceCarrier = null;
+  private static boolean movedToContainer = false;
+  
   protected static boolean isChangeAllowed()
   {
     dsa.model.characters.Hero hero = dsa.model.characters.Group.getInstance().getActiveHero();
     return hero != null && !hero.isDifference();
   }
 
-  protected abstract boolean addItem(String item, ExtraThingData extraData);
+  protected abstract boolean addItem(String item, IExtraThingData extraData);
+  
+  protected boolean addMovedItem(String item, IExtraThingData extraData) {
+    return addItem(item, extraData);
+  }
 
-  protected abstract void removeItem(String item);
+  protected abstract void removeItem(String item, boolean alwaysWithContent);
+  
+  protected void removeMovedItem(String item) {
+    removeItem(item, true);
+  }
   
   protected abstract void selectItem();
   
-  protected abstract ExtraThingData getExtraDnDData(String item);
+  protected String getCarrier() { return ""; }
+  
+  protected abstract IExtraThingData getExtraDnDData(String item);
 
   protected final void registerForDnD(AbstractTable table) {
     table.setTransferHandler(new ThingTransferHandler(table));
@@ -96,7 +109,7 @@ abstract class AbstractDnDFrame extends SubFrame {
       public void actionPerformed(ActionEvent e) {
         if (!isChangeAllowed()) return;
         String item = mTable.getSelectedItem();
-        if (item != null) removeItem(item);
+        if (item != null) removeItem(item, false);
       }
       private AbstractTable mTable;
     }
@@ -151,7 +164,7 @@ abstract class AbstractDnDFrame extends SubFrame {
       // nothing to do
     }
   }
-
+  
   private static final class ContextMenuManager extends MouseAdapter implements ActionListener, KeyListener {
     
     private ActionMap actionMap;
@@ -257,16 +270,24 @@ abstract class AbstractDnDFrame extends SubFrame {
     protected Transferable createTransferable(JComponent c) {
       if (mTable.getSelectedItem() == null) return null;
       targetValue = mTable.getSelectedItem();
-      ExtraThingData data = getExtraDnDData(targetValue);
+      IExtraThingData data = getExtraDnDData(targetValue);
       dragStartedHere = true;
+      sourceCarrier = getCarrier();
       return new ThingTransfer(mFlavor, mTable.getSelectedItem(), data);
     }
 
     protected void exportDone(JComponent source, Transferable data, int action) {
       dragStartedHere = false;
+      sourceCarrier = null;
       if (action != MOVE) return;
       if (targetValue == null) throw new InternalError();
-      removeItem(targetValue);
+      if (!movedToContainer) {
+        removeItem(targetValue, true);
+      }
+      else {
+        removeMovedItem(targetValue);
+        movedToContainer = false;
+      }
       targetValue = null;
     }
     
@@ -304,9 +325,15 @@ abstract class AbstractDnDFrame extends SubFrame {
         StringReader r = new StringReader(data);
         BufferedReader in = new BufferedReader(r);
         targetValue = in.readLine();
-        ExtraThingData extraData = new ExtraThingData();
-        extraData.read(in, 0);
-        return addItem(targetValue, extraData);
+        IExtraThingData extraData = IExtraThingData.create(in, 1);
+        if (sourceCarrier != null && sourceCarrier.equals(getCarrier())) {
+          boolean result = addMovedItem(targetValue, extraData);
+          if (result) movedToContainer = true;
+          return result;
+        }
+        else {
+          return addItem(targetValue, extraData);
+        }
       }
       catch (UnsupportedFlavorException e) {
         return false;

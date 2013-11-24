@@ -27,13 +27,13 @@ import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import dsa.gui.dialogs.ItemProviders.ThingsProvider;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.data.Animal;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
-import dsa.util.Optional;
 
 public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectionDialog {
 
@@ -43,32 +43,15 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
   }
 
   public ThingSelectionDialog(javax.swing.JFrame owner, boolean allThings) {
-    super(owner, "Gegenstand hinzufügen", new ThingsTable(false, allThings),
+    super(owner, "Gegenstand hinzufügen", new ThingsProvider(allThings),
         allThings ? "AusrüstungSelector" : "KleidungSelector");
-    this.allThings = allThings;
     initialize();
     fillTable();
   }
 
-  private boolean allThings;
-
-  protected void fillTable() {
-    Things things = Things.getInstance();
-    ThingsTable table = (ThingsTable) mTable;
-    listen = false;
-    for (Thing thing : things.getAllWearableThings()) {
-      if (!allThings) {
-        if (!thing.getCategory().equals("Kleidung")) {
-          continue;
-        }
-      }
-      if (isDisplayed(thing.getName())) table.addThing(thing);
-    }
-    listen = true;
-    updateDeleteButton();
+  protected boolean showSingularBox() {
+    return true;
   }
-
-  boolean listen = true;
 
   protected void addSubclassSpecificButtons(JPanel lowerPanel) {
     lowerPanel.add(getNewButton());
@@ -98,7 +81,8 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
           ThingDialog dialog = new ThingDialog(ThingSelectionDialog.this);
           dialog.setVisible(true);
           if (dialog.getThing() != null)
-            ((ThingsTable) mTable).addThing(dialog.getThing(), dialog.getThing().getName(), true);
+            if (showSingularItems() || !dialog.getThing().isSingular())
+              ((ThingsTable) mTable).addThing(dialog.getThing(), dialog.getThing().getName(), true);
         }
       });
     }
@@ -118,7 +102,8 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
           dialog.setVisible(true);
           if (dialog.getThing() != null) {
             ((ThingsTable) mTable).removeThing(thing.getName());
-            ((ThingsTable) mTable).addThing(thing, thing.getName(), true);
+            if (showSingularItems() || !thing.isSingular())
+              ((ThingsTable) mTable).addThing(thing, thing.getName(), true);
             if (getCallback() != null) {
               getCallback().itemChanged(thing.getName());
             }
@@ -153,13 +138,11 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     for (dsa.model.characters.Hero c : Group.getInstance()
         .getAllCharacters()) {
       while (c.getThingCount(thing) > 0)
-        c.removeThing(thing);
-      while (c.getThingInWarehouseCount(thing) > 0) 
-        c.removeThingFromWarehouse(thing);
+        c.removeThing(thing, false);
       for (int i = 0; i < c.getNrOfAnimals(); ++i) {
         Animal a = c.getAnimal(i);
         while (a.getThingCount(thing) > 0) {
-          a.removeThing(thing);
+          a.removeThing(thing, false);
         }
       }
     }
@@ -167,7 +150,7 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     Things.getInstance().removeThing(thing);
   }
 
-  private void updateDeleteButton() {
+  protected void updateDeleteButton() {
     String thing = mTable.getSelectedItem();
     boolean enabled = thing != null && thing.length() > 0
                     && Things.getInstance().getThing(thing).isUserDefined();
@@ -175,16 +158,4 @@ public final class ThingSelectionDialog extends dsa.gui.dialogs.AbstractSelectio
     getEditButton().setEnabled(enabled);
   }
 
-  protected boolean showShopButton() {
-    return true;
-  }
-  
-  protected int getDefaultPrice(String item) {
-    Optional<Integer> value = Things.getInstance().getThing(item).getValue();
-    return value.hasValue() ? value.getValue().intValue() : 0;
-  }
-  
-  protected Thing.Currency getCurrency(String item) {
-    return Things.getInstance().getThing(item).getCurrency();
-  }
 }

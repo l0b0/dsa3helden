@@ -327,7 +327,7 @@ public class WiegeImporter {
     for (String weapon : tempWeapons)
       hero.addWeapon(weapon);
     for (String thing : tempthings)
-      hero.addThing(thing);
+      hero.addThing(thing, "Ausrüstung");
     hero.notes = tempnotes;
     hero.setPrintingTemplateFile(tempDocumentTemplate);
     int ftNumber = 0;
@@ -516,7 +516,7 @@ public class WiegeImporter {
       if (things.getThing(name) == null) {
         things.addThing(new dsa.model.data.Thing(name,
             dsa.util.Optional.NULL_INT, dsa.model.data.Thing.Currency.H, weight,
-            "-", true));
+            "-", true, false, false));
       }
       tempthings.add(name);
     }
@@ -595,7 +595,7 @@ public class WiegeImporter {
         throw new IOException("Zeile " + lineNr + ": Gewicht ist keine Zahl!");
       }
       if (armours.getArmour(name) == null) {
-        Armour armour = new Armour(name, rs, be, weight, 0);
+        Armour armour = new Armour(name, rs, be, weight, 0, false);
         armours.addArmour(armour);
       }
       tempArmours.add(name);
@@ -681,7 +681,7 @@ public class WiegeImporter {
       if (weapons.getWeapon(name) == null) {
         weapons.addWeapon(new dsa.model.data.Weapon(w6d, constd, category,
             name, bf, kkzuschlag, weight, true, false, false, 
-            dsa.util.Optional.NULL_INT, new dsa.model.data.Weapon.WV(4, 4)));
+            dsa.util.Optional.NULL_INT, new dsa.model.data.Weapon.WV(4, 4), false));
       }
       tempWeapons.add(name);
     }

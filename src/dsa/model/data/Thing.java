@@ -23,6 +23,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.ArrayList;
+
 import dsa.util.Optional;
 
 public class Thing {
@@ -49,19 +51,31 @@ public class Thing {
   private String category;
 
   private boolean mIsUserDefined;
+  
+  private boolean mIsSingular;
+  
+  private boolean mIsContainer;
+  
+  private ArrayList<String> mTradezones;
 
   public Thing() {
-    this("-", Optional.NULL_INT, Currency.K, 0, "", false);
+    this("-", Optional.NULL_INT, Currency.K, 0, "", false, false, false);
   }
 
   public Thing(String name, Optional<Integer> value, Currency currency,
-      int weight, String category, boolean userDefined) {
+      int weight, String category, boolean userDefined, boolean isSingular, boolean isContainer) {
     this.name = name;
     this.value = value;
     this.currency = currency;
     this.weight = weight;
     this.category = category;
     this.mIsUserDefined = userDefined;
+    this.mIsSingular = isSingular;
+    this.mIsContainer = isContainer;
+    mTradezones = new ArrayList<String>();
+    for (String zone : Tradezones.getInstance().getTradezoneIDs()) {
+      mTradezones.add(zone);
+    }
   }
 
   public Currency getCurrency() {
@@ -83,17 +97,37 @@ public class Thing {
   public boolean isUserDefined() {
     return mIsUserDefined;
   }
+  
+  public boolean isSingular() {
+    return mIsSingular;
+  }
+  
+  public boolean isContainer() {
+    return mIsContainer;
+  }
+  
+  public String[] getTradezones() {
+    String[] result = new String[mTradezones.size()];
+    return mTradezones.toArray(result);
+  }
 
-  private static final int FILE_VERSION = 2;
+  private static final int FILE_VERSION = 5;
 
-  public void writeToStream(PrintWriter out) throws IOException {
+  public void writeToStream(PrintWriter out, String otherName) throws IOException {
     out.println(FILE_VERSION);
-    out.println(name);
+    out.println(otherName);
     out.println(value);
     out.println(currency.ordinal());
     out.println(weight);
     out.println(mIsUserDefined ? 1 : 0);
     out.println(category);
+    out.println(mIsSingular ? 1 : 0);
+    out.println(mIsContainer ? 1 : 0);
+    for (String tradezone : mTradezones) {
+      out.print(tradezone);
+      out.print(" ");
+    }
+    out.println();
     out.println("-- End of Thing --");
   }
 
@@ -151,6 +185,30 @@ public class Thing {
       mIsUserDefined = false;
       category = "";
     }
+    if (version > 2) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      mIsSingular = parseInt(line, lineNr) == 1;
+    }
+    else
+      mIsSingular = false;
+    if (version > 3) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      mIsContainer = parseInt(line, lineNr) == 1;
+    }
+    else
+      mIsContainer = false;
+    if (version > 4) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      setTradezones(line);
+    }
+    else
+      setTradezones("");
     do {
       line = in.readLine();
       lineNr++;
@@ -188,5 +246,26 @@ public class Thing {
 
   public void setWeight(int weight) {
     this.weight = weight;
+  }
+  
+  public void setIsSingular(boolean singular) {
+    this.mIsSingular = singular;
+  }
+  
+  public void setIsContainer(boolean container) {
+    this.mIsContainer = container;
+  }
+  
+  public void setTradezones(String tradezones) {
+    mTradezones.clear();
+    java.util.StringTokenizer tokenizer = new java.util.StringTokenizer(tradezones.trim());
+    while (tokenizer.hasMoreTokens()) {
+      mTradezones.add(tokenizer.nextToken());
+    }    
+    if (mTradezones.isEmpty()) {
+      for (String zone : Tradezones.getInstance().getTradezoneIDs()) {
+        mTradezones.add(zone);
+      }
+    }
   }
 }

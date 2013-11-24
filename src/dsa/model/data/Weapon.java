@@ -59,6 +59,8 @@ public class Weapon implements Cloneable {
   
   private String projectileType; 
   
+  private boolean singular;
+  
   public static class WV {
     private int at;
     private int pa;
@@ -83,7 +85,7 @@ public class Weapon implements Cloneable {
    */
   public Weapon() {
     this(1, 0, 0, "unbenannt", 0, new Optional<Integer>(20), 0, false, false,
-        false, Optional.NULL_INT, new WV(4, 4));
+        false, Optional.NULL_INT, new WV(4, 4), false);
   }
   
   public boolean isFarRangedWeapon() {
@@ -145,8 +147,16 @@ public class Weapon implements Cloneable {
   public void setWV(int at, int pa) {
     if (!farRanged) wv = new WV(at, pa);
   }
+  
+  public boolean isSingular() {
+    return singular;
+  }
+  
+  public void setIsSingular(boolean singular) {
+    this.singular = singular;
+  }
 
-  private static final int FILE_VERSION = 8;
+  private static final int FILE_VERSION = 9;
 
   public void writeToStream(PrintWriter out) throws IOException {
     out.println(FILE_VERSION);
@@ -184,6 +194,8 @@ public class Weapon implements Cloneable {
     else {
       out.println("-");
     }
+    // version 9
+    out.println(singular ? 1 : 0);
     out.println("-- End of Weapon --");
   }
 
@@ -351,6 +363,15 @@ public class Weapon implements Cloneable {
       wv = new WV(4, 4);
     }
     
+    if (version >= 9) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      singular = parseInt(line, lineNr) == 1;
+    }
+    else
+      singular = false;
+    
     if (version < 3) {
       Weapon w = Weapons.getInstance().getWeapon(name);
       if (w != null) {
@@ -380,16 +401,16 @@ public class Weapon implements Cloneable {
   
   public Weapon(int w6d, int constD, int t, String n, int aBF,
       Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
-      boolean farRanged, Optional<Integer> worth, WV wv)
+      boolean farRanged, Optional<Integer> worth, WV wv, boolean singular)
   {
     this(w6d, constD, t, n, aBF, kk, weight, userDefined, twoHanded, farRanged, worth, wv, 
-        "Keine", Optional.NULL_INT, Optional.NULL_INT);
+        "Keine", Optional.NULL_INT, Optional.NULL_INT, singular);
   }
 
   public Weapon(int w6d, int constD, int t, String n, int aBF,
       Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
       boolean farRanged, Optional<Integer> worth, WV wv, String ptt, 
-      Optional<Integer> ptw, Optional<Integer> ptm) {
+      Optional<Integer> ptw, Optional<Integer> ptm, boolean singular) {
     w6damage = w6d;
     constDamage = constD;
     type = t;
@@ -405,6 +426,7 @@ public class Weapon implements Cloneable {
     this.projectileWeight = ptw;
     this.projectileWorth = ptm;
     this.wv = wv;    
+    this.singular = singular;
   }
 
   public Object clone() throws CloneNotSupportedException {
@@ -457,7 +479,7 @@ public class Weapon implements Cloneable {
 
   static final Weapon FIST = new Weapon(1, 0, 0, "Faust", 0,
       new Optional<Integer>(17), 0, false, false, false, Optional.NULL_INT,
-      new WV(2, 0));
+      new WV(2, 0), false);
 
   /**
    * @return

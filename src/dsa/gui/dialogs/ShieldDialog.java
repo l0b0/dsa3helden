@@ -38,6 +38,8 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 
 public class ShieldDialog extends BGDialog {
 
@@ -93,6 +95,8 @@ public class ShieldDialog extends BGDialog {
 
   private Shield shield = null;
 
+  private JCheckBox singularBox = null;
+
   /**
    * This method initializes
    * 
@@ -136,6 +140,7 @@ public class ShieldDialog extends BGDialog {
     fkSpinner.setEnabled(shield.getFkMod() != 0);
     pa2Spinner.setEnabled(shield.getFkMod() == 0);
     bfSpinner.setValue(shield.getBF());
+    singularBox.setSelected(shield.isSingular());
   }
   
   public final String getHelpPage() {
@@ -185,8 +190,9 @@ public class ShieldDialog extends BGDialog {
     if (getValueCombo().getSelectedIndex() == 1) {
       value *= 10;
     }
+    boolean singular = singularBox.isSelected();
     if (createShield) {
-      shield = new Shield(name, at, pa, pa2, be, fk, bf, weight, value);
+      shield = new Shield(name, at, pa, pa2, be, fk, bf, weight, value, singular);
     }
     else {
       shield.setAtMod(at);
@@ -197,6 +203,7 @@ public class ShieldDialog extends BGDialog {
       shield.setBF(bf);
       shield.setWeight(weight);
       shield.setWorth(value);
+      shield.setSingular(singular);
     }
     return true;
   }
@@ -206,7 +213,7 @@ public class ShieldDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new java.awt.Dimension(366, 317));
+    this.setSize(new Dimension(366, 333));
     this.setContentPane(getJContentPane());
     this.setTitle("Paradehilfe hinzufügen");
     this.getRootPane().setDefaultButton(getOKButton());
@@ -265,7 +272,7 @@ public class ShieldDialog extends BGDialog {
       jLabel.setText("Name:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
-      jPanel.setBounds(new java.awt.Rectangle(10, 10, 331, 230));
+      jPanel.setBounds(new Rectangle(10, 10, 331, 251));
       jPanel.add(jLabel, null);
       jPanel.add(jLabel1, null);
       jPanel.add(getNameField(), null);
@@ -287,6 +294,7 @@ public class ShieldDialog extends BGDialog {
       jPanel.add(jLabel8, null);
       jPanel.add(getValueSpinner(), null);
       jPanel.add(getValueCombo(), null);
+      jPanel.add(getSingularBox(), null);
     }
     return jPanel;
   }
@@ -485,7 +493,7 @@ public class ShieldDialog extends BGDialog {
   private JButton getOKButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new java.awt.Rectangle(60, 250, 101, 21));
+      okButton.setBounds(new Rectangle(60, 270, 101, 21));
       okButton.setText("OK");
       okButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -504,7 +512,7 @@ public class ShieldDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new java.awt.Rectangle(190, 250, 101, 21));
+      cancelButton.setBounds(new Rectangle(190, 270, 101, 21));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -514,6 +522,20 @@ public class ShieldDialog extends BGDialog {
       });
     }
     return cancelButton;
+  }
+
+  /**
+   * This method initializes singularBox	
+   * 	
+   * @return javax.swing.JCheckBox	
+   */
+  private JCheckBox getSingularBox() {
+    if (singularBox == null) {
+      singularBox = new JCheckBox();
+      singularBox.setBounds(new Rectangle(10, 220, 151, 21));
+      singularBox.setText("Einzelstück");
+    }
+    return singularBox;
   }
 
 } // @jve:decl-index=0:visual-constraint="10,10"

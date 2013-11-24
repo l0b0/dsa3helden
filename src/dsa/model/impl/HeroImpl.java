@@ -37,6 +37,7 @@ import static dsa.model.characters.Property.*;
 import dsa.control.Fighting;
 import dsa.control.filetransforms.FileType;
 import dsa.control.printing.Printer;
+import dsa.model.AbstractThingCarrier;
 import dsa.model.Date;
 import dsa.model.DiceSpecification;
 import dsa.model.FarRangedFightParams;
@@ -60,14 +61,13 @@ import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.model.data.Thing.Currency;
 import dsa.model.talents.Talent;
-import dsa.util.AbstractObservable;
 import dsa.util.Directories;
 import dsa.util.Optional;
 
 /**
  * 
  */
-public final class HeroImpl extends AbstractObservable<CharacterObserver>
+public final class HeroImpl extends AbstractThingCarrier
     implements Hero, Cloneable {
 
   private boolean changed = false;
@@ -218,16 +218,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.derivedValueChanges.addAll(derivedValueChanges);
     hero.atParts = new HashMap<String, Integer>();
     hero.atParts.putAll(atParts);
-    hero.things = new HashMap<String, Integer>();
-    hero.things.putAll(things);
     hero.bankCurrencies = new ArrayList<Integer>();
     hero.bankCurrencies.addAll(bankCurrencies);
     hero.bankMoney = new ArrayList<Integer>();
     hero.bankMoney.addAll(bankMoney);
     hero.shields = new ArrayList<String>();
     hero.shields.addAll(shields);
-    hero.thingsInWarehouse = new HashMap<String, Integer>();
-    hero.thingsInWarehouse.putAll(thingsInWarehouse);
     hero.clothes = new ArrayList<String>();
     hero.clothes.addAll(clothes);
     hero.observers = new java.util.LinkedList<CharacterObserver>();
@@ -235,10 +231,6 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.bfs.putAll(bfs);
     hero.shieldBFs = new HashMap<String, Integer>();
     hero.shieldBFs.putAll(shieldBFs);
-    hero.extraThingData = new HashMap<String, ExtraThingData>();
-    hero.extraThingData.putAll(extraThingData);
-    hero.extraWarehouseData = new HashMap<String, ExtraThingData>();
-    hero.extraWarehouseData.putAll(extraWarehouseData);
     hero.nrOfProjectiles = new HashMap<String, Integer>();
     hero.nrOfProjectiles.putAll(nrOfProjectiles);
     hero.loadedNewerVersion = false;
@@ -1084,7 +1076,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     changed = true;
   }
 
-  private static final int FILE_VERSION = 46;
+  private static final int FILE_VERSION = 48;
 
   /*
    * (non-Javadoc)
@@ -1276,6 +1268,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       // version 46
       file.println(firstHandOpponentWeapon);
       file.println(secondHandOpponentWeapon);
+      // version 47
+      printContainers(file);
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1287,6 +1281,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
   }
 
+  /**
+   * @param file
+   */
   private void printProjectiles(PrintWriter file) throws IOException {
     file.println(nrOfProjectiles.size());
     for (String n : nrOfProjectiles.keySet()) {
@@ -1312,42 +1309,37 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   }
 
   private void printExtraWarehouseData(PrintWriter file) throws IOException {
-    file.println(extraWarehouseData.size());
-    for (Map.Entry<String, ExtraThingData> entry : extraWarehouseData
-        .entrySet()) {
-      file.println(entry.getKey());
-      entry.getValue().store(file);
-    }
-  }
-
-  private void printExtraThingData(PrintWriter file) throws IOException {
-    file.println(extraThingData.size());
-    for (Map.Entry<String, ExtraThingData> entry : extraThingData.entrySet()) {
-      file.println(entry.getKey());
-      entry.getValue().store(file);
-    }
+    file.println(0);
   }
 
   private void printClothes(PrintWriter file) throws IOException {
     file.println(clothes.size());
     for (String clothesName : clothes) {
       Thing thing = Things.getInstance().getThing(clothesName);
-      thing.writeToStream(file);
+      thing.writeToStream(file, clothesName);
     }
   }
-
-  private void printWarehouse(PrintWriter file) throws IOException {
-    int nrOfThings2 = 0;
-    for (Integer t : thingsInWarehouse.values()) {
-      nrOfThings2 += t;
-    }
-    file.println(nrOfThings2);
-    for (String thingName : thingsInWarehouse.keySet()) {
-      Thing thing = Things.getInstance().getThing(thingName);
-      for (int i = 0; i < thingsInWarehouse.get(thingName); ++i) {
-        thing.writeToStream(file);
+  
+  private void printThings(PrintWriter file, boolean inWarehouse) throws IOException {
+    ArrayList<String> thingsToPrint = new ArrayList<String>();
+    int nrOfThings = 0;
+    for (String thingName : getThings()) {
+      if (isInWarehouse(thingName) == inWarehouse) {
+        nrOfThings += getThingCount(thingName);
+        thingsToPrint.add(thingName);
       }
     }
+    file.println(nrOfThings);
+    for (String thingName : thingsToPrint) {
+      Thing thing = Things.getInstance().getThing(thingName);
+      for (int i = 0; i < getThingCount(thingName); ++i) {
+        thing.writeToStream(file, thingName);
+      }
+    }
+  }
+  
+  private void printWarehouse(PrintWriter file) throws IOException {
+    printThings(file, true);
   }
 
   private void printShields(PrintWriter file) throws IOException {
@@ -1356,19 +1348,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println(shields.get(i));
     }
   }
-
+  
   private void printThings(PrintWriter file) throws IOException {
-    int nrOfThings = 0;
-    for (Integer t : things.values()) {
-      nrOfThings += t;
-    }
-    file.println(nrOfThings);
-    for (String thingName : things.keySet()) {
-      Thing thing = Things.getInstance().getThing(thingName);
-      for (int i = 0; i < things.get(thingName); ++i) {
-        thing.writeToStream(file);
-      }
-    }
+    printThings(file, false);
   }
 
   private void printWeapons(PrintWriter file) throws IOException {
@@ -1381,7 +1363,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       if (weapon == null) {
         weapon = new Weapon(1, 0, 5, weaponName, 1,
             new dsa.util.Optional<Integer>(14), 50, true, false, false,
-            dsa.util.Optional.NULL_INT, new Weapon.WV(4, 4));
+            dsa.util.Optional.NULL_INT, new Weapon.WV(4, 4), false);
       }
       for (int i = 0; i < weapons.get(weaponName); ++i) {
         weapon.writeToStream(file);
@@ -1428,6 +1410,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       file.println("___Lager___");
       printWarehouse(file);
       printExtraWarehouseData(file);
+      file.println("___Container___");
+      printContainers(file);
       file.flush();
     }
     finally {
@@ -1446,10 +1430,11 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       int version = parseInt(line, lineNr);
       line = file.readLine(); // "___Ausruestung___"
       if ((thingTypes & THINGS) != 0) {
-        things.clear();
+        clearThings();
+        clearThingContainers();
         lineNr = readThings(file, lineNr);
-        extraThingData.clear();
-        lineNr = readExtraThingData(file, lineNr, THINGS);
+        clearExtraThingData();
+        lineNr = readExtraThingData(file, lineNr, 1);
         line = file.readLine();
         lineNr++;
       }
@@ -1517,10 +1502,15 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         while (line != null && !line.equals("___Lager___"));
       }
       if ((thingTypes & WAREHOUSE) != 0) {
-        thingsInWarehouse.clear();
-        lineNr = readWarehouse(file, lineNr);
-        extraWarehouseData.clear();
-        readExtraThingData(file, lineNr, WAREHOUSE);
+        String[] thingsInWarehouse = getThingsInContainer("Lager");
+        for (String thing : thingsInWarehouse) {
+          removeThing(thing, true);
+        }
+        lineNr = readWarehouse(file, lineNr, version);
+        readExtraThingData(file, lineNr, 1);
+      }
+      if ((version > 46) && ((thingTypes & THINGS) != 0)) {
+        lineNr = readContainers(file, lineNr);
       }
       changed = true;
       for (CharacterObserver o : observers) {
@@ -1532,20 +1522,6 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         file.close();
       }
     }
-  }
-
-  private int parseInt(String line, int lineNr) throws IOException {
-    try {
-      return Integer.parseInt(line);
-    }
-    catch (NumberFormatException e) {
-      throw new IOException("Zeile " + lineNr + ": " + line
-          + " ist keine Zahl!");
-    }
-  }
-
-  private void testEmpty(String s) throws IOException {
-    if (s == null) throw new IOException("Unerwartetes Dateiende!");
   }
 
   public void readFromFile(File f) throws IOException {
@@ -1603,6 +1579,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     if (version > 10) {
       lineNr = readWeapons(file, lineNr);
     }
+    clearThingContainers();
     if (version > 11) {
       lineNr = readThings(file, lineNr);
     }
@@ -1656,9 +1633,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       academy = "";
       magicSpecialization = "";
     }
-    thingsInWarehouse.clear();
     if (version > 24) {
-      lineNr = readWarehouse(file, lineNr);
+      lineNr = readWarehouse(file, lineNr, version);
     }
     clothes.clear();
     if (version > 25) {
@@ -1719,7 +1695,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
           : 0;
     }
     if (version > 34) {
-      lineNr = readExtraThingData(file, lineNr, (THINGS | WAREHOUSE));
+      lineNr = readExtraThingData(file, lineNr, 2);
     }
     if (version > 35) {
       lineNr++;
@@ -1771,6 +1747,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
     else {
       internalType = type;
+    }
+    if (internalType.startsWith("Hexe") && internalType.endsWith("der Nacht)")) {
+      internalType = "Hexe (Schoene der Nacht)";
     }
     targets = new ArrayList<String>();
     if (version > 39) {
@@ -1828,6 +1807,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     else {
       firstHandOpponentWeapon = secondHandOpponentWeapon = "Raufen";
     }
+    if (version > 46) {
+      lineNr = readContainers(file, lineNr);
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -1841,39 +1823,6 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     checkForMirakel();
     calcKO();
     changed = false;
-  }
-
-  private int readExtraThingData(BufferedReader file, int lineNr, long types)
-      throws IOException {
-    if ((types & THINGS) != 0) {
-      String line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      int count = parseInt(line, lineNr);
-      for (int i = 0; i < count; ++i) {
-        String key = file.readLine();
-        lineNr++;
-        testEmpty(line);
-        ExtraThingData extraData = new ExtraThingData();
-        lineNr = extraData.read(file, lineNr);
-        extraThingData.put(key, extraData);
-      }
-    }
-    if ((types & WAREHOUSE) != 0) {
-      String line = file.readLine();
-      lineNr++;
-      testEmpty(line);
-      int count = parseInt(line, lineNr);
-      for (int i = 0; i < count; ++i) {
-        String key = file.readLine();
-        lineNr++;
-        testEmpty(line);
-        ExtraThingData extraData = new ExtraThingData();
-        lineNr = extraData.read(file, lineNr);
-        extraWarehouseData.put(key, extraData);
-      }
-    }
-    return lineNr;
   }
 
   private int readShieldBFs(BufferedReader file, int lineNr, int version)
@@ -2018,7 +1967,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     return lineNr;
   }
 
-  private int readWarehouse(BufferedReader file, int lineNr) throws IOException {
+  private int readWarehouse(BufferedReader file, int lineNr, int version) throws IOException {
     String line;
     lineNr++;
     line = file.readLine();
@@ -2027,7 +1976,17 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     for (int i = 0; i < nrOfThings; ++i) {
       Thing thing = new Thing();
       lineNr = thing.readFromStream(file, lineNr);
-      addThingToWarehouse(thing.getName());
+      ExtraThingData extraData = new ExtraThingData(ExtraThingData.Type.Thing);
+      extraData.setProperty("Worth", thing.getValue().hasValue() ? thing.getValue().getValue() : 0);
+      extraData.setProperty("Weight", thing.getWeight());
+      extraData.setProperty("Category", thing.getCategory());
+      extraData.setProperty("Singular", thing.isSingular() ? 1 : 0);      
+      if (version < 48) {
+        internalAddThing(thing.getName(), extraData, "Lager");
+      }
+      else {
+        addThingFromFile(thing.getName(), "Lager", extraData);
+      }
     }
     return lineNr;
   }
@@ -2261,7 +2220,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   private int readThings(BufferedReader file, int lineNr) throws IOException {
     String line;
-    things.clear();
+    clearThings();
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -2269,8 +2228,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     for (int i = 0; i < nrOfThings; ++i) {
       Thing thing = new Thing();
       lineNr = thing.readFromStream(file, lineNr);
-      this.internalAddThing(thing.getName(), new ExtraThingData(
-          ExtraThingData.Type.Thing));
+      ExtraThingData extraData = new ExtraThingData(ExtraThingData.Type.Thing);
+      extraData.setProperty("Worth", thing.getValue().hasValue() ? thing.getValue().getValue() : 0);
+      extraData.setProperty("Weight", thing.getWeight());
+      extraData.setProperty("Category", thing.getCategory());
+      extraData.setProperty("Singular", thing.isSingular() ? 1 : 0);      
+      addThingFromFile(thing.getName(), "Ausrüstung", extraData);
     }
     return lineNr;
   }
@@ -2340,7 +2303,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
           }
           Armours.getInstance().addArmour(
               new dsa.model.data.Armour(armourName, rs, be, armourWeight,
-                  armourWorth));
+                  armourWorth, false));
         }
       }
       armours.add(armourName);
@@ -3424,70 +3387,6 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       return weapons.get(weaponName);
   }
 
-  java.util.HashMap<String, Integer> things = new java.util.HashMap<String, Integer>();
-
-  public String[] getThings() {
-    String[] allThings = new String[things.size()];
-    return things.keySet().toArray(allThings);
-  }
-
-  public void addThing(String thingName) {
-    addThing(thingName, new ExtraThingData(ExtraThingData.Type.Thing));
-  }
-
-  public void addThing(String thingName, ExtraThingData extraData) {
-    internalAddThing(thingName, extraData);
-    changed = true;
-    for (CharacterObserver observer : observers)
-      observer.weightChanged();
-  }
-
-  void internalAddThing(String thingName, ExtraThingData extraData) {
-    if (!things.containsKey(thingName)) {
-      things.put(thingName, 1);
-    }
-    else {
-      things.put(thingName, things.get(thingName) + 1);
-    }
-    extraThingData.put(thingName + things.get(thingName), extraData);
-  }
-
-  public ExtraThingData getExtraThingData(String thing, boolean inWarehouse,
-      int thingNumber) {
-    if (!inWarehouse) {
-      return extraThingData.get(thing + thingNumber);
-    }
-    else {
-      return extraWarehouseData.get(thing + thingNumber);
-    }
-  }
-
-  private HashMap<String, ExtraThingData> extraThingData = new HashMap<String, ExtraThingData>();
-
-  public void removeThing(String thingName) {
-    if (!things.containsKey(thingName)) return;
-    int count = things.get(thingName);
-    extraThingData.remove(thingName + count);
-    if (count == 1) {
-      things.remove(thingName);
-      for (CharacterObserver o : observers)
-        o.thingRemoved(thingName, false);
-    }
-    else {
-      things.put(thingName, count - 1);
-    }
-    changed = true;
-    for (CharacterObserver observer : observers)
-      observer.weightChanged();
-  }
-
-  public int getThingCount(String thing) {
-    if (!things.containsKey(thing))
-      return 0;
-    else
-      return things.get(thing);
-  }
-
   String bgFile;
 
   String bgEditor;
@@ -3716,56 +3615,6 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   public void setSoulAnimal(String animal) {
     soulAnimal = animal;
     changed = true;
-  }
-
-  HashMap<String, Integer> thingsInWarehouse = new HashMap<String, Integer>();
-
-  public void addThingToWarehouse(String item) {
-    addThingToWarehouse(item, new ExtraThingData(ExtraThingData.Type.Thing));
-  }
-
-  HashMap<String, ExtraThingData> extraWarehouseData = new HashMap<String, ExtraThingData>();
-
-  public void addThingToWarehouse(String item, ExtraThingData extraData) {
-    if (thingsInWarehouse.containsKey(item)) {
-      int count = thingsInWarehouse.get(item);
-      thingsInWarehouse.put(item, count + 1);
-    }
-    else {
-      thingsInWarehouse.put(item, 1);
-    }
-    extraWarehouseData.put(item + thingsInWarehouse.get(item), extraData);
-    changed = true;
-  }
-
-  public int getThingInWarehouseCount(String item) {
-    if (thingsInWarehouse.containsKey(item)) {
-      return thingsInWarehouse.get(item);
-    }
-    else
-      return 0;
-  }
-
-  public void removeThingFromWarehouse(String thingName) {
-    if (thingsInWarehouse.containsKey(thingName)) {
-      int count = thingsInWarehouse.get(thingName);
-      extraWarehouseData.remove(thingName + count);
-      if (count > 1) {
-        thingsInWarehouse.put(thingName, count - 1);
-      }
-      else {
-        thingsInWarehouse.remove(thingName);
-        for (CharacterObserver o : observers) {
-          o.thingRemoved(thingName, true);
-        }
-      }
-      changed = true;
-    }
-  }
-
-  public String[] getThingsInWarehouse() {
-    String[] thingArray = new String[thingsInWarehouse.size()];
-    return thingsInWarehouse.keySet().toArray(thingArray);
   }
 
   ArrayList<String> clothes = new ArrayList<String>();
@@ -4036,12 +3885,6 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         o.currentEnergyChanged(Energy.AU);
       }
       changed = true;
-    }
-  }
-
-  public void fireWeightChanged() {
-    for (CharacterObserver o : observers) {
-      o.weightChanged();
     }
   }
 
@@ -4558,4 +4401,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       observer.moneyChanged();
     }
   }  
+  
+  protected final void setChanged() {
+    changed = true;
+  }
 }

@@ -26,6 +26,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -33,7 +34,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ArmourSelectionDialog;
+import dsa.gui.dialogs.ShopDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.dialogs.ItemProviders.ArmoursProvider;
 import dsa.gui.tables.ArmoursTable;
 import dsa.gui.tables.ThingTransfer;
 import dsa.gui.util.ImageManager;
@@ -45,7 +48,7 @@ import dsa.model.characters.Hero;
 import dsa.model.data.Armour;
 import dsa.model.data.Armours;
 import dsa.model.data.ExtraThingData;
-import dsa.model.data.Thing.Currency;
+import dsa.model.data.IExtraThingData;
 
 public final class ArmoursFrame extends AbstractDnDFrame implements CharactersObserver,
     OptionsListener {
@@ -63,17 +66,6 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
       itemAdded(item);
     }
     
-    private void itemAdded(String item) {
-      currentHero.addArmour(item);
-      Armour armour = Armours.getInstance().getArmour(item);
-      if (armour != null)
-        mTable.addArmour(armour);
-      else
-        mTable.addUnknownArmour(item);
-      removeButton.setEnabled(true);
-      calcSums();
-    }
-
     public void itemChanged(String item) {
       if (mTable.containsItem(item)) {
         mTable.removeArmour(item);
@@ -82,23 +74,30 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
         currentHero.fireWeightChanged();
       }
     }
+  }
 
-    @Override
-    public void itemsBought(String item, int count, int finalPrice,
-        Currency currency) {
-      boolean alreadyThere = Arrays.asList(currentHero.getArmours()).contains(item);
-      if (alreadyThere || count > 1) {
-        JOptionPane
-        .showMessageDialog(
-            ArmoursFrame.this,
-            "Ein Held kann jede Rüstung nur einfach tragen.\nDu kannst die Rüstung statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-            "Fehler", JOptionPane.WARNING_MESSAGE);        
-      }
-      if (!alreadyThere) {
-        itemAdded(item);
-        currentHero.pay(finalPrice / count, currency);
-      }
+  private void itemAdded(String item) {
+    currentHero.addArmour(item);
+    Armour armour = Armours.getInstance().getArmour(item);
+    if (armour != null)
+      mTable.addArmour(armour);
+    else
+      mTable.addUnknownArmour(item);
+    removeButton.setEnabled(true);
+    calcSums();
+  }
+  
+  private boolean armoursBought(String item, int count) {
+    boolean alreadyThere = Arrays.asList(currentHero.getArmours()).contains(item);
+    if (alreadyThere || count > 1) {
+      JOptionPane
+      .showMessageDialog(
+          ArmoursFrame.this,
+          "Ein Held kann jede Rüstung nur einfach tragen.\nDu kannst die Rüstung statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+          "Fehler", JOptionPane.WARNING_MESSAGE);
+      return false;
     }
+    return true;
   }
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
@@ -158,6 +157,7 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
     rightPanel.setPreferredSize(new java.awt.Dimension(70, 50));
     rightPanel.add(getAddButton(), null);
     rightPanel.add(getRemoveButton(), null);
+    rightPanel.add(getBuyButton(), null);
     panel.add(rightPanel, BorderLayout.EAST);
 
     this.setContentPane(panel);
@@ -191,6 +191,8 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
   JButton addButton;
 
   JButton removeButton;
+  
+  JButton buyButton;
 
   JButton getAddButton() {
     if (addButton == null) {
@@ -213,11 +215,45 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
     dialog.setVisible(true);
   }
 
+  JButton getBuyButton() {
+    if (buyButton == null) {
+      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton.setBounds(5, 35, 60, 25);
+      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          buyItem();
+        }
+      });
+    }
+    return buyButton;
+  }
+  
+  private void buyItem() {
+    ShopDialog dialog = new ShopDialog(this, new ArmoursProvider());
+    dialog.setVisible(true);
+    if (dialog.wasClosedByOK()) {
+      Map<String, Integer> cart = dialog.getBoughtItems();
+      boolean allowed = true;
+      for (String item : cart.keySet()) {
+        if (!armoursBought(item, cart.get(item))) {
+          allowed = false;
+          break;
+        }
+      }
+      if (allowed) {
+        for (String item : cart.keySet()) {
+          itemAdded(item);
+        }
+        currentHero.pay(dialog.getFinalPrice(), dialog.getCurrency());
+      }
+    }
+  }
   JButton getRemoveButton() {
     if (removeButton == null) {
       removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
       removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
-      removeButton.setBounds(5, 35, 60, 25);
+      removeButton.setBounds(5, 65, 60, 25);
       removeButton.setToolTipText("Rüstung entfernen");
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -275,11 +311,13 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
       calcSums();
       removeButton.setEnabled(isChangeAllowed() && currentHero.getArmours().length > 0);
       addButton.setEnabled(isChangeAllowed());
+      buyButton.setEnabled(isChangeAllowed());
     }
     else {
       sumLabel.setText("Gesamt: RS 0; BE 0; Gewicht 0 Stein");
       addButton.setEnabled(false);
       removeButton.setEnabled(false);
+      buyButton.setEnabled(false);
     }
     mTable.setFirstSelectedRow();
   }
@@ -310,7 +348,7 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   @Override
-  protected boolean addItem(String item, ExtraThingData extraData) {
+  protected boolean addItem(String item, IExtraThingData extraData) {
     if (Arrays.asList(currentHero.getArmours()).contains(item)) {
       JOptionPane
           .showMessageDialog(
@@ -331,7 +369,7 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   @Override
-  protected void removeItem(String item) {
+  protected void removeItem(String item, boolean alwaysWithContents) {
     currentHero.removeArmour(item);
     removeButton.setEnabled(currentHero.getArmours().length > 0);
     calcSums();
@@ -345,6 +383,7 @@ public final class ArmoursFrame extends AbstractDnDFrame implements CharactersOb
       data.setProperty("Worth", armour.getWorth());
       data.setProperty("Weight", armour.getWeight());
       data.setProperty("Category", "Rüstung");
+      data.setProperty("Singular", armour.isSingular() ? 1 : 0);
     }
     return data;
   }

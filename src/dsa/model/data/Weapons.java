@@ -345,7 +345,7 @@ public class Weapons {
         }
         Weapon weapon = new Weapon(w6d, constd, category, name, bf, kkzuschlag,
             weight, false, twoHanded, projectile, worth, wv, ptt, projectileWeight, 
-            projectileWorth);
+            projectileWorth, false);
         if (projectile) {
           weapon.setDistanceMods(distMods);
           weapon.setDistances(distances);

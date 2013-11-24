@@ -38,6 +38,7 @@ import dsa.model.DataFactory;
 import dsa.model.Date;
 import dsa.model.data.Opponent;
 import dsa.model.data.Opponents;
+import dsa.model.data.Tradezones;
 import dsa.util.AbstractObservable;
 import dsa.util.Directories;
 
@@ -245,7 +246,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     return changed || options.isChanged() || opponents.wasChanged();
   }
   
-  private static final int GROUP_VERSION = 6;
+  private static final int GROUP_VERSION = 7;
 
   public void writeToFile(java.io.File f) throws java.io.IOException {
     PrintWriter file = new PrintWriter(new FileWriter(f));
@@ -268,6 +269,8 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       opponents.writeToFile(file);
       // version 6
       file.println(date.toString());
+      // version 7
+      file.println(tradeZone);
       
       file.println("-End Characters-");
       file.flush();
@@ -369,6 +372,16 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
         throw new IOException(e);
       }
     }
+    if (version >= 7) {
+      line = file.readLine();
+      testEmpty(line);
+      if (Tradezones.getInstance().getTradezone(line) == null) {
+        throw new IOException("Unbekannte Handelszone '" + line + "'");
+      }
+      tradeZone = line;
+    }
+    else
+      tradeZone = "GA";
     while (line != null && !line.equals("-End Characters-")) {
       line = file.readLine();
       testEmpty(line);
@@ -427,6 +440,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     loadedNewerVersion = false;
     currentFileName = "";
     date = new Date(1, Date.Month.Praios, 17, Date.Era.nach, Date.Event.Hal);
+    tradeZone = "GA";
     for (CharactersObserver o : observers) {
       if (o instanceof GroupObserver) {
         ((GroupObserver)o).groupLoaded();
@@ -538,6 +552,20 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   public void setDate(Date date) {
     if (this.date.equals(date)) return;
     this.date = date;
+    changed = true;
+  }
+  
+  private String tradeZone = "GA";
+  
+  public String getTradezone() {
+    return tradeZone;
+  }
+  
+  public void setTradezone(String zone) {
+    if (tradeZone.equals(zone)) {
+      return;
+    }
+    tradeZone = zone;
     changed = true;
   }
 

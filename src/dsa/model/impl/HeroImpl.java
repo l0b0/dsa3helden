@@ -52,6 +52,7 @@ import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.model.talents.Talent;
 import dsa.util.AbstractObservable;
+import dsa.util.FileType;
 
 /**
  * 
@@ -1060,7 +1061,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     return path;
   }
 
-  static final int FILE_VERSION = 35;
+  static final int FILE_VERSION = 36;
 
   private static String getAbsolutePath(String relativePath, File f)
       throws IOException {
@@ -1301,6 +1302,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         file.println(entry.getKey());
         entry.getValue().store(file);
       }
+      // version 36
+      file.println(printingFileType.toString());
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1498,6 +1501,33 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
     if (version > 34) {
       lineNr = readExtraThingData(file, lineNr);
+    }
+    if (version > 35) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      printingFileType = FileType.valueOf(line);
+    }
+    else {
+      String printingFileName = getPrintingTemplateFile().toLowerCase(java.util.Locale.GERMAN);
+      if (printingFileName.endsWith("xml")) {
+        printingFileType = FileType.WordML;
+      }
+      else if (printingFileName.endsWith("rtf")) {
+        printingFileType = FileType.RTF;
+      }
+      else if (printingFileName.endsWith("html")) {
+        printingFileType = FileType.HTML;
+      }
+      else if (printingFileName.endsWith("htm")) {
+        printingFileType = FileType.HTML;
+      }
+      else if (printingFileName.endsWith("odt")) {
+        printingFileType = FileType.ODT;
+      }
+      else {
+        printingFileType = FileType.Unknown;
+      }
     }
     lineNr++;
     line = file.readLine();
@@ -3607,4 +3637,16 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     return remainingStepIncreases;
   }
 
+  public FileType getPrintingFileType() {
+    return printingFileType;
+  }
+
+  public void setPrintingFileType(FileType fileType) {
+    if (fileType != printingFileType) {
+      printingFileType = fileType;
+      changed = true;
+    }
+  }
+
+  FileType printingFileType = FileType.XML;
 }

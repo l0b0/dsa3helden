@@ -1,3 +1,11 @@
+Version 1.2.2
+-------------
+- Bugfix: Talentwert für Fernkampfwaffen wurde nicht korrekt gedruckt
+- Drucken von AT- und PA-Anteil der Nahkampftalente
+- Druckdialog überarbeitet
+- Drucken in MS Excel XML ermöglicht
+- Druck-Tags !Z000-!Z240 (Zauber) und !SpN/!SpW (Sprachen) hinzugefügt
+
 Version 1.2.1
 -------------
 - Bugfix: beim ersten Start wurden benutzerdefinierte Rüstungen falsch eingelesen

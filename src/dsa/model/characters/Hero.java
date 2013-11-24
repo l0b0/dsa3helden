@@ -24,6 +24,7 @@ import java.util.List;
 
 import dsa.model.data.Animal;
 import dsa.model.data.ExtraThingData;
+import dsa.util.FileType;
 
 /**
  * 
@@ -192,6 +193,10 @@ public interface Hero {
   String getPrintingTemplateFile();
 
   void setPrintingTemplateFile(String filePath);
+  
+  FileType getPrintingFileType();
+  
+  void setPrintingFileType(FileType fileType);
 
   String getRuf();
 

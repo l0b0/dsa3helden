@@ -21,6 +21,7 @@ package dsa.gui.dialogs;
 
 import java.io.File;
 
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -36,6 +37,12 @@ import dsa.gui.lf.BGDialog;
 import dsa.gui.util.ExampleFileFilter;
 import dsa.model.characters.Hero;
 import dsa.util.Directories;
+import dsa.util.FileType;
+import java.awt.Rectangle;
+import javax.swing.JPanel;
+import javax.swing.BorderFactory;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 
 /**
  * 
@@ -43,8 +50,6 @@ import dsa.util.Directories;
 public final class PrintingDialog extends BGDialog {
 
   private javax.swing.JPanel jContentPane = null;
-
-  private JLabel jLabel = null;
 
   private JTextField templateField = null;
 
@@ -66,6 +71,16 @@ public final class PrintingDialog extends BGDialog {
 
   private JButton fightTalentButton = null;
 
+  private JLabel jLabel2 = null;
+
+  private JComboBox fileTypeBox = null;
+
+  private JLabel jLabel = null;
+
+  private JPanel jPanel = null;
+
+  private JPanel jPanel1 = null;
+
   /**
    * This is the default constructor -- do not use!
    */
@@ -80,6 +95,10 @@ public final class PrintingDialog extends BGDialog {
     initialize();
     getTemplateField().setText(hero.getPrintingTemplateFile());
     getOutputField().setText(hero.getPrintFile());
+    for (FileType ft : FileType.values()) {
+      getFileTypeBox().addItem(ft.getDescription());
+    }
+    getFileTypeBox().setSelectedIndex(hero.getPrintingFileType().ordinal());
     this.setLocationRelativeTo(parent);
     this.setTitle("Drucken: " + hero.getName());
     updateButtons();
@@ -93,7 +112,7 @@ public final class PrintingDialog extends BGDialog {
   private void initialize() {
     this.setTitle("Drucken");
     this.setModal(true);
-    this.setSize(406, 236);
+    this.setSize(435, 319);
     this.setContentPane(getJContentPane());
   }
 
@@ -104,15 +123,17 @@ public final class PrintingDialog extends BGDialog {
    */
   private javax.swing.JPanel getJContentPane() {
     if (jContentPane == null) {
-      jLabel1 = new JLabel();
       jLabel = new JLabel();
+      jLabel.setBounds(new Rectangle(22, 65, 38, 15));
+      jLabel.setText("Datei:");
+      jLabel2 = new JLabel();
+      jLabel2.setBounds(new Rectangle(22, 33, 38, 15));
+      jLabel2.setText("Typ:");
+      jLabel1 = new JLabel();
       jContentPane = new javax.swing.JPanel();
       jContentPane.setLayout(null);
-      jLabel.setBounds(14, 19, 81, 17);
-      jLabel.setText("Vorlage:");
-      jLabel1.setBounds(14, 76, 83, 17);
-      jLabel1.setText("Zieldatei:");
-      jContentPane.add(jLabel, null);
+      jLabel1.setBounds(22, 154, 83, 17);
+      jLabel1.setText("Datei:");
       jContentPane.add(getTemplateField(), null);
       jContentPane.add(getTemplateButton(), null);
       jContentPane.add(jLabel1, null);
@@ -122,6 +143,11 @@ public final class PrintingDialog extends BGDialog {
       jContentPane.add(getDisplayButton(), null);
       jContentPane.add(getCloseButton(), null);
       jContentPane.add(getFightTalentButton(), null);
+      jContentPane.add(jLabel2, null);
+      jContentPane.add(getFileTypeBox(), null);
+      jContentPane.add(jLabel, null);
+      jContentPane.add(getJPanel(), null);
+      jContentPane.add(getJPanel1(), null);
     }
     return jContentPane;
   }
@@ -156,7 +182,7 @@ public final class PrintingDialog extends BGDialog {
   private JTextField getTemplateField() {
     if (templateField == null) {
       templateField = new JTextField();
-      templateField.setBounds(14, 48, 331, 20);
+      templateField.setBounds(22, 88, 342, 20);
       templateField.setName("templateFiled");
       templateField.getDocument().addDocumentListener(new MyTextFieldListener());
     }
@@ -171,7 +197,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getTemplateButton() {
     if (templateButton == null) {
       templateButton = new JButton();
-      templateButton.setBounds(357, 47, 31, 22);
+      templateButton.setBounds(374, 88, 31, 22);
       templateButton.setText("...");
       templateButton.setName("templateButton");
       templateButton.addActionListener(new java.awt.event.ActionListener() {
@@ -202,18 +228,11 @@ public final class PrintingDialog extends BGDialog {
     }
     chooser.setAcceptAllFileFilterUsed(true);
     chooser.setMultiSelectionEnabled(false);
-    ExampleFileFilter xmlFilter = new ExampleFileFilter();
-    xmlFilter.addExtension("xml");
-    xmlFilter.setDescription("XML-Dateien");
-    chooser.addChoosableFileFilter(xmlFilter);
-    ExampleFileFilter odtFilter = new ExampleFileFilter();
-    odtFilter.addExtension("odt");
-    odtFilter.setDescription("OpenDocument-Dateien");
-    chooser.addChoosableFileFilter(odtFilter);
-    dsa.gui.util.ExampleFileFilter rtfFilter = new dsa.gui.util.ExampleFileFilter();
-    rtfFilter.addExtension("rtf");
-    rtfFilter.setDescription("RTF-Dateien");
-    chooser.addChoosableFileFilter(rtfFilter);
+    FileType ft = FileType.values()[getFileTypeBox().getSelectedIndex()];
+    ExampleFileFilter fileFilter = new ExampleFileFilter();
+    fileFilter.addExtension(ft.getExtension());
+    fileFilter.setDescription(ft.getDescription());
+    chooser.addChoosableFileFilter(fileFilter);
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       getTemplateField().setText(chooser.getSelectedFile().getAbsolutePath());
       Directories.setLastUsedDirectory(this, "PrintingTemplates", chooser
@@ -229,7 +248,7 @@ public final class PrintingDialog extends BGDialog {
   private JTextField getOutputField() {
     if (outputField == null) {
       outputField = new JTextField();
-      outputField.setBounds(14, 100, 331, 20);
+      outputField.setBounds(22, 176, 342, 20);
       outputField.setName("outputField");
       outputField.getDocument().addDocumentListener(new MyTextFieldListener());
     }
@@ -244,7 +263,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getOutputButton() {
     if (outputButton == null) {
       outputButton = new JButton();
-      outputButton.setBounds(356, 99, 31, 22);
+      outputButton.setBounds(374, 176, 31, 22);
       outputButton.setText("...");
       outputButton.setName("outputFileButton");
       outputButton.addActionListener(new java.awt.event.ActionListener() {
@@ -274,19 +293,10 @@ public final class PrintingDialog extends BGDialog {
     }
     chooser.setAcceptAllFileFilterUsed(true);
     dsa.gui.util.ExampleFileFilter filter = new ExampleFileFilter();
-    if (getTemplateField().getText().toLowerCase(java.util.Locale.GERMAN).trim().endsWith("xml")) {
-      filter.addExtension("xml");
-      filter.setDescription("XML-Dateien");
-    }
-    else if (getTemplateField().getText().toLowerCase(java.util.Locale.GERMAN).trim().endsWith("odt")) {
-      filter.addExtension("odt");
-      filter.setDescription("OpenDocument-Dateien");
-    }
-    else {
-      filter.addExtension("rtf");
-      filter.setDescription("RTF-Dateien");
-    }
-    chooser.setFileFilter(filter);
+    FileType ft = FileType.values()[getFileTypeBox().getSelectedIndex()];
+    filter.addExtension(ft.getExtension());
+    filter.setDescription(ft.getDescription());
+    chooser.addChoosableFileFilter(filter);
     chooser.setMultiSelectionEnabled(false);
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       getOutputField().setText(chooser.getSelectedFile().getAbsolutePath());
@@ -303,7 +313,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getCreateButton() {
     if (createButton == null) {
       createButton = new JButton();
-      createButton.setBounds(15, 168, 102, 22);
+      createButton.setBounds(11, 253, 100, 22);
       createButton.setText("Erstellen");
       createButton.setName("createButton");
       createButton.addActionListener(new java.awt.event.ActionListener() {
@@ -320,14 +330,17 @@ public final class PrintingDialog extends BGDialog {
     private final File input;
 
     private final File output;
+    
+    private final FileType fileType;
 
     private int task = 0;
 
     private String errorMsg;
     
-    public TransformerHelper(File input, File output) {
+    public TransformerHelper(File input, File output, FileType fileType) {
       this.input = input;
       this.output = output;
+      this.fileType = fileType;
     }
 
     public void run() {
@@ -335,10 +348,9 @@ public final class PrintingDialog extends BGDialog {
         try {
           dsa.control.CharacterPrinter printer = dsa.control.CharacterPrinter
               .getInstance();
-          printer.printCharacter(hero, input, output, PrintingDialog.this,
+          printer.printCharacter(hero, input, output, fileType, PrintingDialog.this,
               "Datei wird erstellt");
           hero.setPrintingTemplateFile(input.getCanonicalPath());
-          hero.setPrintFile(getOutputField().getText());
           task = 1;
         }
         catch (java.io.IOException e) {
@@ -348,6 +360,8 @@ public final class PrintingDialog extends BGDialog {
         SwingUtilities.invokeLater(this);
       }
       else if (task == 1) {
+        hero.setPrintFile(getOutputField().getText());
+        hero.setPrintingFileType(fileType);
         JOptionPane.showMessageDialog(PrintingDialog.this,
             "Ausgabedatei erfolgreich erstellt!", "Drucken",
             JOptionPane.INFORMATION_MESSAGE);
@@ -368,7 +382,13 @@ public final class PrintingDialog extends BGDialog {
    */
   protected void transform() {
     File input = new File(getTemplateField().getText());
-    File output = new File(getOutputField().getText());
+    FileType ft = FileType.values()[getFileTypeBox().getSelectedIndex()];
+    String outputFile = getOutputField().getText();
+    if (!outputFile.endsWith("." + ft.getExtension())) {
+      outputFile += "." + ft.getExtension();
+    }
+    getOutputField().setText(outputFile);
+    File output = new File(outputFile);
     if (output.exists()) {
       if (JOptionPane.showConfirmDialog(PrintingDialog.this,
           "Datei existiert und wird überschrieben.\nFortfahren?", "Drucken",
@@ -376,7 +396,7 @@ public final class PrintingDialog extends BGDialog {
         return;
       }
     }
-    TransformerHelper helper = new TransformerHelper(input, output);
+    TransformerHelper helper = new TransformerHelper(input, output, ft);
     getDisplayButton().setEnabled(false);
     (new Thread(helper)).start();
   }
@@ -389,7 +409,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getDisplayButton() {
     if (displayButton == null) {
       displayButton = new JButton();
-      displayButton.setBounds(130, 168, 102, 22);
+      displayButton.setBounds(132, 253, 100, 22);
       displayButton.setText("Anzeigen");
       displayButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -422,7 +442,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getCloseButton() {
     if (closeButton == null) {
       closeButton = new JButton();
-      closeButton.setBounds(243, 168, 102, 22);
+      closeButton.setBounds(253, 253, 100, 22);
       closeButton.setText("Schließen");
       closeButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -441,7 +461,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getFightTalentButton() {
     if (fightTalentButton == null) {
       fightTalentButton = new JButton();
-      fightTalentButton.setBounds(new java.awt.Rectangle(15, 130, 208, 22));
+      fightTalentButton.setBounds(new Rectangle(22, 209, 208, 22));
       fightTalentButton.setText("Kampftalente auswählen ...");
       fightTalentButton.setEnabled(hero != null);
       fightTalentButton.addActionListener(new java.awt.event.ActionListener() {
@@ -462,4 +482,47 @@ public final class PrintingDialog extends BGDialog {
     }
   }
 
-} //  @jve:decl-index=0:visual-constraint="168,21"
+  /**
+   * This method initializes fileTypeBox	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getFileTypeBox() {
+    if (fileTypeBox == null) {
+      fileTypeBox = new JComboBox();
+      fileTypeBox.setBounds(new Rectangle(66, 33, 177, 21));
+    }
+    return fileTypeBox;
+  }
+
+  /**
+   * This method initializes jPanel	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getJPanel() {
+    if (jPanel == null) {
+      jPanel = new JPanel();
+      jPanel.setLayout(null);
+      jPanel.setBounds(new Rectangle(11, 10, 408, 112));
+      jPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Vorlage", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+    }
+    return jPanel;
+  }
+
+  /**
+   * This method initializes jPanel1	
+   * 	
+   * @return javax.swing.JPanel	
+   */
+  private JPanel getJPanel1() {
+    if (jPanel1 == null) {
+      jPanel1 = new JPanel();
+      jPanel1.setLayout(null);
+      jPanel1.setBounds(new Rectangle(11, 132, 408, 111));
+      jPanel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Ausgabe", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+    }
+    return jPanel1;
+  }
+
+}  //  @jve:decl-index=0:visual-constraint="148,7"

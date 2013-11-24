@@ -27,6 +27,8 @@ abstract class AbstractNode {
   public abstract AbstractNode nextNode(Character ch);
 
   public abstract String getItem(boolean remove);
+  
+  public abstract boolean isNumberItem();
 
   public abstract void appendNode(AbstractNode node, char ch);
 }
@@ -46,24 +48,31 @@ class LeafNode extends AbstractNode {
     else
       return items.peek();
   }
+  
+  public boolean isNumberItem() {
+	  return isNumber;
+  }
 
   public void appendNode(AbstractNode node, char ch) {
     // leaf nodes do not append!
     assert(false);
   }
 
-  public final void addItem(String item) {
+  public final void addItem(String item, boolean isNumber) {
     items.addLast(item);
+    this.isNumber = isNumber;
   }
-
-  public LeafNode(String item, boolean printOnlyOnce) {
+  
+  public LeafNode(String item, boolean printOnlyOnce, boolean isNumber) {
     super();
     this.items = new LinkedList<String>();
-    addItem(item);
+    addItem(item, isNumber);
     this.removeAtGet = printOnlyOnce;
-  }
+  }  
 
   private final LinkedList<String> items;
+  
+  private boolean isNumber;
 
   private final boolean removeAtGet;
 }
@@ -79,6 +88,10 @@ class IntermediateNode extends AbstractNode {
 
   public String getItem(boolean remove) {
     return null;
+  }
+  
+  public boolean isNumberItem() {
+	  return false;
   }
 
   public void appendNode(AbstractNode node, char ch) {
@@ -118,8 +131,28 @@ public class LookupTable {
   public AddItemResult addItem(String key, String item) {
     return addItem(key, item, false);
   }
+  
+  public AddItemResult addItem(String key, int item) {
+    return addItem(key, item, false);
+  }
 
   public AddItemResult addItem(String key, String item, boolean printOnlyOnce) {
+    return addItem(key, item, printOnlyOnce, false);
+  }
+  
+  public AddItemResult addItem(String key, int item, boolean printOnlyOnce) {
+    return addItem(key, "" + item, printOnlyOnce, true);
+  }
+  
+  public AddItemResult addItem(String key, float item) {
+    return addItem(key, item, false);
+  }
+  
+  public AddItemResult addItem(String key, float item, boolean printOnlyOnce) {
+    return addItem(key, "" + item, printOnlyOnce, true);
+  }
+  
+  private AddItemResult addItem(String key, String item, boolean printOnlyOnce, boolean isNumber) {
     if (triggerKey != null && key.indexOf(triggerKey.charValue()) != -1) {
       return AddItemResult.KeyIncludesTriggerKey;
     }
@@ -140,14 +173,14 @@ public class LookupTable {
     AbstractNode nextNode = currentNode.nextNode(new Character(ch));
     if (nextNode != null) {
       if (nextNode.isLeaf()) {
-        ((LeafNode) nextNode).addItem(item);
+        ((LeafNode) nextNode).addItem(item, isNumber);
         return AddItemResult.KeyDuplicate;
       }
       else
         return AddItemResult.KeyStartIsKey;
     }
     else {
-      nextNode = new LeafNode(item, printOnlyOnce);
+      nextNode = new LeafNode(item, printOnlyOnce, isNumber);
       currentNode.appendNode(nextNode, ch);
       return AddItemResult.OK;
     }
@@ -163,6 +196,7 @@ public class LookupTable {
     NextCharResult nextChar(Character ch);
 
     String getItem();
+    boolean isNumberItem();
   }
 
   private class LookupPerformerImpl implements LookupPerformer {
@@ -187,6 +221,13 @@ public class LookupTable {
         return currentNode.getItem(true);
       else
         return null;
+    }
+    
+    public boolean isNumberItem() {
+      if (currentNode != null) 
+        return currentNode.isNumberItem();
+      else
+        return false;
     }
 
     public LookupPerformerImpl() {

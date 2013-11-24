@@ -1,42 +1,44 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Heldenverwaltung; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.tables;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import dsa.gui.util.SpinnerCellEditor;
 import dsa.gui.util.TableSorter;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.util.Optional;
 
-public class WeaponsTable extends AbstractTable {
+public class WeaponsTable extends AbstractTable implements
+    SpinnerCellEditor.EditorClient {
 
   protected int getNameColumn() {
     return 0;
@@ -61,16 +63,21 @@ public class WeaponsTable extends AbstractTable {
   int getWeightColumn() {
     return 5;
   }
-  
+
   int getWorthColumn() {
     return 6;
   }
 
-  int getCountColumn() {
+  int getProjectilesColumn() {
     return 7;
   }
 
   static final Optional<Integer> NULL_INT = Optional.NULL_INT;
+
+  public static interface ValueChanger {
+    void bfChanged(String name, int bf);
+    void projectilesChanged(String name, int projectiles);
+  }
 
   class MyTableModel extends DefaultTableModel {
     public Class<?> getColumnClass(int columnIndex) {
@@ -81,18 +88,31 @@ public class WeaponsTable extends AbstractTable {
       return super.getColumnClass(columnIndex);
     }
 
+    @SuppressWarnings("unchecked")
     public boolean isCellEditable(int row, int column) {
+      if (column == getBFColumn()) return true;
+      if (column == getProjectilesColumn()) {
+        Optional<Integer> value = (Optional<Integer>) getValueAt(row, column);
+        return value.hasValue();
+      }
       return false;
     }
   }
 
   MyTableModel mModel;
 
-  boolean hasCount;
+  boolean hasProjectiles;
 
-  public WeaponsTable(boolean withCount) {
+  ValueChanger mValueChanger;
+
+  public WeaponsTable(boolean withProjectiles) {
+    this(withProjectiles, null);
+  }
+
+  public WeaponsTable(boolean withProjectiles, ValueChanger bfChanger) {
     super();
-    hasCount = withCount;
+    hasProjectiles = withProjectiles;
+    mValueChanger = bfChanger;
     mModel = new MyTableModel();
     mModel.addColumn("Name");
     mModel.addColumn("Kategorie");
@@ -101,24 +121,62 @@ public class WeaponsTable extends AbstractTable {
     mModel.addColumn("KK");
     mModel.addColumn("Gewicht");
     mModel.addColumn("Wert (S)");
-    if (hasCount) {
-      mModel.addColumn("Anzahl");
+    if (hasProjectiles) {
+      mModel.addColumn("Geschosse");
     }
 
+    SpinnerCellEditor numberEditor = new SpinnerCellEditor(this);
+    numberEditor.setModel(new SpinnerNumberModel(0, -10, 12, 1));
+    numberEditor.addCellEditorListener(new CellEditorListener() {
+
+      public void editingStopped(ChangeEvent e) {
+        if (mValueChanger != null) {
+          SpinnerCellEditor editor = (SpinnerCellEditor) e
+              .getSource();
+          Number number = (Number) editor.getValue();
+          mValueChanger.bfChanged(editor.getCellInfo(), number.intValue());
+        }
+      }
+
+      public void editingCanceled(ChangeEvent e) {
+      }
+    });
+    
+    SpinnerCellEditor projectilesEditor = new SpinnerCellEditor(this);
+    projectilesEditor.setModel(new SpinnerNumberModel(0, 0, 100, 1));
+    projectilesEditor.addCellEditorListener(new CellEditorListener() {
+      public void editingStopped(ChangeEvent e) {
+        if (mValueChanger != null) {
+          SpinnerCellEditor editor = (SpinnerCellEditor) e
+              .getSource();
+          Number number = (Number) editor.getValue();
+          mValueChanger.projectilesChanged(editor.getCellInfo(), number.intValue());
+        }        
+      }
+      
+      public void editingCanceled(ChangeEvent e) {
+      }
+    });
+
     DefaultTableColumnModel tcm = new DefaultTableColumnModel();
-    tcm.addColumn(new TableColumn(0, 160));
-    tcm.addColumn(new TableColumn(1, 160));
+    tcm.addColumn(new TableColumn(0, 150));
+    tcm.addColumn(new TableColumn(1, 150));
     tcm.addColumn(new TableColumn(2, 80));
-    tcm.addColumn(new TableColumn(3, 35));
+    if (bfChanger != null) {
+      tcm.addColumn(new TableColumn(3, 55, new DefaultTableCellRenderer(), numberEditor));
+    }
+    else {
+      tcm.addColumn(new TableColumn(3, 35));
+    }
     tcm.addColumn(new TableColumn(4, 35));
     tcm.addColumn(new TableColumn(5, 80));
-    tcm.addColumn(new TableColumn(6, 80));
-    if (hasCount) {
-      tcm.addColumn(new TableColumn(7, 55));
+    tcm.addColumn(new TableColumn(6, 60));
+    if (hasProjectiles) {
+      tcm.addColumn(new TableColumn(7,80, new DefaultTableCellRenderer(), projectilesEditor));
     }
 
     mSorter = new TableSorter(mModel);
-    mTable = new JTable(mSorter, tcm);
+    mTable = new ViewportFillingTable(mSorter, tcm);
     mSorter.setTableHeader(mTable.getTableHeader());
 
     for (int i = 0; i < mTable.getColumnCount(); ++i)
@@ -129,16 +187,9 @@ public class WeaponsTable extends AbstractTable {
     mTable.setRowSelectionAllowed(true);
     mTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
     mTable.setRowHeight(22);
-    mTable.addMouseListener(new MouseAdapter() {
+    mTable.addMouseListener(createMouseListener());
 
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
-          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
-        }
-      }
-    });
-
-    // mTable.setBackground(BACKGROUND_GRAY);
+    mTable.setBackground(BACKGROUND_GRAY);
     JScrollPane scrollPane = new JScrollPane(mTable);
     scrollPane.setOpaque(false);
     scrollPane.getViewport().setOpaque(false);
@@ -163,11 +214,11 @@ public class WeaponsTable extends AbstractTable {
   }
 
   public void addWeapon(Weapon weapon, int count) {
-    addWeapon(weapon, weapon.getName(), weapon.getBF(), count);
+    addWeapon(weapon, weapon.getName(), weapon.getBF(), count, NULL_INT);
   }
 
-  public void addWeapon(Weapon weapon, String name, int bf, int count) {
-    Object[] rowData = new Object[hasCount ? 8 : 7];
+  public void addWeapon(Weapon weapon, String name, int bf, int count, Optional<Integer> projectiles) {
+    Object[] rowData = new Object[hasProjectiles ? 8 : 7];
     rowData[getNameColumn()] = name;
     rowData[getBFColumn()] = bf;
     rowData[getKKColumn()] = weapon.getKKBonus();
@@ -182,8 +233,8 @@ public class WeaponsTable extends AbstractTable {
           + weapon.getConstDamage();
     }
     rowData[getWorthColumn()] = weapon.getWorth();
-    if (hasCount) {
-      rowData[getCountColumn()] = count;
+    if (hasProjectiles) {
+      rowData[getProjectilesColumn()] = projectiles;
     }
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
@@ -203,7 +254,7 @@ public class WeaponsTable extends AbstractTable {
 
   @SuppressWarnings("unchecked")
   public void setWeaponCount(String item, int count) {
-    if (!hasCount) return;
+    /*if (!hasCount) return;
     for (int i = 0; i < mModel.getRowCount(); ++i) {
       if (mModel.getValueAt(i, getNameColumn()).equals(item)) {
         int oldCount = (Integer) mModel.getValueAt(i, getCountColumn());
@@ -216,7 +267,7 @@ public class WeaponsTable extends AbstractTable {
         }
         break;
       }
-    }
+    }*/
   }
 
   public void removeWeapon(String weapon) {
@@ -227,6 +278,10 @@ public class WeaponsTable extends AbstractTable {
         return;
       }
     }
+  }
+
+  public String getCellInfo(int row) {
+    return mSorter.getValueAt(row, getNameColumn()).toString();
   }
 
 }

@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -122,6 +122,10 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     initialize(loadLastGroup);
   }
 
+  public String getHelpPage() {
+    return "Hauptfenster";
+  }
+
   private String currentGroupFileName = "";
 
   private DropTarget dropTarget = null;
@@ -179,8 +183,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       prefs
           .put("lastActiveHero", Group.getInstance().getActiveHero().getName());
     }
-    String baseDir = Directories.getApplicationPath() + "daten"
-        + File.separator;
+    String baseDir = Directories.getUserDataPath();
     try {
       Talents.getInstance().saveUserTalents(baseDir + "Eigene_Talente.dat");
     }
@@ -287,7 +290,9 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       Group.getInstance().loadFromFile(reader);
     }
     catch (IOException e) {
-      return;
+      JOptionPane.showMessageDialog(this,
+          "Gruppe konnte nicht geladen werden! Fehler:\n" + e.getMessage(),
+          "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -304,8 +309,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
   private void copyFile(File first, File second) throws IOException {
     BufferedReader in = new BufferedReader(new FileReader(first));
     try {
-      PrintWriter out = new PrintWriter(
-          new BufferedWriter(new FileWriter(second)));
+      PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
+          second)));
       try {
         String s = in.readLine();
         while (s != null) {
@@ -319,7 +324,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       }
     }
     finally {
-      if (in != null) in.close();      
+      if (in != null) in.close();
     }
   }
 
@@ -561,7 +566,8 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     }
 
     private void clearList(Hero hero) {
-      Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
+      Preferences prefs = Preferences
+          .userNodeForPackage(dsa.gui.PackageID.class);
       if (hero != null) {
         prefs.putInt(hero.getName() + "_AnimalFrameCount", animalFrames.size());
         int nr = 0;
@@ -569,7 +575,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
           int index = -1;
           for (int i = 0; i < hero.getNrOfAnimals(); ++i) {
             if (hero.getAnimal(i).getName().equals(animal)) {
-              index = i; 
+              index = i;
               break;
             }
           }
@@ -624,8 +630,10 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       deleteAnimalButton.setEnabled(false);
     }
     if (openFrames) {
-      Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-      int nrOfOpenFrames = prefs.getInt(hero.getName() + "_AnimalFrameCount", 0);
+      Preferences prefs = Preferences
+          .userNodeForPackage(dsa.gui.PackageID.class);
+      int nrOfOpenFrames = prefs
+          .getInt(hero.getName() + "_AnimalFrameCount", 0);
       for (int i = 0; i < nrOfOpenFrames; ++i) {
         int index = prefs.getInt(hero.getName() + "_AnimalFrame_" + i, -1);
         if (index != -1) {
@@ -652,7 +660,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
     if (index < 0) return;
     editAnimal(index, false);
   }
-    
+
   private void editAnimal(int index, boolean setPosition) {
     Hero hero = Group.getInstance().getActiveHero();
     dsa.model.data.Animal animal = hero.getAnimal(index);
@@ -691,6 +699,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
           }
           fillAnimalsList(Group.getInstance().getActiveHero(), false);
         }
+
         public void thingRemoved(String thing) {
         }
       };
@@ -1172,6 +1181,9 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       if (weapon != null) {
         weaponWeight += (long) currentHero.getWeaponCount(name)
             * weapon.getWeight();
+        if (weapon.isProjectileWeapon() && weapon.getProjectileWeight().hasValue()) {
+          weaponWeight += (long) (currentHero.getNrOfProjectiles(name) * weapon.getProjectileWeight().getValue());
+        }
       }
     }
     float weaponWeightStones = weaponWeight / 40.0f;
@@ -1818,11 +1830,12 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
       manualItem.setText("Anleitung");
       manualItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
       manualItem.addActionListener(new ActionListener() {
-        String url = "http://www.ruedenauer.net/Software/dsa/helden_anleitung.html";
 
         public void actionPerformed(ActionEvent e) {
           try {
-            Desktop.browse(new java.net.URL(url));
+            File file = new File(Directories.getApplicationPath() + "hilfe/Start.html");
+            java.net.URL url = file.toURI().toURL();
+            Desktop.browse(url);
           }
           catch (java.net.MalformedURLException ex) {
             ex.printStackTrace();
@@ -1830,7 +1843,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
           catch (org.jdesktop.jdic.desktop.DesktopException ex) {
             JOptionPane.showMessageDialog(ControlFrame.this,
                 "Die Anleitung konnte nicht geöffnet werden. Fehler:\n"
-                    + ex.getMessage() + "\nBitte öffne manuell " + url,
+                    + ex.getMessage() + "\nBitte öffne manuell hilfe/Start.html",
                 "Fehler", JOptionPane.ERROR_MESSAGE);
           }
         }
@@ -2754,8 +2767,7 @@ public final class ControlFrame extends SubFrame implements DropTargetListener {
   }
 
   private void activeCharacterChanged(Hero newCharacter) {
-    if (newCharacter != null)
-      heroBox.setSelectedItem(newCharacter.getName());
+    if (newCharacter != null) heroBox.setSelectedItem(newCharacter.getName());
     // newItem.setEnabled(false);
     // openItem.setEnabled(true);
     String path = Group.getInstance().getFilePath(newCharacter);

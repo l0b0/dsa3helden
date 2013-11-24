@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -39,7 +39,7 @@ import dsa.model.talents.Talent;
 public final class SpellSelectionDialog extends AbstractSelectionDialog {
 
   public SpellSelectionDialog(javax.swing.JFrame owner, Hero character) {
-    super(owner, "Zauber hinzufügen", new SpellTable(), "Zauber");
+    super(owner, "Zauber hinzufügen", new SpellTable(character.getInternalType()), "Zauber");
     mHero = character;
     initialize();
     fillTable();

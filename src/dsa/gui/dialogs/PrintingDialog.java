@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -25,8 +25,10 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.JButton;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -43,6 +45,8 @@ import javax.swing.JPanel;
 import javax.swing.BorderFactory;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+import java.awt.Dimension;
+import java.awt.Point;
 
 /**
  * 
@@ -81,6 +85,10 @@ public final class PrintingDialog extends BGDialog {
 
   private JPanel jPanel1 = null;
 
+  private JLabel jLabel3 = null;
+
+  private JSpinner zfwSpinner = null;
+
   /**
    * This is the default constructor -- do not use!
    */
@@ -99,9 +107,14 @@ public final class PrintingDialog extends BGDialog {
       getFileTypeBox().addItem(ft.getDescription());
     }
     getFileTypeBox().setSelectedIndex(hero.getPrintingFileType().ordinal());
+    getZfwSpinner().setValue(hero.getPrintingZFW());
     this.setLocationRelativeTo(parent);
     this.setTitle("Drucken: " + hero.getName());
     updateButtons();
+  }
+  
+  public final String getHelpPage() {
+    return "Drucken";
   }
 
   /**
@@ -112,7 +125,7 @@ public final class PrintingDialog extends BGDialog {
   private void initialize() {
     this.setTitle("Drucken");
     this.setModal(true);
-    this.setSize(435, 319);
+    this.setSize(435, 364);
     this.setContentPane(getJContentPane());
   }
 
@@ -313,7 +326,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getCreateButton() {
     if (createButton == null) {
       createButton = new JButton();
-      createButton.setBounds(11, 253, 100, 22);
+      createButton.setBounds(10, 300, 100, 22);
       createButton.setText("Erstellen");
       createButton.setName("createButton");
       createButton.addActionListener(new java.awt.event.ActionListener() {
@@ -396,6 +409,7 @@ public final class PrintingDialog extends BGDialog {
         return;
       }
     }
+    hero.setPrintingZFW(((Number)getZfwSpinner().getValue()).intValue());
     TransformerHelper helper = new TransformerHelper(input, output, ft);
     getDisplayButton().setEnabled(false);
     (new Thread(helper)).start();
@@ -409,7 +423,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getDisplayButton() {
     if (displayButton == null) {
       displayButton = new JButton();
-      displayButton.setBounds(132, 253, 100, 22);
+      displayButton.setBounds(131, 300, 100, 22);
       displayButton.setText("Anzeigen");
       displayButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -442,7 +456,7 @@ public final class PrintingDialog extends BGDialog {
   private JButton getCloseButton() {
     if (closeButton == null) {
       closeButton = new JButton();
-      closeButton.setBounds(253, 253, 100, 22);
+      closeButton.setBounds(252, 300, 100, 22);
       closeButton.setText("Schließen");
       closeButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -461,8 +475,9 @@ public final class PrintingDialog extends BGDialog {
   private JButton getFightTalentButton() {
     if (fightTalentButton == null) {
       fightTalentButton = new JButton();
-      fightTalentButton.setBounds(new Rectangle(22, 209, 208, 22));
       fightTalentButton.setText("Kampftalente auswählen ...");
+      fightTalentButton.setSize(new Dimension(208, 22));
+      fightTalentButton.setLocation(new Point(22, 249));
       fightTalentButton.setEnabled(hero != null);
       fightTalentButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -517,12 +532,32 @@ public final class PrintingDialog extends BGDialog {
    */
   private JPanel getJPanel1() {
     if (jPanel1 == null) {
+      jLabel3 = new JLabel();
+      jLabel3.setText("Zauber drucken ab einem ZFW von:");
+      jLabel3.setLocation(new Point(12, 80));
+      jLabel3.setSize(new Dimension(229, 21));
       jPanel1 = new JPanel();
       jPanel1.setLayout(null);
-      jPanel1.setBounds(new Rectangle(11, 132, 408, 111));
+      jPanel1.setBounds(new Rectangle(10, 130, 408, 159));
       jPanel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Ausgabe", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel1.add(jLabel3, null);
+      jPanel1.add(getZfwSpinner(), null);
     }
     return jPanel1;
+  }
+
+  /**
+   * This method initializes zfwSpinner	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JSpinner getZfwSpinner() {
+    if (zfwSpinner == null) {
+      zfwSpinner = new JSpinner();
+      zfwSpinner.setModel(new SpinnerNumberModel(-6, -20, 20, 1));
+      zfwSpinner.setBounds(new Rectangle(250, 80, 41, 21));
+    }
+    return zfwSpinner;
   }
 
 }  //  @jve:decl-index=0:visual-constraint="148,7"

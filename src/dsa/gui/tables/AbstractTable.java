@@ -14,23 +14,32 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.tables;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 import dsa.gui.util.TableSorter;
 
@@ -41,6 +50,29 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
   protected JTable mTable;
 
   protected TableSorter mSorter;
+  
+  protected static class ViewportFillingTable extends JTable {
+    public ViewportFillingTable(TableModel tm, TableColumnModel tcm) {
+      super(tm, tcm);
+    }
+    
+    public boolean getScrollableTracksViewportHeight() {
+      return getPreferredSize().height < getParent().getHeight();
+    }
+    
+    protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+      if (ks != pasteStroke && ks != cutStroke && ks != copyStroke) {
+        return super.processKeyBinding(ks, e, condition, pressed);
+      }
+      else {
+        return true; // stop search! Cut, Copy, Paste is done by this program manually!
+      }
+    }
+    
+    private static KeyStroke pasteStroke = KeyStroke.getKeyStroke("control V");
+    private static KeyStroke cutStroke = KeyStroke.getKeyStroke("control X");
+    private static KeyStroke copyStroke = KeyStroke.getKeyStroke("control C");
+  }
 
   private static class MyCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -70,7 +102,7 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
   }
 
   protected void setSelectedRow(int row) {
-    if (mTable.getModel().getRowCount() > row) {
+    if (row >= 0 && mTable.getModel().getRowCount() > row) {
       mTable.setRowSelectionInterval(row, row);
     }
   }
@@ -113,8 +145,6 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
 
   private ActionListener dcListener = null;
   
-  protected ActionListener getDoubleClickListener() { return dcListener; }
-
   public void setDoubleClickListener(ActionListener listener) {
     dcListener = listener;
   }
@@ -144,9 +174,47 @@ public abstract class AbstractTable implements TableSorter.SortingListener {
     mTable.addMouseMotionListener(l);
   }
   
+  private MouseListener popupListener = null;
+  
+  public void setPopupListener(MouseListener l) {
+    popupListener = l;
+  }
+  
+  protected final MouseListener createMouseListener() {
+    return new MouseAdapter() {
+
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() > 1 && dcListener != null) {
+          dcListener.actionPerformed(new ActionEvent(this, 0, ""));
+        }
+      }
+      
+      public void mousePressed(MouseEvent e) {
+        setSelectedRow(mTable.rowAtPoint(e.getPoint()));
+        if (popupListener != null) {
+          popupListener.mousePressed(e);
+        }
+      }
+      
+      public void mouseReleased(MouseEvent e) {
+        if (popupListener != null) {
+          popupListener.mouseReleased(e);
+        }
+      }
+    };
+  }
+  
+  public JComponent getDnDComponent() {
+    return mTable;
+  }
+  
   public void setTransferHandler(TransferHandler handler) {
     mTable.setTransferHandler(handler);
     thePanel.setTransferHandler(handler);
+  }
+  
+  public void setKeyListener(KeyListener kl) {
+    mTable.addKeyListener(kl);
   }
   
 }

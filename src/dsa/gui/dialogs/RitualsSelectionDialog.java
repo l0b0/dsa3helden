@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -59,6 +59,10 @@ public final class RitualsSelectionDialog extends BGDialog {
     setLocationRelativeTo(parent);
     setSize(470, 330);
   }
+  
+  public String getHelpPage() {
+    return "SF_hinzufuegen";
+  }
 
   public void setCallback(RitualsSelectionCallback callback) {
     this.callback = callback;
@@ -82,7 +86,7 @@ public final class RitualsSelectionDialog extends BGDialog {
     model.clear();
     if (currentHero != null) {
       List<String> rituals = Rituals.getInstance().getAllRituals(
-          currentHero.getType());
+          currentHero.getInternalType());
       heroRituals = currentHero.getRituals();
       for (String r : rituals) {
         if (!heroRituals.contains(r)) {

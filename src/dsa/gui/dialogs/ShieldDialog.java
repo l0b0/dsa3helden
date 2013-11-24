@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -136,6 +136,10 @@ public class ShieldDialog extends BGDialog {
     fkSpinner.setEnabled(shield.getFkMod() != 0);
     pa2Spinner.setEnabled(shield.getFkMod() == 0);
     bfSpinner.setValue(shield.getBF());
+  }
+  
+  public final String getHelpPage() {
+    return "Parade_hinzufuegen";
   }
 
   public Shield getCreatedShield() {

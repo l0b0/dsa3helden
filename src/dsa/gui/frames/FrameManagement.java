@@ -14,20 +14,29 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
 
 import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
+
+import dsa.gui.util.Help;
+import dsa.gui.util.HelpProvider;
+
 
 /**
  * 
@@ -118,11 +127,48 @@ public class FrameManagement {
   }
 
   private SubFrame mainFrame;
+  
+  private static class HelpListener extends KeyAdapter implements PropertyChangeListener {
+    
+    private Component focusOwner = null;
+
+    public void propertyChange(PropertyChangeEvent evt) {
+      Object o = evt.getNewValue();
+      if (o instanceof Component) {
+        if (focusOwner != null) focusOwner.removeKeyListener(this);
+        focusOwner = (Component) o;
+        if (focusOwner != null) focusOwner.addKeyListener(this);
+      }
+    }
+    
+    public void keyPressed(KeyEvent e) {
+      if (focusOwner == null) return;
+      if (e.getKeyCode() == KeyEvent.VK_F1) {
+        Component c = focusOwner;
+        while (c != null && (!(c instanceof HelpProvider))) {
+          c = c.getParent();
+        }
+        if (c != null) {
+          showHelp((HelpProvider)c);
+        }
+      }
+    }
+    
+    private void showHelp(HelpProvider provider)
+    {
+      String page = provider.getHelpPage();
+      if (page != null) {
+        Help.showPage(provider.getHelpParent(), page);
+      }
+    }
+  }
 
   private FrameManagement() {
     frames = new java.util.LinkedList<SubFrame>();
     positions = new HashMap<Component, Rectangle>();
     windowSnapper = new WindowSnapper();
+    KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+    manager.addPropertyChangeListener("permanentFocusOwner", new HelpListener());
   }
 
   private final java.util.LinkedList<SubFrame> frames;

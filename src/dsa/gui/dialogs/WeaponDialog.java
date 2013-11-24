@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -36,6 +36,8 @@ import javax.swing.JButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JCheckBox;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 
 public final class WeaponDialog extends BGDialog {
 
@@ -95,6 +97,22 @@ public final class WeaponDialog extends BGDialog {
 
   private JComboBox worthCombo = null;
 
+  private JLabel jLabel10 = null;
+
+  private JComboBox projectileBox = null;
+
+  private JLabel jLabel11 = null;
+
+  private JSpinner ptWeightSpinner = null;
+
+  private JLabel jLabel12 = null;
+
+  private JLabel jLabel13 = null;
+
+  private JSpinner ptWorthSpinner = null;
+
+  private JLabel jLabel14 = null;
+
   public Weapon getCreatedWeapon() {
     return weapon;
   }
@@ -119,7 +137,7 @@ public final class WeaponDialog extends BGDialog {
     bfSpinner.setValue(weapon.getBF());
     categoryCombo.setSelectedItem(Weapons.getCategoryName(weapon.getType()));
     constDamageSpinner.setValue(weapon.getConstDamage());
-    if (weapon.isProjectileWeapon()) {
+    if (weapon.isFarRangedWeapon()) {
       distancesField.setEnabled(true);
       String distances = "";
       for (Weapon.Distance d : Weapon.Distance.values()) {
@@ -147,6 +165,30 @@ public final class WeaponDialog extends BGDialog {
       twoHandedBox.setEnabled(true);
       twoHandedBox.setSelected(weapon.isTwoHanded());
     }
+    if (weapon.isProjectileWeapon()) {
+      projectileBox.setEnabled(true);
+      projectileBox.setSelectedItem(weapon.getProjectileType());
+      ptWeightSpinner.setEnabled(true);
+      if (weapon.getProjectileWeight().hasValue()) {
+        ptWeightSpinner.setValue(weapon.getProjectileWeight().getValue());
+      }
+      else {
+        ptWeightSpinner.setValue(0);
+      }
+      ptWorthSpinner.setEnabled(true);
+      if (weapon.getProjectileWorth().hasValue()) {
+        ptWorthSpinner.setValue(weapon.getProjectileWorth().getValue());
+      }
+      else {
+        ptWorthSpinner.setValue(0);
+      }
+    }
+    else {
+      projectileBox.setSelectedIndex(0);
+      projectileBox.setEnabled(false);
+      ptWeightSpinner.setEnabled(false);
+      ptWorthSpinner.setEnabled(false);
+    }
     kkSpinner.setValue(weapon.getKKBonus().hasValue() ? weapon.getKKBonus().getValue() : 21);
     wDamageSpinner.setValue(weapon.getW6damage());
     int weight = weapon.getWeight();
@@ -168,12 +210,16 @@ public final class WeaponDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new java.awt.Dimension(339,361));
+    this.setSize(new Dimension(339, 419));
     this.setContentPane(getJContentPane());
     this.setTitle("Waffe hinzufügen");
 
   }
 
+  public final String getHelpPage() {
+    return "Waffe_hinzufuegen";
+  }
+  
   /**
    * This method initializes jContentPane
    * 
@@ -197,14 +243,29 @@ public final class WeaponDialog extends BGDialog {
    */
   private JPanel getJPanel() {
     if (jPanel == null) {
+      jLabel14 = new JLabel();
+      jLabel14.setBounds(new Rectangle(280, 310, 11, 21));
+      jLabel14.setText("K");
+      jLabel13 = new JLabel();
+      jLabel13.setBounds(new Rectangle(180, 310, 36, 20));
+      jLabel13.setText("Wert:");
+      jLabel12 = new JLabel();
+      jLabel12.setBounds(new Rectangle(160, 310, 11, 20));
+      jLabel12.setText("U");
+      jLabel11 = new JLabel();
+      jLabel11.setBounds(new Rectangle(10, 310, 91, 21));
+      jLabel11.setText("Gewicht:");
+      jLabel10 = new JLabel();
+      jLabel10.setBounds(new Rectangle(10, 280, 91, 21));
+      jLabel10.setText("Geschosse:");
       jLabel9 = new JLabel();
       jLabel9.setBounds(new java.awt.Rectangle(10,160,91,21));
       jLabel9.setText("Wert:");
       jLabel8 = new JLabel();
-      jLabel8.setBounds(new java.awt.Rectangle(10,250,91,21));
+      jLabel8.setBounds(new Rectangle(10, 250, 91, 21));
       jLabel8.setText("TP-Boni:");
       jLabel7 = new JLabel();
-      jLabel7.setBounds(new java.awt.Rectangle(10,220,91,21));
+      jLabel7.setBounds(new Rectangle(10, 220, 91, 21));
       jLabel7.setText("Reichweiten:");
       jLabel6 = new JLabel();
       jLabel6.setBounds(new java.awt.Rectangle(210,100,31,21));
@@ -229,7 +290,7 @@ public final class WeaponDialog extends BGDialog {
       jLabel.setText("Name:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
-      jPanel.setBounds(new java.awt.Rectangle(8,8,309,283));
+      jPanel.setBounds(new Rectangle(8, 8, 309, 343));
       jPanel.setBorder(javax.swing.BorderFactory
           .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED));
       jPanel.add(jLabel, null);
@@ -255,6 +316,14 @@ public final class WeaponDialog extends BGDialog {
       jPanel.add(jLabel9, null);
       jPanel.add(getWorthSpinner(), null);
       jPanel.add(getWorthCombo(), null);
+      jPanel.add(jLabel10, null);
+      jPanel.add(getProjectileBox(), null);
+      jPanel.add(jLabel11, null);
+      jPanel.add(getPtWeightSpinner(), null);
+      jPanel.add(jLabel12, null);
+      jPanel.add(jLabel13, null);
+      jPanel.add(getPtWorthSpinner(), null);
+      jPanel.add(jLabel14, null);
     }
     return jPanel;
   }
@@ -361,12 +430,23 @@ public final class WeaponDialog extends BGDialog {
       categoryCombo.setSelectedIndex(2);
       categoryCombo.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          boolean p = Weapons.isProjectileCategory(categoryCombo
+          boolean p = Weapons.isFarRangedCategory(categoryCombo
               .getSelectedItem().toString());
           twoHandedBox.setEnabled(!p);
           twoHandedBox.setSelected(p);
           distancesField.setEnabled(p);
           distModsField.setEnabled(p);
+          if (Weapons.isProjectileCategory(categoryCombo.getSelectedItem().toString())) {
+            projectileBox.setEnabled(true);
+            ptWeightSpinner.setEnabled(true);
+            ptWorthSpinner.setEnabled(true);
+          }
+          else {
+            projectileBox.setSelectedIndex(0);
+            projectileBox.setEnabled(false);
+            ptWeightSpinner.setEnabled(false);
+            ptWorthSpinner.setEnabled(false);
+          }
         }
       });
     }
@@ -394,7 +474,7 @@ public final class WeaponDialog extends BGDialog {
   private JButton getOkButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new java.awt.Rectangle(49,300,101,21));
+      okButton.setBounds(new Rectangle(50, 360, 101, 21));
       okButton.setText("OK");
       okButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -430,7 +510,7 @@ public final class WeaponDialog extends BGDialog {
     int bf = ((Number) bfSpinner.getValue()).intValue();
     Optional<Integer> kk = null;
     if (Weapons
-        .isProjectileCategory(categoryCombo.getSelectedItem().toString())) {
+        .isFarRangedCategory(categoryCombo.getSelectedItem().toString())) {
       kk = new Optional<Integer>();
     }
     else {
@@ -445,10 +525,13 @@ public final class WeaponDialog extends BGDialog {
       worth *= 10;
     }
     boolean twoHanded = twoHandedBox.isSelected();
-    boolean projectile = Weapons.isProjectileCategory(category);
+    boolean projectile = Weapons.isFarRangedCategory(category);
     int nrOfDists = Weapon.Distance.values().length;
     int[] dists = new int[nrOfDists];
     int[] distMods = new int[nrOfDists];
+    String ptt = "Keine";
+    Optional<Integer> ptw = new Optional<Integer>();
+    Optional<Integer> ptm = new Optional<Integer>();
     if (projectile) {
       String distString = distancesField.getText();
       StringTokenizer st = new StringTokenizer(distString, "/");
@@ -489,20 +572,28 @@ public final class WeaponDialog extends BGDialog {
         }
       }
     }
+    if (Weapons.isProjectileCategory(category)) {
+      ptt = projectileBox.getSelectedItem().toString();
+      ptw = new Optional<Integer>(((Number)ptWorthSpinner.getValue()).intValue());
+      ptm = new Optional<Integer>(((Number)ptWeightSpinner.getValue()).intValue());
+    }
     if (createWeapon) {
       weapon = new Weapon(w6damage, constDamage, category, name, bf, kk, weight,
-          true, twoHanded, projectile, new Optional<Integer>(worth));
+          true, twoHanded, projectile, new Optional<Integer>(worth), ptt, ptw, ptm);
     }
     else {
       weapon.setW6damage(w6damage);
       weapon.setConstDamage(constDamage);
       weapon.setType(category);
-      weapon.setBf(bf);
+      weapon.setBF(bf);
       weapon.setKKBonus(kk);
       weapon.setWeight(weight);
       weapon.setTwoHanded(twoHanded);
       weapon.setWorth(new Optional<Integer>(worth));
-      weapon.setProjectile(projectile);
+      weapon.setFarRanged(projectile);
+      weapon.setProjectileType(ptt);
+      weapon.setProjectileWeight(ptm);
+      weapon.setProjectileWorth(ptw);
     }
     if (projectile) {
       weapon.setDistanceMods(distMods);
@@ -519,7 +610,7 @@ public final class WeaponDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new java.awt.Rectangle(179,300,101,21));
+      cancelButton.setBounds(new Rectangle(180, 360, 101, 21));
       cancelButton.setText("Abbrechen");
       cancelButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -553,7 +644,7 @@ public final class WeaponDialog extends BGDialog {
   private JTextField getDistancesField() {
     if (distancesField == null) {
       distancesField = new JTextField();
-      distancesField.setBounds(new java.awt.Rectangle(110,220,181,21));
+      distancesField.setBounds(new Rectangle(110, 220, 181, 21));
       distancesField.setEnabled(false);
     }
     return distancesField;
@@ -567,7 +658,7 @@ public final class WeaponDialog extends BGDialog {
   private JTextField getDistModsField() {
     if (distModsField == null) {
       distModsField = new JTextField();
-      distModsField.setBounds(new java.awt.Rectangle(110,250,181,21));
+      distModsField.setBounds(new Rectangle(110, 250, 181, 21));
       distModsField.setEnabled(false);
     }
     return distModsField;
@@ -600,6 +691,54 @@ public final class WeaponDialog extends BGDialog {
       worthCombo.addItem("Dukaten");
     }
     return worthCombo;
+  }
+
+  /**
+   * This method initializes projectileBox	
+   * 	
+   * @return javax.swing.JComboBox	
+   */
+  private JComboBox getProjectileBox() {
+    if (projectileBox == null) {
+      projectileBox = new JComboBox();
+      projectileBox.setBounds(new Rectangle(110, 280, 179, 20));
+      projectileBox.setEditable(true);
+      for (String t : Weapons.getInstance().getProjectileTypes()) {
+        projectileBox.addItem(t);
+      }
+      projectileBox.setEnabled(false);
+    }
+    return projectileBox;
+  }
+
+  /**
+   * This method initializes ptWeightSpinner	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JSpinner getPtWeightSpinner() {
+    if (ptWeightSpinner == null) {
+      ptWeightSpinner = new JSpinner();
+      ptWeightSpinner.setModel(new SpinnerNumberModel(3, 0, 100, 1));
+      ptWeightSpinner.setBounds(new Rectangle(110, 310, 46, 21));
+      ptWeightSpinner.setEnabled(false);
+    }
+    return ptWeightSpinner;
+  }
+
+  /**
+   * This method initializes ptWorthSpinner	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JSpinner getPtWorthSpinner() {
+    if (ptWorthSpinner == null) {
+      ptWorthSpinner = new JSpinner();
+      ptWorthSpinner.setModel(new SpinnerNumberModel(40, 0, 1000, 1));
+      ptWorthSpinner.setBounds(new Rectangle(225, 310, 51, 21));
+      ptWorthSpinner.setEnabled(false);
+    }
+    return ptWorthSpinner;
   }
 
 } //  @jve:decl-index=0:visual-constraint="10,10"

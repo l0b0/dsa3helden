@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -127,6 +127,10 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     initialize();
     currentHero = null;
     updateData();
+  }
+  
+  public String getHelpPage() {
+    return "Grunddaten";
   }
 
   public PhysFrame(String title) {
@@ -746,7 +750,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getGodBox().setSelectedItem(currentHero.getGod());
       getStandCombo().removeAllItems();
       CharacterType heroType = CharacterTypes.getInstance().getType(
-          currentHero.getType());
+          currentHero.getInternalType());
       if (heroType != null) {
         getStandCombo().setEnabled(true);
         for (String origin : heroType.getPossibleOrigins()) {

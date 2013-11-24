@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.data;
@@ -36,6 +36,8 @@ public class CharacterType {
   private final String maleName;
 
   private final String femaleName;
+  
+  private final String typeName;
 
   private final boolean malePossible;
 
@@ -208,6 +210,7 @@ public class CharacterType {
       }
       else
         talentReducement = 0;
+      typeName = fileName.substring(0, fileName.lastIndexOf('.'));
     }
     finally {
       if (in != null) {
@@ -274,6 +277,10 @@ public class CharacterType {
 
   public String getHairColor(int nr) {
     return hairColors[nr];
+  }
+  
+  public String getTypeName() {
+    return typeName;
   }
 
   private Hero prototype = null;

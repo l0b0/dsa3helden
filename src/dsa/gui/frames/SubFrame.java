@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -40,12 +40,13 @@ import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.UIManager;
 
+import dsa.gui.util.HelpProvider;
 import dsa.util.Directories;
 
 /**
  * 
  */
-public class SubFrame extends JFrame {
+public abstract class SubFrame extends JFrame implements HelpProvider {
 
   private static boolean shallSave;
 
@@ -187,6 +188,10 @@ public class SubFrame extends JFrame {
     this.setIconImage(getIcon().getImage());
     FrameManagement.getInstance().registerFrame(this);
   }
+  
+  //public String getHelpPage() { return null; }
+  
+  public final java.awt.Component getHelpParent() { return this; }
 
   private static ImageIcon getIcon() {
     return dsa.gui.util.ImageManager.getIcon("icon");

@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.data;
@@ -29,6 +29,7 @@ import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import dsa.util.Optional;
@@ -73,6 +74,18 @@ public class Weapons {
     }
     return allWeapons;
   }
+  
+  public Set<String> getProjectileTypes() {
+    java.util.HashSet<String> ptts = new java.util.HashSet<String>();
+    LinkedList<Weapon> allWeapons = getAllWeapons();
+    ptts.add("Keine");
+    for (Weapon w : allWeapons) {
+      if (w.isProjectileWeapon()) {
+        ptts.add(w.getProjectileType());
+      }
+    }
+    return ptts;
+  }
 
   public void addWeapon(Weapon weapon) {
     weapons.get(weapon.getType()).add(weapon);
@@ -103,13 +116,22 @@ public class Weapons {
     return -1;
   }
 
-  public static boolean isProjectileCategory(String category) {
+  public static boolean isFarRangedCategory(String category) {
     int index = getCategoryIndex(category);
     return index > getCategoryIndex("Lanzenreiten");
   }
 
-  public static boolean isProjectileCategory(int index) {
+  public static boolean isFarRangedCategory(int index) {
     return index > getCategoryIndex("Lanzenreiten");
+  }
+  
+  public static boolean isProjectileCategory(String category) {
+    int index = getCategoryIndex(category);
+    return isProjectileCategory(index);
+  }
+  
+  public static boolean isProjectileCategory(int index) {
+    return (index == getCategoryIndex("Schußwaffen")) || (index == getCategoryIndex("Schleuder"));
   }
 
   public static String[] getAvailableCategories() {
@@ -239,10 +261,13 @@ public class Weapons {
         if (line == null)
           throw new IOException("Unerwartetes Dateieende in " + filename);
         boolean twoHanded = line.trim().equals("1");
-        boolean projectile = Weapons.isProjectileCategory(category);
+        boolean projectile = Weapons.isFarRangedCategory(category);
         int nrOfDists = Weapon.Distance.values().length;
         int[] distances = new int[nrOfDists];
         int[] distMods = new int[nrOfDists];
+        String ptt = "Keine";
+        Optional<Integer> projectileWeight = new Optional<Integer>();
+        Optional<Integer> projectileWorth = new Optional<Integer>();
         if (projectile) {
           line = in.readLine();
           lineNr++;
@@ -266,6 +291,23 @@ public class Weapons {
           for (int i = 0; i < nrOfDists; ++i) {
             distMods[i] = parseInt(st.nextToken(), lineNr);
           }
+          if (isProjectileCategory(category)) {
+            line = in.readLine();
+            lineNr++;
+            if (line == null)
+              throw new IOException("Unerwartetes Dateiende in " + filename);
+            ptt = line.trim();
+            line = in.readLine();
+            lineNr++;
+            if (line == null)
+              throw new IOException("Unerwartetes Dateiende in " + filename);
+            projectileWeight.setValue(parseInt(line, lineNr));
+            line = in.readLine();
+            lineNr++;
+            if (line == null)
+              throw new IOException("Unerwartetes Dateiende in " + filename);
+            projectileWorth.setValue(parseInt(line, lineNr));
+          }
         }
         line = in.readLine();
         lineNr++;
@@ -277,7 +319,8 @@ public class Weapons {
           worth = new Optional<Integer>(w);
         }
         Weapon weapon = new Weapon(w6d, constd, category, name, bf, kkzuschlag,
-            weight, false, twoHanded, projectile, worth);
+            weight, false, twoHanded, projectile, worth, ptt, projectileWeight, 
+            projectileWorth);
         if (projectile) {
           weapon.setDistanceMods(distMods);
           weapon.setDistances(distances);

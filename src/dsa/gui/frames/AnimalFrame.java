@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -139,6 +139,10 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     });
   }
   
+  public String getHelpPage() {
+    return "Tier";
+  }
+  
   private ThingsTable mTable;
   JLabel sumLabel;
 
@@ -163,14 +167,14 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
       addButton.setToolTipText("Gegenstand hinzufügen");
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          addThing();
+          selectItem();
         }
       });
     }
     return addButton;
   }
 
-  protected void addThing() {
+  protected void selectItem() {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
@@ -533,7 +537,12 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     private int nr;
 
     public void stateChanged(ChangeEvent e) {
-      animal.setAttributeValue(nr, spinners.get(nr).getValue());
+      try {
+        animal.setAttributeValue(nr, spinners.get(nr).getValue());
+      }
+      catch (NumberFormatException ex) {
+        // ignore
+      }
     }
   }
 
@@ -545,15 +554,24 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
     private int nr;
 
     public void insertUpdate(DocumentEvent e) {
-      animal.setAttributeValue(nr, textFields.get(nr).getText());
+      setValue();
     }
 
     public void removeUpdate(DocumentEvent e) {
-      animal.setAttributeValue(nr, textFields.get(nr).getText());
+      setValue();
     }
 
     public void changedUpdate(DocumentEvent e) {
-      animal.setAttributeValue(nr, textFields.get(nr).getText());
+      setValue();
+    }
+    
+    private void setValue() {
+      try {
+        animal.setAttributeValue(nr, textFields.get(nr).getText());
+      }
+      catch (NumberFormatException e) {
+        // ignore
+      }
     }
   }
 
@@ -582,9 +600,13 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
         Animal.SpeedData sd = Animal.SpeedData.parse(s, 0);
         animal.setAttributeValue(nr, sd);
       }
-      catch (java.io.IOException e) {
+      catch (NumberFormatException e) {
         JOptionPane.showMessageDialog(AnimalFrame.this,
             "Format muss a/b sein!", "Fehler", JOptionPane.ERROR_MESSAGE);
+      }
+      catch (java.io.IOException e) {
+        JOptionPane.showMessageDialog(AnimalFrame.this,
+            "Format muss a/b sein!", "Fehler", JOptionPane.ERROR_MESSAGE);        
       }
     }
   }
@@ -615,7 +637,7 @@ public class AnimalFrame extends AbstractDnDFrame implements Things.ThingsListen
         animal.setAttributeValue(nr, ds);
       }
       catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(AnimalFrame.this, e.getMessage(),
+        JOptionPane.showMessageDialog(AnimalFrame.this, "Falsches Format für den Wert!",
             "Fehler", JOptionPane.ERROR_MESSAGE);
       }
     }

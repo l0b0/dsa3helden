@@ -14,22 +14,37 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
 
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
+import javax.swing.UIManager;
 
 import dsa.gui.tables.AbstractTable;
 import dsa.gui.tables.ThingTransfer;
@@ -46,11 +61,167 @@ abstract class AbstractDnDFrame extends SubFrame {
 
   protected abstract void removeItem(String item);
   
+  protected abstract void selectItem();
+  
   protected abstract ExtraThingData getExtraDnDData(String item);
 
   protected final void registerForDnD(AbstractTable table) {
     table.setTransferHandler(new ThingTransferHandler(table));
     table.addMouseMotionListener(new DragStarter());
+    ContextMenuManager cmm = new ContextMenuManager(table.getDnDComponent(), 
+        getAddAction(), getRemoveAction(table));
+    table.setPopupListener(cmm);
+    table.setKeyListener(cmm);
+  }
+  
+  private Action getAddAction() {
+    return new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        selectItem();
+      }
+    };
+  }
+  
+  private Action getRemoveAction(AbstractTable table) {
+    class RemoveAction extends AbstractAction {
+      public RemoveAction(AbstractTable table) {
+        mTable = table;
+      }
+      public void actionPerformed(ActionEvent e) {
+        String item = mTable.getSelectedItem();
+        if (item != null) removeItem(item);
+      }
+      private AbstractTable mTable;
+    }
+    return new RemoveAction(table);
+  }
+  
+  private static class EmptyTransferable implements Transferable {
+    public DataFlavor[] getTransferDataFlavors() {
+      return new DataFlavor[0];
+    }
+
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+      return false;
+    }
+
+    public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+      throw new UnsupportedFlavorException(flavor);
+    }
+    
+    private static EmptyTransferable instance = new EmptyTransferable();
+
+    public static EmptyTransferable getInstance() {
+      return instance;
+    }
+  }
+  
+  private static final class PasteAction extends AbstractAction implements ClipboardOwner {
+    public void actionPerformed(ActionEvent e) {
+      Object src = e.getSource();
+      if (src instanceof JComponent) {
+        JComponent c = (JComponent) src;
+        TransferHandler th = c.getTransferHandler();
+        Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
+        boolean pasted = false;
+        try {
+          Transferable trans = clipboard.getContents(null);
+          if (trans != null) pasted = th.importData(c, trans);
+          if (pasted) {
+            clipboard.setContents(EmptyTransferable.getInstance(), this);
+          }
+        }
+        catch (IllegalStateException ex) {
+          // clipboard was unavailable
+          UIManager.getLookAndFeel().provideErrorFeedback(c);
+          return;
+        }
+      }
+    }
+
+    public void lostOwnership(Clipboard clipboard, Transferable contents) {
+      // nothing to do
+    }
+  }
+
+  private static final class ContextMenuManager extends MouseAdapter implements ActionListener, KeyListener {
+    
+    private ActionMap actionMap;
+    
+    private InputMap inputMap;
+    
+    private JComponent component;
+    
+    public ContextMenuManager(JComponent c, Action addAction, Action removeAction) {
+      actionMap = new ActionMap();
+      actionMap.put("ADD", addAction);
+      actionMap.put("REMOVE", removeAction);
+      actionMap.put((String)TransferHandler.getCutAction().getValue(Action.NAME), TransferHandler.getCutAction());
+      actionMap.put("MY_PASTE", pasteAction);
+      inputMap = new InputMap();
+      inputMap.put(KeyStroke.getKeyStroke("control X"), (String)TransferHandler.getCutAction().getValue(Action.NAME));
+      inputMap.put(KeyStroke.getKeyStroke("control V"), "MY_PASTE");
+      component = c;
+    }
+    
+    private static Action pasteAction = new PasteAction();
+    
+    public void mousePressed(MouseEvent e) {
+      if (e.isPopupTrigger()) showPopupMenu(e);
+    }
+    
+    public void mouseReleased(MouseEvent e) {
+      if (e.isPopupTrigger()) showPopupMenu(e);
+    }
+    
+    private void showPopupMenu(MouseEvent e) {
+      JPopupMenu popup = new JPopupMenu();
+      JMenuItem addItem = new JMenuItem("Hinzufügen ...");
+      addItem.setMnemonic(KeyEvent.VK_H);
+      addItem.setActionCommand("ADD");
+      addItem.addActionListener(this);
+      popup.add(addItem);
+      JMenuItem removeItem = new JMenuItem("Entfernen");
+      removeItem.setMnemonic(KeyEvent.VK_E);
+      removeItem.setActionCommand("REMOVE");
+      removeItem.addActionListener(this);
+      popup.add(removeItem);
+      JMenuItem cutItem = new JMenuItem("Ausschneiden");
+      cutItem.setMnemonic(KeyEvent.VK_A);
+      cutItem.setActionCommand((String)TransferHandler.getCutAction().getValue(Action.NAME));
+      cutItem.addActionListener(this);
+      popup.add(cutItem);
+      JMenuItem pasteItem = new JMenuItem("Einfügen");
+      pasteItem.setMnemonic(KeyEvent.VK_F);
+      pasteItem.setActionCommand("MY_PASTE");
+      pasteItem.addActionListener(this);
+      popup.add(pasteItem);
+      popup.show(e.getComponent(), e.getX(), e.getY());
+    }
+
+    public void actionPerformed(ActionEvent e) {
+      String action = e.getActionCommand();
+      Action a = actionMap.get(action);
+      if (a != null) {
+        a.actionPerformed(new ActionEvent(component, ActionEvent.ACTION_PERFORMED, null));
+      }
+    }
+
+    public void keyTyped(KeyEvent e) {
+    }
+
+    public void keyPressed(KeyEvent e) {
+      KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(e);
+      Object actionName = inputMap.get(keyStroke);
+      if (actionName == null) return;
+      Action action = actionMap.get(actionName);
+      if (action != null) {
+        action.actionPerformed(new ActionEvent(component, ActionEvent.ACTION_PERFORMED, null));
+      }
+    }
+
+    public void keyReleased(KeyEvent e) {
+    }
   }
 
   private static final class DragStarter extends MouseMotionAdapter {

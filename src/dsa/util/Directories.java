@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.util;
@@ -69,6 +69,32 @@ public class Directories {
       }
     }
     return "";
+  }
+  
+  public static String getUserDataPath() {
+    Preferences prefs = Preferences
+      .userNodeForPackage(Directories.class);
+    boolean inUserDir = prefs.getBoolean("storedDataInUserDir", false);
+    if (inUserDir) {
+      String path = System.getProperty("user.home") + File.separator + 
+        "Heldenverwaltung";
+      File test = new File(path);
+      if (!test.exists()) {
+        test.mkdir();
+      }
+      path += File.separator + "Eigene_Daten";
+      test = new File(path);
+      if (!test.exists()) {
+        test.mkdir();
+      }
+      path += File.separator;
+      return path;
+    }
+    else {
+      // in future, use user directory
+      prefs.putBoolean("storedDataInUserDir", true);
+      return getApplicationPath() + File.separator + "daten" + File.separator;
+    }
   }
 
 }

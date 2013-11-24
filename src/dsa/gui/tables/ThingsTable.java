@@ -14,19 +14,15 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.tables;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -138,7 +134,7 @@ public class ThingsTable extends AbstractTable {
     if (withCountColumn) tcm.addColumn(new TableColumn(c++, 60));
 
     mSorter = new TableSorter(mModel);
-    mTable = new JTable(mSorter, tcm);
+    mTable = new ViewportFillingTable(mSorter, tcm);
     mSorter.setTableHeader(mTable.getTableHeader());
 
     for (int i = 0; i < mTable.getColumnCount(); ++i)
@@ -149,14 +145,7 @@ public class ThingsTable extends AbstractTable {
     mTable.setRowSelectionAllowed(true);
     mTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
     mTable.setRowHeight(22);
-    mTable.addMouseListener(new MouseAdapter() {
-
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
-          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
-        }
-      }
-    });
+    mTable.addMouseListener(createMouseListener());
     
     mTable.setBackground(BACKGROUND_GRAY);
     scrollPane = new JScrollPane(mTable);

@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.data;
@@ -41,6 +41,10 @@ public class CharacterTypes {
   public CharacterType getType(String typeName) {
     return characterTypes.get(typeName);
   }
+  
+  public CharacterType getType(TreeNode treeNode) {
+    return ((Type)((DefaultMutableTreeNode)treeNode).getUserObject()).getType();
+  }
 
   public TreeModel getAllTypes(boolean female) {
     TreeNode root = createTree(female ? femaleRoot : maleRoot);
@@ -49,7 +53,7 @@ public class CharacterTypes {
 
   private MutableTreeNode createTree(Node node) {
     if (node instanceof Type) {
-      return new DefaultMutableTreeNode(node.getName(), false);
+      return new DefaultMutableTreeNode(node, false);
     }
     else {
       DefaultMutableTreeNode n = new DefaultMutableTreeNode(node.getName());
@@ -73,6 +77,11 @@ public class CharacterTypes {
     public Node(String name) {
       this.name = name;
     }
+    
+    public String toString() {
+      return name;
+    }
+    
   }
 
   private static class Directory extends Node {
@@ -156,13 +165,14 @@ public class CharacterTypes {
       }
       else if (file.getName().endsWith(".p42")) {
         CharacterType ct = new CharacterType(file);
+        String typeName = file.getName();
+        typeName = typeName.substring(0, typeName.lastIndexOf('.'));
+        characterTypes.put(typeName, ct);
         if (ct.isMalePossible()) {
           male.addNode(new Type(ct.getMaleName(), ct));
-          characterTypes.put(ct.getMaleName(), ct);
         }
         if (ct.isFemalePossible()) {
           female.addNode(new Type(ct.getFemaleName(), ct));
-          characterTypes.put(ct.getFemaleName(), ct);
         }
       }
     }

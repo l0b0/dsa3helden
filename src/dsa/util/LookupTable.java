@@ -14,11 +14,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.util;
 
+import java.text.NumberFormat;
 import java.util.LinkedList;
 
 abstract class AbstractNode {
@@ -107,10 +108,13 @@ class IntermediateNode extends AbstractNode {
 }
 
 public class LookupTable {
+  
+  private NumberFormat format;
 
   public LookupTable() {
     startNode = new IntermediateNode();
     triggerKey = null;
+    initFormat();
   }
 
   public LookupTable(char triggerKey) {
@@ -118,8 +122,17 @@ public class LookupTable {
     AbstractNode firstNode = new IntermediateNode();
     startNode.appendNode(firstNode, triggerKey);
     this.triggerKey = new Character(triggerKey);
+    initFormat();
   }
-
+  
+  private void initFormat() {
+    format = NumberFormat.getNumberInstance();
+    format.setGroupingUsed(true);
+    format.setMaximumFractionDigits(3);
+    format.setMinimumFractionDigits(0);
+    format.setMinimumIntegerDigits(1);    
+  }
+  
   public void clear() {
     startNode = new IntermediateNode();
   }
@@ -149,7 +162,7 @@ public class LookupTable {
   }
   
   public AddItemResult addItem(String key, float item, boolean printOnlyOnce) {
-    return addItem(key, "" + item, printOnlyOnce, true);
+    return addItem(key, format.format(item), printOnlyOnce, true);
   }
   
   private AddItemResult addItem(String key, String item, boolean printOnlyOnce, boolean isNumber) {

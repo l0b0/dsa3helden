@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.characters;
@@ -252,11 +252,12 @@ public class GroupOptions {
     String ownArmoursFile = "Eigene_Ruestungen.dat";
     String dirPath = dsa.util.Directories.getApplicationPath() + "daten" 
         + java.io.File.separator;
+    String userDirPath = dsa.util.Directories.getUserDataPath();
     try {
       dsa.model.data.Armours armours = dsa.model.data.Armours.getInstance();
-      armours.saveUserDefinedArmours(dirPath + ownArmoursFile);
+      armours.saveUserDefinedArmours(userDirPath + ownArmoursFile);
       armours.loadFile(dirPath + armourFile);
-      armours.loadUserDefinedArmours(dirPath + ownArmoursFile);
+      armours.loadUserDefinedArmours(userDirPath + ownArmoursFile);
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(null,
@@ -265,9 +266,9 @@ public class GroupOptions {
     }
     try {
       dsa.model.data.Weapons weapons = dsa.model.data.Weapons.getInstance();
-      weapons.storeUserDefinedWeapons(dirPath + ownWeaponsFile);
+      weapons.storeUserDefinedWeapons(userDirPath + ownWeaponsFile);
       weapons.loadFile(dirPath + weaponsFile);
-      weapons.loadUserDefinedWeapons(dirPath + ownWeaponsFile);
+      weapons.loadUserDefinedWeapons(userDirPath + ownWeaponsFile);
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(null,

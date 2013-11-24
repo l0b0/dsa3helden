@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.control;
@@ -28,7 +28,7 @@ public class Version implements Comparable<Version> {
 
   private static Version createCurrentVersion() {
     try {
-      return Version.parse("1.2.3");
+      return Version.parse("1.3.0");
     }
     catch (ParseException e) {
       return createVersion(1, 0, 0);

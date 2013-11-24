@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -39,9 +39,11 @@ import javax.swing.text.NumberFormatter;
 
 import dsa.gui.dialogs.SpellSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.util.FormattedTextFieldCellEditor;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
+import dsa.model.data.SpellStartValues;
 import dsa.model.talents.Spell;
 import dsa.model.talents.Talent;
 import dsa.util.Optional;
@@ -52,6 +54,10 @@ public final class SpellFrame extends TalentFrame {
     super(title, true);
     loadSubclassState();
     initialize();
+  }
+  
+  public String getHelpPage() {
+    return "Zauber";
   }
 
   protected boolean isColumnEditable(int column) {
@@ -118,16 +124,25 @@ public final class SpellFrame extends TalentFrame {
     if (!talent.isSpell()) {
       model.setValueAt("-", displayIndex, getCategoryColumn());
       model.setValueAt("-", displayIndex, getOriginColumn());
-      model.setValueAt(NULL_INT, displayIndex, getIncrCountColumn());
     }
     else {
       Spell spell = (Spell) talent;
       model.setValueAt(spell.getCategory(), displayIndex, getCategoryColumn());
       model.setValueAt(spell.getOrigin(), displayIndex, getOriginColumn());
+    }
+  }
+  
+  protected void updateSubclassSpecificData(DefaultTableModel model, int i,
+      int displayIndex) {
+    Talent talent = this.talents.get(i);
+    if (!talent.isSpell()) {
+      model.setValueAt(NULL_INT, displayIndex, getIncrCountColumn());      
+    }
+    else {
       int increases = (currentHero != null) ? currentHero
           .getTalentIncreaseTriesPerStep(talent.getName()) : 0;
       model.setValueAt(new Optional<Integer>(increases), displayIndex,
-          getIncrCountColumn());
+          getIncrCountColumn());      
     }
   }
 
@@ -137,7 +152,7 @@ public final class SpellFrame extends TalentFrame {
     tcm.addColumn(new TableColumn(getOriginColumn(), 60));
     tcm.moveColumn(tcm.getColumnCount() - 1, getOriginColumn());
     FormattedTextFieldCellEditor numberEditor = new FormattedTextFieldCellEditor(
-        new NumberFormatter(NumberFormat.getIntegerInstance()));
+        new NumberFormatter(NumberFormat.getIntegerInstance()), this);
     numberEditor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
     numberEditor.addCellEditorListener(new SpellIncrChanger());
     GreyingCellRenderer greyingRenderer = new GreyingCellRenderer();
@@ -152,7 +167,7 @@ public final class SpellFrame extends TalentFrame {
       FormattedTextFieldCellEditor editor = (FormattedTextFieldCellEditor) e
           .getSource();
       if (currentHero != null) {
-        String talent = editor.getTalent();
+        String talent = editor.getCellInfo();
         Number number = (Number) editor.getValue();
         currentHero.setTalentIncreaseTriesPerStep(talent, number.intValue());
       }
@@ -242,9 +257,14 @@ public final class SpellFrame extends TalentFrame {
 
     public void itemSelected(String item) {
       currentHero.addTalent(item);
-      currentHero.setDefaultTalentValue(item, -6);
-      currentHero.setCurrentTalentValue(item, -6);
+      int talentStartValue = SpellStartValues.getInstance().getStartValue(
+          currentHero.getInternalType(), item);
+      currentHero.setDefaultTalentValue(item, talentStartValue);
+      currentHero.setCurrentTalentValue(item, talentStartValue);
+      currentHero.setTalentIncreaseTriesPerStep(item, 
+          SpellStartValues.getInstance().getIncreasesPerStep(currentHero.getInternalType(), item));
       dialog.updateTable();
+      reupdateData();
     }
     
     public void itemChanged(String item) {
@@ -263,6 +283,10 @@ public final class SpellFrame extends TalentFrame {
 
   protected Dimension getSubclassSpecificSizeOffset() {
     return new Dimension(0, 50);
+  }
+
+  protected boolean canIncreaseUnknownTalents() {
+    return true;
   }
 
   private JButton getRemoveButton() {
@@ -334,6 +358,8 @@ public final class SpellFrame extends TalentFrame {
       currentHero.addTalent(talent);
       currentHero.setDefaultTalentValue(talent, value);
       currentHero.setCurrentTalentValue(talent, value);
+      currentHero.setTalentIncreaseTriesPerStep(talent, 
+          SpellStartValues.getInstance().getIncreasesPerStep(currentHero.getInternalType(), talent));
       for (int i = 0; i < mTable.getRowCount(); ++i) {
         if (mSorter.getValueAt(i, getNameDummyColumn()).equals(talent)) {
           mTable.scrollRectToVisible(mTable.getCellRect(i, 0, true));

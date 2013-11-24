@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.data;
@@ -49,9 +49,15 @@ public class Weapon implements Cloneable {
 
   private boolean userDefined;
 
-  private boolean projectile;
+  private boolean farRanged;
   
   private Optional<Integer> worth;
+  
+  private Optional<Integer> projectileWeight;
+  
+  private Optional<Integer> projectileWorth;
+  
+  private String projectileType; 
 
   /**
    * 
@@ -60,9 +66,9 @@ public class Weapon implements Cloneable {
     this(1, 0, 0, "unbenannt", 0, new Optional<Integer>(20), 0, false, false,
         false, Optional.NULL_INT);
   }
-
-  public boolean isProjectileWeapon() {
-    return projectile;
+  
+  public boolean isFarRangedWeapon() {
+    return farRanged;
   }
 
   public static enum Distance {
@@ -113,7 +119,7 @@ public class Weapon implements Cloneable {
     return worth;
   }
 
-  private static final int FILE_VERSION = 5;
+  private static final int FILE_VERSION = 7;
 
   public void writeToStream(PrintWriter out) throws IOException {
     out.println(FILE_VERSION);
@@ -129,8 +135,8 @@ public class Weapon implements Cloneable {
     // version 3
     out.println(twoHanded ? 1 : 0);
     // version 4
-    out.println(projectile ? 1 : 0);
-    if (projectile) {
+    out.println(farRanged ? 1 : 0);
+    if (farRanged) {
       for (int i = 0; i < distances.length; ++i) {
         out.println(distances[i]);
       }
@@ -139,6 +145,10 @@ public class Weapon implements Cloneable {
       }
     }
     out.println(worth.hasValue() ? worth.getValue() : "-");
+    out.println(projectileType);
+    // version 7
+    out.println(projectileWeight.hasValue() ? projectileWeight.getValue() : "-");
+    out.println(projectileWorth.hasValue() ? projectileWorth.getValue() : "-");
     out.println("-- End of Weapon --");
   }
 
@@ -220,8 +230,8 @@ public class Weapon implements Cloneable {
       line = in.readLine();
       lineNr++;
       testEmpty(line);
-      projectile = "1".equals(line);
-      if (projectile) {
+      farRanged = "1".equals(line);
+      if (farRanged) {
         for (int i = 0; i < distances.length; ++i) {
           line = in.readLine();
           lineNr++;
@@ -237,7 +247,7 @@ public class Weapon implements Cloneable {
       }
     }
     else
-      projectile = false;
+      farRanged = false;
     if (version >= 5) {
       line = in.readLine();
       lineNr++;
@@ -252,13 +262,50 @@ public class Weapon implements Cloneable {
     }
     else
       worth = Optional.NULL_INT;
+    
+    if (version >= 6) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      projectileType = line;
+    }
+    else
+      projectileType = "Keine";
+    
+    if (version >= 7) {
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      if ("-".equals(line)) {
+        projectileWeight = Optional.NULL_INT;
+      }
+      else {
+        int w = parseInt(line, lineNr);
+        projectileWeight = new Optional<Integer>(w);
+      }
+      line = in.readLine();
+      lineNr++;
+      testEmpty(line);
+      if ("-".equals(line)) {
+        projectileWorth = Optional.NULL_INT;
+      }
+      else {
+        int w = parseInt(line, lineNr);
+        projectileWorth = new Optional<Integer>(w);
+      }
+    }
+    else {
+      projectileWeight = Optional.NULL_INT;
+      projectileWorth = Optional.NULL_INT;
+    }
+    
     if (version < 3) {
       Weapon w = Weapons.getInstance().getWeapon(name);
       if (w != null) {
         userDefined = w.userDefined;
         twoHanded = w.twoHanded;
-        projectile = w.projectile;
-        if (projectile) {
+        farRanged = w.farRanged;
+        if (farRanged) {
           for (int i = 0; i < distances.length; ++i) {
             distances[i] = w.distances[i];
             distanceMods[i] = w.distanceMods[i];
@@ -278,10 +325,19 @@ public class Weapon implements Cloneable {
     }
     return lineNr;
   }
+  
+  public Weapon(int w6d, int constD, int t, String n, int aBF,
+      Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
+      boolean farRanged, Optional<Integer> worth)
+  {
+    this(w6d, constD, t, n, aBF, kk, weight, userDefined, twoHanded, farRanged, worth, 
+        "Keine", Optional.NULL_INT, Optional.NULL_INT);
+  }
 
   public Weapon(int w6d, int constD, int t, String n, int aBF,
       Optional<Integer> kk, int weight, boolean userDefined, boolean twoHanded,
-      boolean projectile, Optional<Integer> worth) {
+      boolean farRanged, Optional<Integer> worth, String ptt, 
+      Optional<Integer> ptw, Optional<Integer> ptm) {
     w6damage = w6d;
     constDamage = constD;
     type = t;
@@ -291,8 +347,11 @@ public class Weapon implements Cloneable {
     this.weight = weight;
     this.userDefined = userDefined;
     this.twoHanded = twoHanded;
-    this.projectile = projectile;
+    this.farRanged = farRanged;
     this.worth = worth;
+    this.projectileType = ptt;
+    this.projectileWeight = ptw;
+    this.projectileWorth = ptm;
   }
 
   public Object clone() throws CloneNotSupportedException {
@@ -375,7 +434,7 @@ public class Weapon implements Cloneable {
   /**
    * @param i
    */
-  public void setBf(int i) {
+  public void setBF(int i) {
     bf = i;
   }
 
@@ -386,8 +445,8 @@ public class Weapon implements Cloneable {
     type = i;
   }
 
-  public void setProjectile(boolean projectile) {
-    this.projectile = projectile;
+  public void setFarRanged(boolean farRanged) {
+    this.farRanged = farRanged;
   }
 
   public int getWeight() {
@@ -418,6 +477,34 @@ public class Weapon implements Cloneable {
 
   public void setWeight(int weight) {
     this.weight = weight;
+  }
+
+  public String getProjectileType() {
+    return projectileType;
+  }
+
+  public void setProjectileType(String projectileType) {
+    this.projectileType = projectileType;
+  }
+  
+  public Optional<Integer> getProjectileWeight() {
+    return projectileWeight;
+  }
+
+  public void setProjectileWeight(Optional<Integer> projectileWeight) {
+    this.projectileWeight = projectileWeight;
+  }
+
+  public boolean isProjectileWeapon() {
+    return Weapons.isProjectileCategory(type);
+  }
+
+  public Optional<Integer> getProjectileWorth() {
+    return projectileWorth;
+  }
+
+  public void setProjectileWorth(Optional<Integer> projectileWorth) {
+    this.projectileWorth = projectileWorth;
   }
 
 }

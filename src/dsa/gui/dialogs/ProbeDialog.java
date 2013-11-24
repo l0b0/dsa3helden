@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -402,5 +402,9 @@ public final class ProbeDialog extends BGDialog {
       jCheckBox.setLocation(9, 69);
     }
     return jCheckBox;
+  }
+
+  public String getHelpPage() {
+    return "Probe";
   }
 } //  @jve:decl-index=0:visual-constraint="10,10"

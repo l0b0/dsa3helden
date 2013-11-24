@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -44,7 +44,7 @@ import dsa.model.data.ExtraThingData;
 import dsa.model.data.Shield;
 import dsa.model.data.Shields;
 
-public final class ShieldsFrame extends AbstractDnDFrame implements CharactersObserver {
+public final class ShieldsFrame extends AbstractDnDFrame implements CharactersObserver, ShieldsTable.BFChanger {
 
   private final class ShieldSelectionCallback implements SelectionDialogCallback {
     public void itemSelected(String item) {
@@ -111,7 +111,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
         }
       }
     });
-    mTable = new ShieldsTable();
+    mTable = new ShieldsTable(this);
     JPanel panel = mTable.getPanelWithTable();
 
     // JPanel lowerPanel = new JPanel();
@@ -134,6 +134,10 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     updateData();
     mTable.restoreSortingState("Parade");
     mTable.setFirstSelectedRow();
+  }
+  
+  public String getHelpPage() {
+    return "Parade";
   }
 
   ShieldsTable mTable;
@@ -163,14 +167,14 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       addButton.setToolTipText("Schild / Parierwaffe hinzufügen");
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          addShield();
+          selectItem();
         }
       });
     }
     return addButton;
   }
 
-  protected void addShield() {
+  protected void selectItem() {
     ShieldSelectionDialog dialog = new ShieldSelectionDialog(this);
     dialog.setCallback(new ShieldSelectionCallback());
     dialog.setVisible(true);
@@ -268,6 +272,14 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     else
       return false;
     currentHero.addShield(item);
+    if (extraData.getType() == ExtraThingData.Type.Shield) {
+      try {
+        currentHero.setBF(item, extraData.getPropertyInt("BF"));
+      }
+      catch (ExtraThingData.PropertyException e) {
+        e.printStackTrace();
+      }
+    }
     removeButton.setEnabled(true);
     calcSums();
     return true;
@@ -281,6 +293,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   @Override
   protected ExtraThingData getExtraDnDData(String item) {
     ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Shield);
+    data.setProperty("BF", currentHero.getBF(item));
     Shield shield = Shields.getInstance().getShield(item);
     if (shield != null) {
       data.setProperty("Worth", shield.getWorth());
@@ -288,5 +301,9 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       data.setProperty("Category", shield.getFkMod() > 0 ? "Rüstung" : "Waffe");
     }
     return data;
+  }
+
+  public void bfChanged(String name, int bf) {
+    currentHero.setBF(name, bf);
   }
 }

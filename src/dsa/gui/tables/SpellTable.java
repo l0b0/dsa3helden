@@ -14,15 +14,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.tables;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -32,6 +29,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import dsa.gui.util.TableSorter;
+import dsa.model.data.SpellStartValues;
 import dsa.model.talents.Spell;
 
 public class SpellTable extends AbstractTable {
@@ -41,32 +39,46 @@ public class SpellTable extends AbstractTable {
     return 0;
   }
 
-  int getOriginColumn() {
+  static int getOriginColumn() {
     return 2;
   }
 
-  int getCategoryColumn() {
+  static int getCategoryColumn() {
     return 1;
+  }
+  
+  static int getSkillColumn() {
+    return 3;
   }
 
   static class MyTableModel extends DefaultTableModel {
     public boolean isCellEditable(int row, int column) {
       return false;
     }
+    
+    public Class<?> getColumnClass(int column) {
+      if (column == getSkillColumn()) return Integer.class;
+      return super.getColumnClass(column);
+    }
   }
 
   MyTableModel mModel;
+  
+  private final String characterType;
 
-  public SpellTable() {
+  public SpellTable(String characterType) {
     super();
+    this.characterType = characterType;
     DefaultTableColumnModel tcm = new DefaultTableColumnModel();
     mModel = new MyTableModel();
     mModel.addColumn("Name");
     mModel.addColumn("Kategorie");
     mModel.addColumn("Ursprung");
+    mModel.addColumn("Startwert");
     tcm.addColumn(new TableColumn(0, 160));
     tcm.addColumn(new TableColumn(1, 160));
-    tcm.addColumn(new TableColumn(2, 160));
+    tcm.addColumn(new TableColumn(2, 140));
+    tcm.addColumn(new TableColumn(3, 80));
     mSorter = new TableSorter(mModel);
     mTable = new JTable(mSorter, tcm);
     mSorter.setTableHeader(mTable.getTableHeader());
@@ -79,14 +91,7 @@ public class SpellTable extends AbstractTable {
     mTable.setRowSelectionAllowed(true);
     mTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
     mTable.setRowHeight(22);
-    mTable.addMouseListener(new MouseAdapter() {
-
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
-          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
-        }
-      }
-    });
+    mTable.addMouseListener(createMouseListener());
 
     // mTable.setBackground(BACKGROUND_GRAY);
     JScrollPane scrollPane = new JScrollPane(mTable);
@@ -101,10 +106,12 @@ public class SpellTable extends AbstractTable {
   }
 
   public void addSpell(Spell spell) {
-    Object[] rowData = new Object[3];
+    Object[] rowData = new Object[4];
     rowData[getNameColumn()] = spell.getName();
     rowData[getCategoryColumn()] = spell.getCategory();
     rowData[getOriginColumn()] = spell.getOrigin();
+    rowData[getSkillColumn()] = SpellStartValues.getInstance().getStartValue(
+        characterType, spell.getName());
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
   }

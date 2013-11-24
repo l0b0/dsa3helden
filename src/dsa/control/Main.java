@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.control;
@@ -36,6 +36,7 @@ import dsa.model.data.Names;
 import dsa.model.data.Regions;
 import dsa.model.data.Rituals;
 import dsa.model.data.Shields;
+import dsa.model.data.SpellStartValues;
 import dsa.model.data.Talents;
 import dsa.model.data.Things;
 import dsa.model.data.Weapons;
@@ -85,6 +86,7 @@ public class Main {
         prefs.putBoolean("initialized_" + Version.getCurrentVersionString(),
             true);
       }
+      String userDataPath = dsa.util.Directories.getUserDataPath();
       DataFactory.setFactory(new dsa.model.impl.DataFactoryImpl());
       Talents.getInstance().loadNormalTalents(dirPath + "Talente.dat");
       Talents.getInstance().loadFightingTalents(dirPath + "Kampftalente.dat");
@@ -95,23 +97,24 @@ public class Main {
       Talents.getInstance().loadUserSpells(dirPath + "Eigene_Zauber.dat");
       Currencies.getInstance().readCurrencies(dirPath + "Waehrungen.dat");
       // Armours.getInstance().loadFile(dirPath + "Ruestungen.dat");
-      Armours.getInstance().loadUserDefinedArmours(dirPath + "Eigene_Ruestungen.dat");
+      Armours.getInstance().loadUserDefinedArmours(userDataPath + "Eigene_Ruestungen.dat");
       //Weapons.getInstance().loadFile(dirPath + "Waffen.dat");
       Weapons.getInstance().loadUserDefinedWeapons(
-          dirPath + "Eigene_Waffen.dat");
+          userDataPath + "Eigene_Waffen.dat");
       Things.getInstance().loadFile(dirPath + "Ausruestung.dat");
       Rituals.getInstance().readFile(dirPath + "Rituale.dat");
       Animals.getInstance().readFiles(dirPath);
       Things.getInstance().loadUserDefinedThings(
-          dirPath + "Eigene_Ausruestung.dat");
+          userDataPath + "Eigene_Ausruestung.dat");
       Looks.getInstance().readEyeColors(dirPath + "Augen.dat");
       Looks.getInstance().readHairColors(dirPath + "Haare.dat");
       Cities.getInstance().readCities(dirPath + "Staedte.dat");
       Names.getInstance().readFiles(dirPath + "Namen");
       Shields.getInstance().readFile(dirPath + "Schilde.dat");
       Shields.getInstance().readUserDefinedFile(
-          dirPath + "Eigene_Parade.dat");
+          userDataPath + "Eigene_Parade.dat");
       CharacterTypes.getInstance().parseFiles(dirPath + "Heldentypen");
+      SpellStartValues.getInstance().parseFiles(dirPath + "Zauberstartwerte");
       Regions.getInstance().readFiles(dirPath + "Regionen");
     }
     catch (java.io.IOException e) {

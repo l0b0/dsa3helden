@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.impl;
@@ -142,6 +142,14 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     talents.put(talentName, new TalentData());
     talents.get(talentName).increasesPerStep = Talents.getInstance().getTalent(
         talentName).getMaxIncreasePerStep();
+    Talent talent = Talents.getInstance().getTalent(talentName);
+    if (talent != null && !talent.isLanguage() &&
+        (   (talent.isSpell() && getOverallSpellIncreaseTries() > 0)
+         || (!talent.isSpell() && getOverallTalentIncreaseTries() > 0)
+         || getSpellOrTalentIncreaseTries() > 0)) {
+      talents.get(talentName).remainingTries = 3;
+      talents.get(talentName).remainingIncreases = talents.get(talentName).increasesPerStep;
+    }
     for (CharacterObserver o : observers)
       o.talentAdded(talentName);
     checkForHuntingTalents();
@@ -219,6 +227,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     hero.extraThingData.putAll(extraThingData);
     hero.extraWarehouseData = new HashMap<String, ExtraThingData>();
     hero.extraWarehouseData.putAll(extraWarehouseData);
+    hero.nrOfProjectiles = new HashMap<String, Integer>();
+    hero.nrOfProjectiles.putAll(nrOfProjectiles);
     return hero;
   }
 
@@ -463,6 +473,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
    * @see dsa.data.Hero#SetHasEnergy(dsa.data.Energy, boolean)
    */
   public void setHasEnergy(Energy energy, boolean hasIt) {
+    if (energies.get(energy).available == hasIt) return;
     energies.get(energy).available = hasIt;
     for (CharacterObserver o : observers)
       o.defaultEnergyChanged(energy);
@@ -596,10 +607,10 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       o.increaseTriesChanged();
     changed = true;
   }
-  
+
   private void checkForNextStepIncrease() {
-    if (overallSpellIncreaseTries > 0 || overallSpellOrTalentIncreaseTries > 0 
-        || overallTalentIncreaseTries > 0 || mLEIncreaseTries > 0 
+    if (overallSpellIncreaseTries > 0 || overallSpellOrTalentIncreaseTries > 0
+        || overallTalentIncreaseTries > 0 || mLEIncreaseTries > 0
         || mAEIncreaseTries > 0 || goodPropertyChangeTries > 0
         || badPropertyChangeTries > 0) return;
     if (remainingStepIncreases > 0) {
@@ -609,7 +620,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       enableStepIncreases();
     }
   }
-  
+
   private void enableStepIncreases() {
     overallTalentIncreaseTries += talentIncreasesPerStep;
     for (TalentData data : talents.values()) {
@@ -621,7 +632,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     mLEIncreaseTries++;
     if (hasEnergy(Energy.AE)) {
       mAEIncreaseTries++;
-      canMeditate = mHasGreatMeditation;          
+      canMeditate = mHasGreatMeditation;
     }
     overallSpellIncreaseTries += spellIncreasesPerStep;
     overallSpellOrTalentIncreaseTries += spellToTalentMoves;
@@ -806,6 +817,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       return 0;
     else if (hasTalent(talent))
       return talents.get(talent).remainingIncreases;
+    else if (isSpell)
+      return 1; // to learn as yet unknown spells
     else
       return 0;
   }
@@ -1067,7 +1080,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     return path;
   }
 
-  static final int FILE_VERSION = 36;
+  static final int FILE_VERSION = 39;
 
   private static String getAbsolutePath(String relativePath, File f)
       throws IOException {
@@ -1178,7 +1191,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
         if (weapon == null) {
           weapon = new Weapon(1, 0, 5, weaponName, 1,
-              new dsa.util.Optional<Integer>(14), 50, true, false, false, 
+              new dsa.util.Optional<Integer>(14), 50, true, false, false,
               dsa.util.Optional.NULL_INT);
         }
         for (int i = 0; i < weapons.get(weaponName); ++i) {
@@ -1304,12 +1317,23 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         entry.getValue().store(file);
       }
       file.println(extraWarehouseData.size());
-      for (Map.Entry<String, ExtraThingData> entry : extraWarehouseData.entrySet()) {
+      for (Map.Entry<String, ExtraThingData> entry : extraWarehouseData
+          .entrySet()) {
         file.println(entry.getKey());
         entry.getValue().store(file);
       }
       // version 36
       file.println(printingFileType.toString());
+      // version 37
+      file.println(printingZFW);
+      // version 38
+      file.println(nrOfProjectiles.size());
+      for (String n : nrOfProjectiles.keySet()) {
+        file.println(n);
+        file.println(nrOfProjectiles.get(n));
+      }
+      // version 39
+      file.println(internalType);
       file.println("-End Hero-");
       changed = false;
       file.flush();
@@ -1501,9 +1525,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       remainingStepIncreases = parseInt(line, lineNr);
     }
     else {
-      remainingStepIncreases = (overallSpellIncreaseTries > 0 
-        || overallSpellOrTalentIncreaseTries > 0
-        || overallTalentIncreaseTries > 0) ? 1 : 0;
+      remainingStepIncreases = (overallSpellIncreaseTries > 0
+          || overallSpellOrTalentIncreaseTries > 0 || overallTalentIncreaseTries > 0) ? 1
+          : 0;
     }
     if (version > 34) {
       lineNr = readExtraThingData(file, lineNr);
@@ -1515,7 +1539,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       printingFileType = FileType.valueOf(line);
     }
     else {
-      String printingFileName = getPrintingTemplateFile().toLowerCase(java.util.Locale.GERMAN);
+      String printingFileName = getPrintingTemplateFile().toLowerCase(
+          java.util.Locale.GERMAN);
       if (printingFileName.endsWith("xml")) {
         printingFileType = FileType.WordML;
       }
@@ -1535,6 +1560,24 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
         printingFileType = FileType.Unknown;
       }
     }
+    if (version > 36) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      printingZFW = parseInt(line, lineNr);
+    }
+    else {
+      printingZFW = -6;
+    }
+    readNrOfProjectiles(file, lineNr, version);
+    if (version > 38) {
+      lineNr++;
+      line = file.readLine();
+      internalType = line;
+    }
+    else {
+      internalType = type;
+    }
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -1549,24 +1592,33 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     calcKO();
     changed = false;
   }
-  
-  private int readExtraThingData(BufferedReader file, int lineNr) throws IOException {
-    String line = file.readLine(); lineNr++; testEmpty(line);
+
+  private int readExtraThingData(BufferedReader file, int lineNr)
+      throws IOException {
+    String line = file.readLine();
+    lineNr++;
+    testEmpty(line);
     int count = parseInt(line, lineNr);
     for (int i = 0; i < count; ++i) {
-      String key = file.readLine(); lineNr++; testEmpty(line);
+      String key = file.readLine();
+      lineNr++;
+      testEmpty(line);
       ExtraThingData extraData = new ExtraThingData();
       lineNr = extraData.read(file, lineNr);
       extraThingData.put(key, extraData);
     }
-    line = file.readLine(); lineNr++; testEmpty(line);
+    line = file.readLine();
+    lineNr++;
+    testEmpty(line);
     count = parseInt(line, lineNr);
     for (int i = 0; i < count; ++i) {
-      String key = file.readLine(); lineNr++; testEmpty(line);
+      String key = file.readLine();
+      lineNr++;
+      testEmpty(line);
       ExtraThingData extraData = new ExtraThingData();
       lineNr = extraData.read(file, lineNr);
       extraWarehouseData.put(key, extraData);
-    }    
+    }
     return lineNr;
   }
 
@@ -1594,6 +1646,36 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       for (String shieldName : shields) {
         Shield s = Shields.getInstance().getShield(shieldName);
         shieldBFs.put(shieldName, s.getBF());
+      }
+    }
+    return lineNr;
+  }
+
+  private int readNrOfProjectiles(BufferedReader file, int lineNr, int version)
+      throws IOException {
+    String line;
+    if (version > 37) {
+      lineNr++;
+      line = file.readLine();
+      testEmpty(line);
+      int nrOfEntries = parseInt(line, lineNr);
+      for (int i = 0; i < nrOfEntries; ++i) {
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        String weaponName = line;
+        lineNr++;
+        line = file.readLine();
+        testEmpty(line);
+        int nrOfProjs = parseInt(line, lineNr);
+        nrOfProjectiles.put(weaponName, nrOfProjs);
+      }
+    }
+    else {
+      for (String weaponName : weapons.keySet()) {
+        for (int i = 0; i < weapons.get(weaponName); ++i) {
+          nrOfProjectiles.put(weaponName + " " + (i + 1), 0);
+        }
       }
     }
     return lineNr;
@@ -1915,7 +1997,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     for (int i = 0; i < nrOfThings; ++i) {
       Thing thing = new Thing();
       lineNr = thing.readFromStream(file, lineNr);
-      this.internalAddThing(thing.getName(), new ExtraThingData(ExtraThingData.Type.Thing));
+      this.internalAddThing(thing.getName(), new ExtraThingData(
+          ExtraThingData.Type.Thing));
     }
     return lineNr;
   }
@@ -1978,7 +2061,8 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
             armourWorth = parseInt(temp, lineNr);
           }
           Armours.getInstance().addArmour(
-              new dsa.model.data.Armour(armourName, rs, be, armourWeight, armourWorth));
+              new dsa.model.data.Armour(armourName, rs, be, armourWeight,
+                  armourWorth));
         }
       }
       armours.add(armourName);
@@ -2780,7 +2864,12 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
 
   public void setTalentIncreaseTriesPerStep(String talent, int incrTries) {
     if (hasTalent(talent)) {
+      int oldValue = talents.get(talent).increasesPerStep;
+      if (oldValue == incrTries) return;
       talents.get(talent).increasesPerStep = incrTries;
+      if (talents.get(talent).remainingIncreases == oldValue) {
+        talents.get(talent).remainingIncreases = incrTries;
+      }
       changed = true;
     }
   }
@@ -3007,6 +3096,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     weapons.put(name2, 1);
     Weapon w = Weapons.getInstance().getWeapon(weaponName);
     bfs.put(name2, w != null ? w.getBF() : 0);
+    nrOfProjectiles.put(name2, 0);
     return name2;
   }
 
@@ -3014,6 +3104,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     if (!weapons.containsKey(weaponName)) return;
     int count = weapons.get(weaponName);
     bfs.remove(weaponName);
+    nrOfProjectiles.remove(weaponName);
     if (count == 1) {
       weapons.remove(weaponName);
       for (CharacterObserver observer : observers)
@@ -3044,7 +3135,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   public void addThing(String thingName) {
     addThing(thingName, new ExtraThingData(ExtraThingData.Type.Thing));
   }
-  
+
   public void addThing(String thingName, ExtraThingData extraData) {
     internalAddThing(thingName, extraData);
     changed = true;
@@ -3061,8 +3152,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
     }
     extraThingData.put(thingName + things.get(thingName), extraData);
   }
-  
-  public ExtraThingData getExtraThingData(String thing, boolean inWarehouse, int thingNumber) {
+
+  public ExtraThingData getExtraThingData(String thing, boolean inWarehouse,
+      int thingNumber) {
     if (!inWarehouse) {
       return extraThingData.get(thing + thingNumber);
     }
@@ -3070,7 +3162,7 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       return extraWarehouseData.get(thing + thingNumber);
     }
   }
-  
+
   private HashMap<String, ExtraThingData> extraThingData = new HashMap<String, ExtraThingData>();
 
   public void removeThing(String thingName) {
@@ -3332,9 +3424,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   public void addThingToWarehouse(String item) {
     addThingToWarehouse(item, new ExtraThingData(ExtraThingData.Type.Thing));
   }
-  
+
   HashMap<String, ExtraThingData> extraWarehouseData = new HashMap<String, ExtraThingData>();
-  
+
   public void addThingToWarehouse(String item, ExtraThingData extraData) {
     if (thingsInWarehouse.containsKey(item)) {
       int count = thingsInWarehouse.get(item);
@@ -3648,9 +3740,9 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
       o.weightChanged();
     }
   }
-  
+
   int remainingStepIncreases = 0;
-  
+
   public int getRemainingStepIncreases() {
     return remainingStepIncreases;
   }
@@ -3667,4 +3759,50 @@ public final class HeroImpl extends AbstractObservable<CharacterObserver>
   }
 
   FileType printingFileType = FileType.XML;
+
+  private int printingZFW = -6;
+
+  public int getPrintingZFW() {
+    return printingZFW;
+  }
+
+  public void setPrintingZFW(int zfw) {
+    if (printingZFW != zfw) {
+      printingZFW = zfw;
+      changed = true;
+    }
+  }
+
+  private HashMap<String, Integer> nrOfProjectiles = new HashMap<String, Integer>();
+
+  public int getNrOfProjectiles(String weaponName) {
+    if (nrOfProjectiles.containsKey(weaponName)) {
+      return nrOfProjectiles.get(weaponName);
+    }
+    else
+      return 0;
+  }
+
+  public void setNrOfProjectiles(String weaponName, int nrOfProjectiles) {
+    if (getNrOfProjectiles(weaponName) != nrOfProjectiles) {
+      this.nrOfProjectiles.put(weaponName, nrOfProjectiles);
+      for (CharacterObserver o : observers) {
+        o.weightChanged();
+      }
+      changed = true;
+    }
+  }
+  
+  private String internalType = "";
+
+  public String getInternalType() {
+    return internalType;
+  }
+
+  public void setInternalType(String typeName) {
+    if (!internalType.equals(typeName)) {
+      internalType = typeName;
+      changed = true;
+    }
+  }
 }

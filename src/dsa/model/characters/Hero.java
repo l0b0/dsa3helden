@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.model.characters;
@@ -303,6 +303,10 @@ public interface Hero {
   List<String> getFightingTalentsInDocument();
 
   void setFightingTalentsInDocument(List<String> talents);
+  
+  int getPrintingZFW();
+  
+  void setPrintingZFW(int zfw);
 
   String getSkin();
 
@@ -437,4 +441,12 @@ public interface Hero {
   void changeAU(int difference);
   
   void fireWeightChanged();
+  
+  void setNrOfProjectiles(String weaponName, int nrOfProjectiles);
+  
+  int getNrOfProjectiles(String weaponName);
+  
+  String getInternalType();
+  
+  void setInternalType(String typeName);
 }

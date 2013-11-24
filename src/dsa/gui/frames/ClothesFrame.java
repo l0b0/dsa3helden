@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -31,26 +31,30 @@ import javax.swing.JPanel;
 
 import dsa.gui.dialogs.ThingSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.tables.ThingTransfer;
 import dsa.gui.tables.ThingsTable;
 import dsa.gui.util.ImageManager;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
+import dsa.model.data.ExtraThingData;
 import dsa.model.data.Thing;
 import dsa.model.data.Things;
 
-public final class ClothesFrame extends SubFrame implements CharactersObserver {
+public final class ClothesFrame extends AbstractDnDFrame implements CharactersObserver, Things.ThingsListener {
 
   public ClothesFrame() {
-    super("Kleidung");
+    super(ThingTransfer.Flavors.Thing, "Kleidung");
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
+    Things.getInstance().addObserver(this);
     addWindowListener(new WindowAdapter() {
       boolean done = false;
 
       public void windowClosing(WindowEvent e) {
         mTable.saveSortingState("Kleidung");
         Group.getInstance().removeObserver(ClothesFrame.this);
+        Things.getInstance().removeObserver(ClothesFrame.this);
         done = true;
       }
 
@@ -58,11 +62,13 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
         if (!done) {
           mTable.saveSortingState("Kleidung");
           Group.getInstance().removeObserver(ClothesFrame.this);
+          Things.getInstance().removeObserver(ClothesFrame.this);
           done = true;
         }
       }
     });
     mTable = new ThingsTable(false, false);
+    registerForDnD(mTable);
     JPanel panel = mTable.getPanelWithTable();
 
     JPanel rightPanel = new JPanel();
@@ -77,6 +83,10 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
     updateData();
     mTable.restoreSortingState("Kleidung");
     mTable.setFirstSelectedRow();
+  }
+
+  public String getHelpPage() {
+    return "Kleidung";
   }
 
   ThingsTable mTable;
@@ -95,14 +105,14 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
       addButton.setToolTipText("Kleidung hinzufügen");
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          addWeapon();
+          selectItem();
         }
       });
     }
     return addButton;
   }
 
-  protected void addWeapon() {
+  protected void selectItem() {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this, false);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
@@ -123,10 +133,7 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
         removeButton.setEnabled(true);
       }
       public void itemChanged(String item) {
-        if (mTable.containsItem(item)) {
-          mTable.removeThing(item);
-          mTable.addThing(Things.getInstance().getThing(item));
-        }
+        Things.getInstance().thingChanged(item);
       }
     });
     dialog.setVisible(true);
@@ -141,9 +148,7 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
-          currentHero.removeClothes(name);
-          mTable.removeSelectedThing();
-          removeButton.setEnabled(currentHero.getClothes().length > 0);
+          removeItem(name);
         }
       });
     }
@@ -188,5 +193,50 @@ public final class ClothesFrame extends SubFrame implements CharactersObserver {
   }
 
   public void globalLockChanged() {
+  }
+
+  @Override
+  protected boolean addItem(String item, ExtraThingData extraData) {
+    if (extraData.getType() != ExtraThingData.Type.Thing) {
+      return false;
+    }
+    Thing thing = Things.getInstance().getThing(item);
+    if (thing == null) {
+      return false;
+    }
+    if (!thing.getCategory().equals("Kleidung")) {
+      return false;
+    }
+    if (java.util.Arrays.asList(currentHero.getClothes()).contains(item)) {
+      JOptionPane
+          .showMessageDialog(
+              ClothesFrame.this,
+              "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
+              "Fehler", JOptionPane.WARNING_MESSAGE);
+      return false;
+    }
+    currentHero.addClothes(item);
+    mTable.addThing(thing);
+    removeButton.setEnabled(true);
+    return true;
+  }
+
+  @Override
+  protected void removeItem(String item) {
+    currentHero.removeClothes(item);
+    mTable.removeSelectedThing();
+    removeButton.setEnabled(currentHero.getClothes().length > 0);
+  }
+
+  @Override
+  protected ExtraThingData getExtraDnDData(String item) {
+    return new ExtraThingData(ExtraThingData.Type.Thing);
+  }
+
+  public void thingChanged(String thing) {
+    if (mTable.containsItem(thing)) {
+      mTable.removeThing(thing);
+      mTable.addThing(Things.getInstance().getThing(thing));
+    }
   }
 }

@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -40,13 +40,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
-import javax.swing.JFormattedTextField;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.EventListenerList;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
@@ -58,6 +56,7 @@ import javax.swing.text.NumberFormatter;
 import dsa.control.Dice;
 import dsa.gui.dialogs.ProbeDialog;
 import dsa.gui.lf.Colors;
+import dsa.gui.util.FormattedTextFieldCellEditor;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.TableSorter;
 import dsa.model.characters.CharacterAdapter;
@@ -65,6 +64,7 @@ import dsa.model.characters.CharacterObserver;
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Hero;
+import dsa.model.data.SpellStartValues;
 import dsa.model.data.Talents;
 import dsa.model.talents.NormalTalent;
 import dsa.model.talents.Talent;
@@ -73,7 +73,7 @@ import dsa.util.Optional;
 /**
  * 
  */
-class TalentFrame extends SubFrame implements CharactersObserver {
+class TalentFrame extends SubFrame implements CharactersObserver, FormattedTextFieldCellEditor.EditorClient {
 
   private javax.swing.JPanel jContentPane = null;
 
@@ -114,6 +114,10 @@ class TalentFrame extends SubFrame implements CharactersObserver {
       }
     });
     // pack();
+  }
+  
+  public String getHelpPage() {
+    return "Talente";
   }
 
   protected void saveSubclassState() {
@@ -192,96 +196,9 @@ class TalentFrame extends SubFrame implements CharactersObserver {
   }
 
   private static final Color BACKGROUND_GRAY = new Color(238, 238, 238);
-
-  protected class FormattedTextFieldCellEditor extends JFormattedTextField
-      implements TableCellEditor {
-
-    public FormattedTextFieldCellEditor(NumberFormatter formatter) {
-      super(formatter);
-    }
-
-    private Object oldObject;
-
-    private int mColumn;
-
-    private String mTalent;
-    
-    public String getTalent() {
-      return mTalent;
-    }
-
-    public Component getTableCellEditorComponent(JTable table, Object value,
-        boolean isSelected, int row, int column) {
-      this.setText(value.toString());
-      oldObject = value;
-      mColumn = column;
-      mTalent = (String) TalentFrame.this.mSorter.getValueAt(row,
-          getNameDummyColumn());
-      return this;
-    }
-
-    public Object getCellEditorValue() {
-      return this.getValue();
-    }
-
-    public boolean isCellEditable(EventObject anEvent) {
-      return true;
-    }
-
-    public boolean shouldSelectCell(EventObject anEvent) {
-      return false;
-    }
-
-    public boolean stopCellEditing() {
-      if (isEditValid()) {
-        try {
-          commitEdit();
-        }
-        catch (java.text.ParseException e) {
-          return false;
-        }
-        fireEditingStopped();
-      }
-      return isEditValid();
-    }
-
-    public void cancelCellEditing() {
-      setText(oldObject.toString());
-      fireEditingCanceled();
-    }
-
-    protected void fireEditingCanceled() {
-      Object[] listeners1 = listenerList.getListenerList();
-      for (int i = listeners1.length - 2; i >= 0; i -= 2) {
-        if (listeners1[i] == CellEditorListener.class) {
-          if (event == null) event = new javax.swing.event.ChangeEvent(this);
-          ((CellEditorListener) listeners1[i + 1]).editingCanceled(event);
-        }
-      }
-    }
-
-    protected void fireEditingStopped() {
-      Object[] listeners2 = listeners.getListenerList();
-      for (int i = listeners2.length - 2; i >= 0; i -= 2) {
-        if (listeners2[i] == CellEditorListener.class) {
-          if (event == null) event = new javax.swing.event.ChangeEvent(this);
-          ((CellEditorListener) listeners2[i + 1]).editingStopped(event);
-        }
-      }
-    }
-
-    public void addCellEditorListener(CellEditorListener l) {
-      listeners.add(CellEditorListener.class, l);
-    }
-
-    public void removeCellEditorListener(CellEditorListener l) {
-      listeners.remove(CellEditorListener.class, l);
-    }
-
-    private final EventListenerList listeners = new EventListenerList();
-
-    private javax.swing.event.ChangeEvent event = null;
-
+  
+  public String getCellInfo(int row) {
+    return (String) mSorter.getValueAt(row, getNameDummyColumn());    
   }
 
   protected static class DummyCellEditor implements TableCellEditor {
@@ -546,7 +463,7 @@ class TalentFrame extends SubFrame implements CharactersObserver {
     DefaultTableColumnModel tcm = new DefaultTableColumnModel();
     tcm.addColumn(new javax.swing.table.TableColumn(0, 160));
     FormattedTextFieldCellEditor numberEditor = new FormattedTextFieldCellEditor(
-        new NumberFormatter(NumberFormat.getIntegerInstance()));
+        new NumberFormatter(NumberFormat.getIntegerInstance()), this);
     numberEditor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
     numberEditor.addCellEditorListener(new TalentChanger());
     GreyingCellRenderer greyingRenderer = new GreyingCellRenderer();
@@ -709,10 +626,10 @@ class TalentFrame extends SubFrame implements CharactersObserver {
       if (TalentFrame.this.disableChange) return;
       FormattedTextFieldCellEditor editor = (FormattedTextFieldCellEditor) evt
           .getSource();
-      boolean current = (editor.mColumn == getCurrentValueColumn());
+      boolean current = (editor.getColumn() == getCurrentValueColumn());
       if (currentHero != null) {
         Number number = (Number) editor.getValue();
-        changeTalentValue(current, editor.mTalent, number.intValue());
+        changeTalentValue(current, editor.getCellInfo(), number.intValue());
       }
     }
   };
@@ -740,15 +657,20 @@ class TalentFrame extends SubFrame implements CharactersObserver {
     if (hero == null) return;
     if (!hero.hasTalent(talent)) {
       hero.addTalent(talent);
-      hero.setDefaultTalentValue(talent, -6);
-      hero.setCurrentTalentValue(talent, -6);
+      int talentStartValue = SpellStartValues.getInstance().getStartValue(
+          currentHero.getInternalType(), talent);
+      currentHero.setDefaultTalentValue(talent, talentStartValue);
+      currentHero.setCurrentTalentValue(talent, talentStartValue);
+      currentHero.setTalentIncreaseTriesPerStep(talent, 
+          SpellStartValues.getInstance().getIncreasesPerStep(currentHero.getInternalType(), talent));
+      updateData();
       for (int i = 0; i < mTable.getRowCount(); ++i) {
         if (mSorter.getValueAt(i, getNameDummyColumn()).equals(talent)) {
           mTable.scrollRectToVisible(mTable.getCellRect(i, 0, true));
           break;
         }
       }
-      return;
+      // return;
     }
     int currentValue = hero.getDefaultTalentValue(talent);
     int diceThrow = Dice.roll(6) + Dice.roll(6);

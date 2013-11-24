@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.lf;
@@ -27,16 +27,16 @@ import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import javax.swing.UIManager;
 
-public class BGDialog extends JDialog {
+import dsa.gui.util.HelpProvider;
+
+public abstract class BGDialog extends JDialog implements HelpProvider{
 
   public BGDialog() {
     super();
-    // TODO Auto-generated constructor stub
   }
 
   public BGDialog(Frame owner) {
     super(owner);
-    // TODO Auto-generated constructor stub
   }
 
   public BGDialog(Frame owner, boolean modal)  {
@@ -77,6 +77,14 @@ public class BGDialog extends JDialog {
   public BGDialog(Dialog owner, String title, boolean modal,
       GraphicsConfiguration gc)  {
     super(owner, title, modal, gc);
+  }
+  
+  //public String getHelpPage() {
+    //return null;
+  //}
+  
+  public final java.awt.Component getHelpParent() {
+    return this;
   }
 
   protected JRootPane createRootPane() {

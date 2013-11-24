@@ -1,21 +1,21 @@
 /*
-    Copyright (c) 2006 [Joerg Ruedenauer]
-  
-    This file is part of Heldenverwaltung.
+ Copyright (c) 2006 [Joerg Ruedenauer]
+ 
+ This file is part of Heldenverwaltung.
 
-    Heldenverwaltung is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+ Heldenverwaltung is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-    Heldenverwaltung is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ Heldenverwaltung is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ You should have received a copy of the GNU General Public License
+ along with Heldenverwaltung; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
 
@@ -24,8 +24,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.NumberFormat;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -43,9 +45,10 @@ import dsa.model.characters.Property;
 import dsa.model.data.ExtraThingData;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.util.Optional;
 
-public final class WeaponsFrame extends AbstractDnDFrame implements CharactersObserver,
-    OptionsListener {
+public final class WeaponsFrame extends AbstractDnDFrame implements
+    CharactersObserver, OptionsListener, WeaponsTable.ValueChanger {
 
   private class MyHeroObserver extends dsa.model.characters.CharacterAdapter {
     public void weaponRemoved(String weapon) {
@@ -88,7 +91,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
         }
       }
     });
-    mTable = new WeaponsTable(false);
+    mTable = new WeaponsTable(true, this);
     JPanel panel = mTable.getPanelWithTable();
 
     JPanel rightPanel = new JPanel();
@@ -97,14 +100,24 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
     rightPanel.add(getAddButton(), null);
     rightPanel.add(getRemoveButton(), null);
     panel.add(rightPanel, BorderLayout.EAST);
+    
+    JPanel lowerPanel = new JPanel();
+    lowerPanel.setLayout(null);
+    lowerPanel.setPreferredSize(new java.awt.Dimension(150, 40));
+    lowerPanel.add(getSumLabel(), null);
+    panel.add(lowerPanel, BorderLayout.SOUTH);
 
     this.setContentPane(panel);
 
     registerForDnD(mTable);
-    
+
     updateData();
     mTable.restoreSortingState("Waffen");
     mTable.setFirstSelectedRow();
+  }
+
+  public String getHelpPage() {
+    return "Waffen";
   }
 
   WeaponsTable mTable;
@@ -115,6 +128,55 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
 
   JButton removeButton;
 
+  JLabel sumLabel;
+
+  JLabel getSumLabel() {
+    if (sumLabel == null) {
+      sumLabel = new JLabel("");
+      sumLabel.setForeground(java.awt.Color.BLUE);
+      sumLabel.setBounds(5, 5, 440, 25);
+    }
+    return sumLabel;
+  }
+  
+  private void calcSums() {
+    if (currentHero == null) {
+      sumLabel.setText("Gesamt: Gewicht 0 Stein, Wert 0 S");
+      return;
+    }
+    int weaponWeight = 0;
+    int projectileWeight = 0;
+    int weaponWorth = 0;
+    int projectileWorth = 0;
+    for (String n : currentHero.getWeapons()) {
+      Weapon w = Weapons.getInstance().getWeapon(n);
+      if (w == null) continue;
+      weaponWeight += w.getWeight();
+      if (w.getWorth().hasValue()) {
+        weaponWorth += w.getWorth().getValue();
+      }
+      if (w.isProjectileWeapon()) {
+        int nrOfProjectiles = currentHero.getNrOfProjectiles(n);
+        if (w.getProjectileWeight().hasValue()) {
+          projectileWeight += nrOfProjectiles * w.getProjectileWeight().getValue();
+        }
+        if (w.getProjectileWorth().hasValue()) {
+          projectileWorth += nrOfProjectiles * w.getProjectileWorth().getValue();
+        }
+      }
+    }
+    NumberFormat format = NumberFormat.getNumberInstance();
+    format.setGroupingUsed(true);
+    format.setMaximumFractionDigits(2);
+    format.setMinimumFractionDigits(0);
+    format.setMinimumIntegerDigits(1);
+    double overallWeight = (weaponWeight + projectileWeight) / 40.0;
+    double overallWorth = (weaponWorth + projectileWorth / 100) / 10.0;
+    String text = "Gesamt: Gewicht ca. " + format.format(overallWeight)
+      + " Stein, Wert ca. " + format.format(overallWorth) + " Dukaten";
+    sumLabel.setText(text);
+  }
+ 
   JButton getAddButton() {
     if (addButton == null) {
       addButton = new JButton(ImageManager.getIcon("increase"));
@@ -123,19 +185,20 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
       addButton.setToolTipText("Waffe hinzufügen");
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          addWeapon();
+          selectItem();
         }
       });
     }
     return addButton;
   }
 
-  protected void addWeapon() {
+  protected void selectItem() {
     WeaponsSelectionDialog dialog = new WeaponsSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {
         weaponSelected(item);
       }
+
       public void itemChanged(String item) {
         weaponChanged(item);
       }
@@ -168,8 +231,12 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
       for (String name : currentHero.getWeapons()) {
         Weapon weapon = weapons.getWeapon(name);
         if (weapon != null) {
+          Optional<Integer> projectiles = new Optional<Integer>();
+          if (weapon.isProjectileWeapon()) {
+            projectiles.setValue(currentHero.getNrOfProjectiles(name));
+          }
           mTable.addWeapon(weapon, name, currentHero.getBF(name, 1),
-              currentHero.getWeaponCount(name));
+              currentHero.getWeaponCount(name), projectiles);
         }
         else
           mTable.addUnknownWeapon(name);
@@ -182,6 +249,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
       removeButton.setEnabled(false);
     }
     mTable.setFirstSelectedRow();
+    calcSums();
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
@@ -216,23 +284,28 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
         && weapon.getKKBonus().hasValue()
         && weapon.getKKBonus().getValue() > currentHero
             .getCurrentProperty(Property.KK)) {
-      JOptionPane.showMessageDialog(WeaponsFrame.this, currentHero
-          .getName()
+      JOptionPane.showMessageDialog(WeaponsFrame.this, currentHero.getName()
           + " ist zu schwach, um diese Waffe zu benutzen!", "Fehler",
           JOptionPane.INFORMATION_MESSAGE);
       return;
     }
     String name = currentHero.addWeapon(item);
     if (weapon != null && currentHero.getWeaponCount(item) == 1) {
-      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero.getWeaponCount(name));
+      Optional<Integer> projectiles = new Optional<Integer>();
+      if (weapon.isProjectileWeapon()) {
+        projectiles.setValue(0);
+      }
+      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero
+          .getWeaponCount(name), projectiles);
     }
     else if (weapon != null)
       mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
     else
       mTable.addUnknownWeapon(item);
     removeButton.setEnabled(true);
+    calcSums();
   }
-  
+
   private void weaponChanged(String item) {
     // for now, take the easy way ...
     updateData();
@@ -246,21 +319,36 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
       return false;
     }
     String name = currentHero.addWeapon(item);
-    if (currentHero.getWeaponCount(item) == 1) {
-      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero.getWeaponCount(name));
-    }
-    else {
-      mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
-    }
+    Optional<Integer> projectiles = new Optional<Integer>();
+    int projNr = 0;
+    int bf = 0;
     if (extraData.getType() == ExtraThingData.Type.Weapon) {
       try {
-        currentHero.setBF(name, 0, extraData.getPropertyInt("BF"));
+        bf = extraData.getPropertyInt("BF");
+        projNr = extraData.getPropertyInt("Projectiles");
       }
       catch (ExtraThingData.PropertyException e) {
         e.printStackTrace();
       }
     }
+    if (currentHero.getWeaponCount(item) == 1) {
+      if (weapon.isProjectileWeapon()) {
+        projectiles.setValue(projNr);
+      }
+      mTable.addWeapon(weapon, name, currentHero.getBF(name, 1), currentHero
+          .getWeaponCount(name), projectiles);
+    }
+    else {
+      mTable.setWeaponCount(item, currentHero.getWeaponCount(item));
+    }
+    if (extraData.getType() == ExtraThingData.Type.Weapon) {
+      // setBF will update the table, so projectile number must
+      // be set before!
+      currentHero.setNrOfProjectiles(name, projNr);
+      currentHero.setBF(name, 0, bf);
+    }
     removeButton.setEnabled(true);
+    calcSums();
     return true;
   }
 
@@ -275,12 +363,23 @@ public final class WeaponsFrame extends AbstractDnDFrame implements CharactersOb
   protected ExtraThingData getExtraDnDData(String item) {
     ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Weapon);
     data.setProperty("BF", currentHero.getBF(item, 1));
+    data.setProperty("Projectiles", currentHero.getNrOfProjectiles(item));
     Weapon weapon = Weapons.getInstance().getWeapon(item);
     if (weapon != null) {
-      data.setProperty("Worth", weapon.getWorth().hasValue() ? weapon.getWorth().getValue() : 0);
+      data.setProperty("Worth", weapon.getWorth().hasValue() ? weapon
+          .getWorth().getValue() : 0);
       data.setProperty("Weight", weapon.getWeight());
       data.setProperty("Category", "Waffe");
     }
     return data;
+  }
+
+  public void bfChanged(String name, int bf) {
+    currentHero.setBF(name, 0, bf);
+  }
+  
+  public void projectilesChanged(String name, int nrOfProjectiles) {
+    currentHero.setNrOfProjectiles(name, nrOfProjectiles);
+    calcSums();
   }
 }

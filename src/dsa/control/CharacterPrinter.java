@@ -14,7 +14,7 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with Foobar; if not, write to the Free Software
+ along with Heldenverwaltung; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.control;
@@ -202,8 +202,8 @@ public class CharacterPrinter {
   }
 
   public void printCharacter(Hero character, File template, File output,
-      FileType fileType,
-      java.awt.Component parent, String message) throws java.io.IOException {
+      FileType fileType, java.awt.Component parent, String message)
+      throws java.io.IOException {
     LookupTable table = new LookupTable('!');
     printProperties(character, table);
     printEnergies(character, table);
@@ -227,7 +227,8 @@ public class CharacterPrinter {
           .getShield(parade);
       if (shield == null) continue;
       table.addItem("SN" + paradeNr, shield.getName());
-      table.addItem("SP" + paradeNr, (goodLH ? shield.getPaMod2() : shield.getPaMod()));
+      table.addItem("SP" + paradeNr, (goodLH ? shield.getPaMod2() : shield
+          .getPaMod()));
       table.addItem("SA" + paradeNr, shield.getAtMod());
       table.addItem("SBE" + paradeNr, shield.getBeMod());
       table.addItem("SFK" + paradeNr, shield.getFkMod());
@@ -258,12 +259,13 @@ public class CharacterPrinter {
     printMoney(character, table);
     overallWeight = printThings(character, table, overallWeight);
 
-    printMoneyWeights(character, table);
+    overallWeight = printMoneyWeights(character, table, overallWeight);
 
     float overallWeightF = overallWeight / 40.0f;
     table.addItem("Tgsu", overallWeightF);
     table.addItem("tk", character.getDefaultDerivedValue(Hero.DerivedValue.TK));
-    table.addItem("Tk", character.getDefaultDerivedValue(Hero.DerivedValue.TK) / 40.0f);
+    table.addItem("Tk",
+        character.getDefaultDerivedValue(Hero.DerivedValue.TK) / 40.0f);
 
     printFightingTalents(character, table);
 
@@ -276,7 +278,8 @@ public class CharacterPrinter {
     printMagicAttributes(character, table);
     // ...
 
-    FileTransformer transformer = new FileTransformer(template, output, fileType);
+    FileTransformer transformer = new FileTransformer(template, output,
+        fileType);
     transformer.setLookupTable(table);
     transformer.transform(parent, message);
   }
@@ -344,7 +347,7 @@ public class CharacterPrinter {
 
   private static void printRituals(Hero character, LookupTable table) {
     String rtitel = dsa.model.data.Rituals.getInstance().getRitualsTitle(
-        character.getType());
+        character.getInternalType());
     if (rtitel == null || rtitel.equals("")) rtitel = "Rituale";
     table.addItem("rtitel", rtitel);
     for (char ch = 'a'; ch != 'k'; ++ch) {
@@ -365,12 +368,15 @@ public class CharacterPrinter {
     int category = getCategoryNumber("Kampftalente");
     java.util.List<String> fts = character.getFightingTalentsInDocument();
     for (Talent t : Talents.getInstance().getTalentsInCategory("Kampftalente")) {
-      if (((dsa.model.talents.FightingTalent)t).isProjectileTalent()) {
-    	table.addItem("" + category + moveAppendix + 1, character.getDefaultTalentValue(t.getName()));
+      if (((dsa.model.talents.FightingTalent) t).isProjectileTalent()) {
+        table.addItem("" + category + moveAppendix + 1, character
+            .getDefaultTalentValue(t.getName()));
       }
       else {
-        table.addItem("" + category + moveAppendix + "1", character.getATPart(t.getName()));
-	    table.addItem("" + category + moveAppendix + "2", character.getPAPart(t.getName()));
+        table.addItem("" + category + moveAppendix + "1", character.getATPart(t
+            .getName()));
+        table.addItem("" + category + moveAppendix + "2", character.getPAPart(t
+            .getName()));
       }
       ++moveAppendix;
       if (fts.contains(t.getName())) {
@@ -433,7 +439,7 @@ public class CharacterPrinter {
     }
   }
 
-  private static void printMoneyWeights(Hero character, LookupTable table) {
+  private static int printMoneyWeights(Hero character, LookupTable table, int overallWeight) {
     long moneyWeightTenthOfSkrupel = 0;
     for (int i = 0; i < character.getNrOfCurrencies(false); ++i) {
       long moneyWeight = character.getMoney(i, false)
@@ -447,6 +453,7 @@ public class CharacterPrinter {
     float moneyWeightStones = moneyWeightUnzes / 40.0f;
 
     table.addItem("Gg", moneyWeightStones);
+    return overallWeight + (int) moneyWeightUnzes;
   }
 
   private static int printThings(Hero character, LookupTable table,
@@ -523,13 +530,15 @@ public class CharacterPrinter {
       String valueAppendix = "/" + maxLang;
       if (character.hasTalent(language.getName())
           && character.getDefaultTalentValue(language.getName()) > 0) {
-        table.addItem("Spw", character.getDefaultTalentValue(language.getName()), true);
+        table.addItem("Spw", character
+            .getDefaultTalentValue(language.getName()), true);
         table.addItem("Spm", maxLang, true);
         table.addItem("sp" + langC, language.getName() + " "
             + character.getDefaultTalentValue(language.getName())
             + valueAppendix);
         table.addItem("SpN", language.getName(), true);
-        table.addItem("SpW", character.getDefaultTalentValue(language.getName()), true);
+        table.addItem("SpW", character
+            .getDefaultTalentValue(language.getName()), true);
         ++langC;
       }
       else {
@@ -556,23 +565,26 @@ public class CharacterPrinter {
     int fkWeaponNr = 1;
     weight = 0;
     int fkWeight = 0;
+    int prWeightSum = 0;
+    float prWeightF;
     for (String name : character.getWeapons()) {
       Weapon weapon = Weapons.getInstance().getWeapon(name);
       if (weapon == null) continue;
       int constDamage = weapon.getConstDamage();
       if (weapon.getKKBonus().hasValue()
-          && !weapon.isProjectileWeapon()
+          && !weapon.isFarRangedWeapon()
           && character.getDefaultProperty(Property.KK) > weapon.getKKBonus()
               .getValue()) {
         constDamage += character.getDefaultProperty(Property.KK)
             - weapon.getKKBonus().getValue();
       }
       String tp = weapon.getW6damage() + "W+" + constDamage;
-      if (!weapon.isProjectileWeapon()) { // Nahkampfwaffe
+      if (!weapon.isFarRangedWeapon()) { // Nahkampfwaffe
         table.addItem("wn" + weaponNr, weapon.getName());
         table.addItem("Wn", weapon.getName(), true);
         if (weapon.getKKBonus().hasValue()) {
-          table.addItem("wk" + weaponNr, weapon.getKKBonus().getValue().intValue());
+          table.addItem("wk" + weaponNr, weapon.getKKBonus().getValue()
+              .intValue());
           table.addItem("Wk", weapon.getKKBonus().getValue().intValue(), true);
         }
         else {
@@ -651,6 +663,22 @@ public class CharacterPrinter {
         table.addItem("f1" + fkWeaponNr, at);
         table.addItem("F1", at, true);
         fkWeight += weapon.getWeight();
+        if (weapon.isProjectileWeapon()) {
+          table.addItem("fmn" + fkWeaponNr, weapon.getProjectileType());
+          table.addItem("fmc" + fkWeaponNr, character.getNrOfProjectiles(name));
+          int prWeight = 0;
+          if (weapon.getProjectileWeight().hasValue()) {
+            prWeight = weapon.getProjectileWeight().getValue() * character.getNrOfProjectiles(name);
+          }
+          prWeightSum += prWeight;
+          overallWeight += prWeight;
+          table.addItem("fmg" + fkWeaponNr, prWeight);
+        }
+        else {
+          table.addItem("fmn" + fkWeaponNr, "-");
+          table.addItem("fmc" + fkWeaponNr, "-");
+          table.addItem("fmg" + fkWeaponNr, 0);
+        }
         fkWeaponNr++;
       }
       overallWeight += weapon.getWeight();
@@ -687,11 +715,16 @@ public class CharacterPrinter {
       table.addItem("fm" + fkWeaponNr, "");
       table.addItem("fg" + fkWeaponNr, "");
       table.addItem("f1" + fkWeaponNr, "");
+      table.addItem("fmn" + fkWeaponNr, "");
+      table.addItem("fmc" + fkWeaponNr, "");
+      table.addItem("fmg" + fkWeaponNr, "");
     }
     weightF = weight / 40.0f;
     table.addItem("wgsu", weightF);
     weightF = fkWeight / 40.0f;
     table.addItem("fgsu", weightF);
+    prWeightF = prWeightSum / 40.0f;
+    table.addItem("fmgsu", prWeightF);
     return overallWeight;
   }
 
@@ -736,7 +769,8 @@ public class CharacterPrinter {
       char appendix = 'a';
       int catNr = getCategoryNumber(category);
       for (Talent talent : Talents.getInstance().getTalentsInCategory(category)) {
-        table.addItem("" + catNr + appendix, character.getDefaultTalentValue(talent.getName()));
+        table.addItem("" + catNr + appendix, character
+            .getDefaultTalentValue(talent.getName()));
         appendix++;
       }
     }
@@ -755,8 +789,11 @@ public class CharacterPrinter {
     for (Talent talent : Talents.getInstance().getTalentsInCategory("Zauber")) {
       if (character.hasTalent(talent.getName())) {
         dsa.model.talents.Spell spell = (dsa.model.talents.Spell) talent;
-        spells.add(spell);
-        table.addItem("Z" + format.format(counter), character.getDefaultTalentValue(talent.getName()));
+        if (character.getDefaultTalentValue(talent.getName()) >= character.getPrintingZFW()) {
+          spells.add(spell);
+        }
+        table.addItem("Z" + format.format(counter), character
+            .getDefaultTalentValue(talent.getName()));
       }
       else {
         table.addItem("Z" + format.format(counter), "-");
@@ -785,8 +822,7 @@ public class CharacterPrinter {
     for (Spell sp : spells) {
       table.addItem("zn", sp.getName() + " (" + sp.getFirstProperty() + "/"
           + sp.getSecondProperty() + "/" + sp.getThirdProperty() + ")", true);
-      table.addItem("zw", character.getDefaultTalentValue(sp.getName()),
-          true);
+      table.addItem("zw", character.getDefaultTalentValue(sp.getName()), true);
       table.addItem("zg", sp.getCategory(), true);
       table.addItem("zu", sp.getOrigin(), true);
     }
@@ -809,7 +845,8 @@ public class CharacterPrinter {
       if (talent.getName().startsWith("Jagen (")) continue;
       if (character.hasTalent(talent.getName())) {
         table.addItem("bn" + appendix, talent.getName());
-        table.addItem("8" + appendix, character.getDefaultTalentValue(talent.getName()));
+        table.addItem("8" + appendix, character.getDefaultTalentValue(talent
+            .getName()));
         ++appendix;
       }
     }
@@ -823,10 +860,14 @@ public class CharacterPrinter {
   private static void printDerivedValues(Hero character, LookupTable table) {
     table.addItem("mb", character.getMRBonus());
     table.addItem("mr", character.getDefaultDerivedValue(Hero.DerivedValue.MR));
-    table.addItem("atb", character.getDefaultDerivedValue(Hero.DerivedValue.AT));
-    table.addItem("pab", character.getDefaultDerivedValue(Hero.DerivedValue.PA));
-    table.addItem("fkb", character.getDefaultDerivedValue(Hero.DerivedValue.FK));
-    table.addItem("auw", character.getDefaultDerivedValue(Hero.DerivedValue.AW));
+    table
+        .addItem("atb", character.getDefaultDerivedValue(Hero.DerivedValue.AT));
+    table
+        .addItem("pab", character.getDefaultDerivedValue(Hero.DerivedValue.PA));
+    table
+        .addItem("fkb", character.getDefaultDerivedValue(Hero.DerivedValue.FK));
+    table
+        .addItem("auw", character.getDefaultDerivedValue(Hero.DerivedValue.AW));
   }
 
   private static void printBasicAttributes(Hero character, LookupTable table) {
@@ -865,14 +906,16 @@ public class CharacterPrinter {
 
   private static void printProperties(Hero character, LookupTable table) {
     for (int i = 0; i < 7; ++i) {
-      table.addItem("p" + (i + 1), character.getDefaultProperty(Property.values()[i]));
+      table.addItem("p" + (i + 1), character.getDefaultProperty(Property
+          .values()[i]));
     }
     table.addItem("n1", character.getDefaultProperty(Property.AG));
     table.addItem("n2", character.getDefaultProperty(Property.HA));
     table.addItem("n3", character.getDefaultProperty(Property.RA));
     table.addItem("n4", character.getDefaultProperty(Property.TA));
     for (int i = 4; i < 7; ++i) {
-      table.addItem("n" + (i + 1), character.getDefaultProperty(Property.values()[i + 7]));
+      table.addItem("n" + (i + 1), character.getDefaultProperty(Property
+          .values()[i + 7]));
     }
   }
 

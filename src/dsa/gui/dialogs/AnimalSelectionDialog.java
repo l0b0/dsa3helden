@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.dialogs;
@@ -86,11 +86,15 @@ public final class AnimalSelectionDialog extends BGDialog {
       }
     });
   }
+  
+  public String getHelpPage() {
+    return "Tiererstellung";
+  }
 
   private void fillCategoryCombo() {
     dsa.model.characters.Hero hero = Group.getInstance().getActiveHero();
     boolean canHaveFamiliar = (hero.getType().startsWith("Hexe") || hero
-        .getType().startsWith("Geode"));
+        .getInternalType().startsWith("Geode"));
     List<String> categories = Animals.getInstance().getCategories();
     for (String c : categories) {
       if (canHaveFamiliar || !c.startsWith("Vertraute")) {

@@ -1,3 +1,36 @@
+Version 1.3.0
+-------------
+- Zwischenablage kann für Gegenstände, Waffen, Rüstungen usw. verwendet werden
+  (siehe neues Kontextmenü in den entsprechenden Fenstern)
+- BF von Waffen kann editiert werden
+- BF von Schilden kann editiert werden
+- Benutzerdaten werden nicht mehr im Installationsverzeichnis gespeichert
+- Bugfix: Magie-Fenster wurde nicht gefüllt, wenn es das erste Mal geöffnet wurde
+- Bugfix: Gewicht des Geldes wurde beim Drucken nicht zum Gesamtgewicht gerechnet
+- Zauber werden nur ab einem definierbaren Wert gedruckt
+- Hilfe geschrieben und implementiert (F1, Menü)
+- Munition wird verwaltet (siehe Waffen-Fenster und neue Drucktags)
+- Fließkommazahlen werden beim Ausdruck auf 3 Stellen nach dem Komma begrenzt
+- Bugfix: unter Umständen wurde bei der Heldenerstellung der falsche Protoyp benutzt
+- Gedruckter Heldentyp wird nicht mehr intern verwendet (siehe Metadaten-Fenster)
+- Bugfix: neu hinzugefügte Zauber können gesteigert werden, wenn noch 
+  Steigerungsversuche zur Verfügung stehen
+- Korrekte Startwerte werden für neue Zauber eingesetzt
+  o Bei manchen alten (und importierten) Magiern muss man hierzu im Fenster
+    "Metadaten" den Typ richtig setzen, auf den Namen der entsprechenden Datei
+    im Verzeichnis "Zauberstartwerte"
+  o Vielen Dank an Frank für die Bereitstellung der Tabellen
+
+Version 1.2.3
+-------------
+- Bugfix: Neu erstellte nicht magiefähige Helden konnten nicht voll
+          gesteigert werden
+- Bugfix: Erfahrungs-Fenster wurde u.U. nicht automatisch aktualisiert
+- Bugfix: Rüstungs-Fenster wurde nicht automatisch aktualisiert, wenn
+          der BE-Bonus eines Helden geändert wurde
+- Bugfix: Komplett frische Installation brachte eine Fehlermeldung beim
+          ersten Start.
+
 Version 1.2.2
 -------------
 - Bugfix: Talentwert für Fernkampfwaffen wurde nicht korrekt gedruckt

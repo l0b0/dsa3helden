@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -32,11 +32,15 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import dsa.model.characters.Group;
 import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
+import java.awt.Rectangle;
+import javax.swing.JTextField;
 
 public final class TypeMetaFrame extends SubFrame implements CharactersObserver {
 
@@ -104,10 +108,18 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     });
     updateData();
   }
+  
+  public String getHelpPage() {
+    return "Metadaten";
+  }
 
   private Hero currentHero;
 
   private boolean listenForChanges = true;
+
+  private JLabel jLabel2 = null;
+
+  private JTextField typeField = null;
 
   protected void updateData() {
     currentHero = Group.getInstance().getActiveHero();
@@ -122,6 +134,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     increaseMovesSpinner.setEnabled(currentHero != null);
     leIncreaseSpinner.setEnabled(currentHero != null);
     aeIncreaseSpinner.setEnabled(currentHero != null);
+    typeField.setEnabled(currentHero != null);
     if (currentHero != null) {
       mrBonusSpinner.setValue(currentHero.getMRBonus());
       beBonusSpinner.setValue(currentHero.getBEModification());
@@ -142,6 +155,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
       leIncreaseSpinner.setValue(currentHero.getFixedLEIncrease());
       aeIncreaseSpinner.setValue(currentHero.getFixedAEIncrease());
       checkAEAvailability();
+      typeField.setText(currentHero.getInternalType());
     }
     else {
       mrBonusSpinner.setValue(0);
@@ -154,6 +168,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
       increaseMovesSpinner.setValue(0);
       leIncreaseSpinner.setValue(0);
       aeIncreaseSpinner.setValue(0);
+      typeField.setText("");
     }
     listenForChanges = true;
   }
@@ -180,14 +195,17 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
    */
   private JPanel getJPanel() {
     if (jPanel == null) {
+      jLabel2 = new JLabel();
+      jLabel2.setBounds(new Rectangle(10, 30, 71, 21));
+      jLabel2.setText("Name:");
       magicTypeLabel = new JLabel();
-      magicTypeLabel.setBounds(new java.awt.Rectangle(10, 150, 81, 21));
+      magicTypeLabel.setBounds(new Rectangle(10, 150, 71, 21));
       magicTypeLabel.setText("Magietyp:");
       jLabel1 = new JLabel();
-      jLabel1.setBounds(new java.awt.Rectangle(10, 60, 81, 21));
+      jLabel1.setBounds(new Rectangle(10, 90, 71, 21));
       jLabel1.setText("BE-Bonus:");
       jLabel = new JLabel();
-      jLabel.setBounds(new java.awt.Rectangle(10, 30, 81, 21));
+      jLabel.setBounds(new Rectangle(10, 60, 71, 21));
       jLabel.setText("MR-Bonus:");
       jPanel = new JPanel();
       jPanel.setLayout(null);
@@ -206,6 +224,8 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
       jPanel.add(getMagicTypeCombo(), null);
       jPanel.add(getMrBonusSpinner(), null);
       jPanel.add(getBeBonusSpinner(), null);
+      jPanel.add(jLabel2, null);
+      jPanel.add(getTypeField(), null);
     }
     return jPanel;
   }
@@ -218,7 +238,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   private JCheckBox getAeBox() {
     if (aeBox == null) {
       aeBox = new JCheckBox();
-      aeBox.setBounds(new java.awt.Rectangle(10, 90, 111, 21));
+      aeBox.setBounds(new Rectangle(10, 120, 81, 21));
       aeBox.setText("Hat AE");
       aeBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -246,7 +266,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   private JCheckBox getKeBox() {
     if (keBox == null) {
       keBox = new JCheckBox();
-      keBox.setBounds(new java.awt.Rectangle(10, 120, 111, 21));
+      keBox.setBounds(new Rectangle(90, 120, 91, 21));
       keBox.setText("Hat KE");
       keBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -312,7 +332,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   private JComboBox getMagicTypeCombo() {
     if (magicTypeCombo == null) {
       magicTypeCombo = new JComboBox();
-      magicTypeCombo.setBounds(new java.awt.Rectangle(100, 150, 101, 21));
+      magicTypeCombo.setBounds(new Rectangle(90, 150, 111, 21));
       magicTypeCombo.addItem("Normal");
       magicTypeCombo.addItem("Magier");
       magicTypeCombo.addItem("Geode");
@@ -340,7 +360,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   private JSpinner getMrBonusSpinner() {
     if (mrBonusSpinner == null) {
       mrBonusSpinner = new JSpinner(new SpinnerNumberModel(0, -5, 5, 1));
-      mrBonusSpinner.setBounds(new java.awt.Rectangle(100, 30, 61, 21));
+      mrBonusSpinner.setBounds(new Rectangle(90, 60, 61, 21));
       mrBonusSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
           if (!listenForChanges) return;
@@ -360,7 +380,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   private JSpinner getBeBonusSpinner() {
     if (beBonusSpinner == null) {
       beBonusSpinner = new JSpinner(new SpinnerNumberModel(0, -3, 3, 1));
-      beBonusSpinner.setBounds(new java.awt.Rectangle(100, 60, 61, 21));
+      beBonusSpinner.setBounds(new Rectangle(90, 90, 61, 21));
       beBonusSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
           if (!listenForChanges) return;
@@ -499,6 +519,34 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   }
 
   public void globalLockChanged() {
+  }
+
+  /**
+   * This method initializes typeField	
+   * 	
+   * @return javax.swing.JTextField	
+   */
+  private JTextField getTypeField() {
+    if (typeField == null) {
+      typeField = new JTextField();
+      typeField.setBounds(new Rectangle(90, 30, 111, 21));
+      typeField.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent e) {
+          typeChanged();
+        }
+        public void insertUpdate(DocumentEvent e) {
+          typeChanged();
+        }
+        public void removeUpdate(DocumentEvent e) {
+          typeChanged();
+        }
+        private void typeChanged() {
+          if (!listenForChanges) return;
+          if (currentHero != null) currentHero.setInternalType(typeField.getText());
+        }
+      });
+    }
+    return typeField;
   }
 
 } // @jve:decl-index=0:visual-constraint="11,12"

@@ -14,28 +14,30 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.tables;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
+import java.text.NumberFormat;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.text.NumberFormatter;
 
+import dsa.gui.util.FormattedTextFieldCellEditor;
 import dsa.gui.util.TableSorter;
 import dsa.model.data.Shield;
 import dsa.util.Optional;
 
-public class ShieldsTable extends AbstractTable {
+public class ShieldsTable extends AbstractTable implements FormattedTextFieldCellEditor.EditorClient {
 
   protected int getNameColumn() {
     return 0;
@@ -70,6 +72,10 @@ public class ShieldsTable extends AbstractTable {
   }
 
   static final Optional<Integer> NULL_INT = Optional.NULL_INT;
+  
+  public static interface BFChanger {
+    void bfChanged(String name, int bf);
+  }
 
   class MyTableModel extends DefaultTableModel {
     public Class<?> getColumnClass(int columnIndex) {
@@ -80,14 +86,22 @@ public class ShieldsTable extends AbstractTable {
     }
 
     public boolean isCellEditable(int row, int column) {
-      return false;
+      return column == getBFColumn();
     }
   }
 
   MyTableModel mModel;
+  
+  BFChanger mBFChanger;
 
   public ShieldsTable() {
+    this(null);
+  }
+  
+  public ShieldsTable(BFChanger bfChanger) {
     super();
+    mBFChanger = bfChanger;
+    
     mModel = new MyTableModel();
     mModel.addColumn("Name");
     mModel.addColumn("PA");
@@ -98,18 +112,41 @@ public class ShieldsTable extends AbstractTable {
     mModel.addColumn("Gewicht");
     mModel.addColumn("Wert");
 
+    FormattedTextFieldCellEditor numberEditor = new FormattedTextFieldCellEditor(
+        new NumberFormatter(NumberFormat.getIntegerInstance()), this);
+    numberEditor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+    numberEditor.addCellEditorListener(new CellEditorListener() {
+
+      public void editingStopped(ChangeEvent e) {
+        if (mBFChanger != null) {
+          FormattedTextFieldCellEditor editor = (FormattedTextFieldCellEditor) e
+              .getSource();
+          Number number = (Number) editor.getValue();
+          mBFChanger.bfChanged(editor.getCellInfo(), number.intValue());
+        }
+      }
+
+      public void editingCanceled(ChangeEvent e) {
+      }
+    });
+
     DefaultTableColumnModel tcm = new DefaultTableColumnModel();
     tcm.addColumn(new TableColumn(0, 140));
     tcm.addColumn(new TableColumn(1, 25));
     tcm.addColumn(new TableColumn(2, 25));
     tcm.addColumn(new TableColumn(3, 25));
     tcm.addColumn(new TableColumn(4, 25));
-    tcm.addColumn(new TableColumn(5, 25));
+    if (mBFChanger != null) {
+      tcm.addColumn(new TableColumn(5, 25, new DefaultTableCellRenderer(), numberEditor));
+    }
+    else {
+      tcm.addColumn(new TableColumn(5, 25));
+    }
     tcm.addColumn(new TableColumn(6, 40));
     tcm.addColumn(new TableColumn(7, 40));
 
     mSorter = new TableSorter(mModel);
-    mTable = new JTable(mSorter, tcm);
+    mTable = new ViewportFillingTable(mSorter, tcm);
     mSorter.setTableHeader(mTable.getTableHeader());
 
     for (int i = 0; i < mTable.getColumnCount(); ++i)
@@ -120,14 +157,7 @@ public class ShieldsTable extends AbstractTable {
     mTable.setRowSelectionAllowed(true);
     mTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
     mTable.setRowHeight(22);
-    mTable.addMouseListener(new MouseAdapter() {
-
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() > 1 && getDoubleClickListener() != null) {
-          getDoubleClickListener().actionPerformed(new ActionEvent(this, 0, ""));
-        }
-      }
-    });
+    mTable.addMouseListener(createMouseListener());
 
     mTable.setBackground(BACKGROUND_GRAY);
     JScrollPane scrollPane = new JScrollPane(mTable);
@@ -197,6 +227,10 @@ public class ShieldsTable extends AbstractTable {
     rowData[getWeightColumn()] = NULL_INT;
     mModel.addRow(rowData);
     setSelectedRow(mModel.getRowCount() - 1);
+  }
+
+  public String getCellInfo(int row) {
+    return mSorter.getValueAt(row, getNameColumn()).toString();
   }
 
 }

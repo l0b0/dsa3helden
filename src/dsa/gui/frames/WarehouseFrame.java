@@ -14,7 +14,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
+    along with Heldenverwaltung; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package dsa.gui.frames;
@@ -52,6 +52,10 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
         mTable.removeThing(thing);
       }
     }
+  }
+  
+  public String getHelpPage() {
+    return "Lager";
   }
 
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();
@@ -136,14 +140,14 @@ public final class WarehouseFrame extends AbstractDnDFrame implements Characters
       addButton.setToolTipText("Gegenstand hinzufügen");
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          addThing();
+          selectItem();
         }
       });
     }
     return addButton;
   }
 
-  protected void addThing() {
+  protected void selectItem() {
     ThingSelectionDialog dialog = new ThingSelectionDialog(this);
     dialog.setCallback(new SelectionDialogCallback() {
       public void itemSelected(String item) {

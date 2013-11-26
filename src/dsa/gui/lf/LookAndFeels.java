@@ -28,11 +28,7 @@ import com.l2fprod.gui.plaf.skin.Skin;
 import com.l2fprod.gui.plaf.skin.SkinLookAndFeel;
 
 import de.javasoft.plaf.synthetica.SyntheticaStandardLookAndFeel;
-import de.javasoft.plaf.synthetica.SyntheticaGreenDreamLookAndFeel;
 import de.javasoft.plaf.synthetica.SyntheticaWalnutLookAndFeel;
-import de.javasoft.plaf.synthetica.SyntheticaBlueIceLookAndFeel;
-import de.javasoft.plaf.synthetica.SyntheticaBlueSteelLookAndFeel;
-import de.javasoft.plaf.synthetica.SyntheticaSilverMoonLookAndFeel;
 
 public class LookAndFeels {
   
@@ -45,10 +41,6 @@ public class LookAndFeels {
       names.add(info.getName());
     }
     names.add("Synthetica (Standard)");
-    names.add("Synthetica (Green Dream)");
-    names.add("Synthetica (Blue Ice)");
-    names.add("Synthetica (Silver Moon)");
-    names.add("Synthetica (Blue Steel)");
     names.add("Skin ...");
     String[] array = new String[names.size()];
     return names.toArray(array);
@@ -81,22 +73,6 @@ public class LookAndFeels {
   private static void internalSetLookAndFeel(String choice) throws Exception {
     if (choice.equals("Synthetica (Standard)")) {
       UIManager.setLookAndFeel(new SyntheticaStandardLookAndFeel());
-      return;
-    }
-    else if (choice.equals("Synthetica (Green Dream)")) {
-      UIManager.setLookAndFeel(new SyntheticaGreenDreamLookAndFeel());
-      return;
-    }
-    else if (choice.equals("Synthetica (Blue Ice)")) {
-      UIManager.setLookAndFeel(new SyntheticaBlueIceLookAndFeel());
-      return;
-    }
-    else if (choice.equals("Synthetica (Blue Steel)")) {
-      UIManager.setLookAndFeel(new SyntheticaBlueSteelLookAndFeel());
-      return;
-    }
-    else if (choice.equals("Synthetica (Silver Moon)")) {
-      UIManager.setLookAndFeel(new SyntheticaSilverMoonLookAndFeel());
       return;
     }
     else if (choice.equals("Skin ...")) {

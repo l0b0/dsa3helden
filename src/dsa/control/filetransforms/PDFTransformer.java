@@ -30,10 +30,10 @@ import java.util.HashMap;
 
 import javax.swing.ProgressMonitorInputStream;
 
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.AcroFields;
-import com.lowagie.text.pdf.PdfReader;
-import com.lowagie.text.pdf.PdfStamper;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
 
 import dsa.util.LookupTable.LookupPerformer;
 import dsa.util.LookupTable.LookupPerformer.NextCharResult;
@@ -54,7 +54,7 @@ class PDFTransformer extends AbstractFileTransformer {
       PdfStamper stamper = new PdfStamper(reader, outStream);
       try {
         AcroFields form = stamper.getAcroFields();
-        HashMap fields = form.getFields();
+        HashMap fields = (HashMap)form.getFields();
         ArrayList<String> fieldNames = new ArrayList<String>();
         for (Object o : fields.keySet()) {
           String originalFieldName = (String) o;

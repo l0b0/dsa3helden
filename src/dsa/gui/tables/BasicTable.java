@@ -31,6 +31,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import dsa.gui.util.TableSorter;
+import dsa.util.Optional;
 
 public abstract class BasicTable implements TableSorter.SortingListener {
 
@@ -54,7 +55,7 @@ public abstract class BasicTable implements TableSorter.SortingListener {
     if (dsa.gui.lf.Colors.hasCustomColors()) {
       MyCellRenderer renderer = new MyCellRenderer();
       mTable.setDefaultRenderer(Object.class, renderer);
-      mTable.setDefaultRenderer(dsa.util.Optional.NullInt.getClass(), renderer);
+      mTable.setDefaultRenderer(Optional.NULL_INT.getClass(), renderer);
       mTable.setSelectionBackground(dsa.gui.lf.Colors.getSelectedBackground());
       mTable.setSelectionForeground(dsa.gui.lf.Colors.getSelectedForeground());
       mTable.setOpaque(false);

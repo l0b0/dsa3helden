@@ -13,6 +13,14 @@ Versionshistorie
 
 Siehe ChangeLog.txt.
 
+Dependencies
+------------
+
+* Synthetica <http://www.jyloo.com/synthetica/download/>
+* Synthetica Addons <http://www.jyloo.com/syntheticaaddons/download/>
+* Skin Look And Feel <http://www.l2fprod.com/skinlf/download/>
+* iText <http://sourceforge.net/projects/itext/files/>
+
 Bauen
 -----
 

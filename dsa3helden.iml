@@ -8,6 +8,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="synthetica" level="project" />
+    <orderEntry type="library" name="skinlf" level="project" />
+    <orderEntry type="library" name="itext" level="project" />
   </component>
 </module>
 

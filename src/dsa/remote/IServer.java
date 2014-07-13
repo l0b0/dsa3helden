@@ -37,7 +37,7 @@ public interface IServer extends Remote {
 	void informPlayerOfPropertyChange(String heroName, Property property, int newValue) throws RemoteException, ServerException;
 	
 	static final String REGISTERED_NAME = "dsa.HV_Server";
-	static final int SERVER_VERSION = 3;
+	static final int SERVER_VERSION = 4;
 	
 	// interface for players: fighting
 	enum FightProperty {
@@ -51,7 +51,7 @@ public interface IServer extends Remote {
 	
 	void informGMOfAttack(int clientId, String heroName, String text, int quality, boolean hit, int tp, boolean isWeaponLess, boolean informOtherPlayers) 
 			throws RemoteException, ServerException;
-	void informGMOfProjectileAttack(int clientId, String heroName, String text, boolean hit, int tp, boolean informOtherPlayers)
+	void informGMOfProjectileAttack(int clientId, String heroName, String text, boolean hit, int quality, int tp, boolean informOtherPlayers)
 			throws RemoteException, ServerException;
 	void informGMOfParade(int clientId, String heroName, String text, boolean success, boolean informOtherPlayers)
 			throws RemoteException, ServerException;
@@ -69,7 +69,7 @@ public interface IServer extends Remote {
 			boolean informAllPlayers) throws RemoteException, ServerException;
 	void informPlayerOfHeroProjectileAttack(String heroName, String text, boolean informOtherPlayers)
 			throws RemoteException, ServerException;
-	void informPlayerOfOpponentProjectileAttack(String heroName, String opponentName, String text, boolean hit, int tp, boolean informOtherPlayers)
+	void informPlayerOfOpponentProjectileAttack(String heroName, String opponentName, String text, boolean hit, int quality, int tp, boolean informOtherPlayers)
 			throws RemoteException, ServerException;
 	void informPlayerOfHeroParade(String heroName, String text, boolean success, boolean informOtherPlayers)
 			throws RemoteException, ServerException;
@@ -81,6 +81,7 @@ public interface IServer extends Remote {
 			throws RemoteException, ServerException;
 	void informPlayerOfWeaponChange(String heroName, String fightMode, String firstHand, String secondHand, boolean informOtherPlayers)
 			throws RemoteException, ServerException;
+	void informPlayersOfKRChange(int newRoundNr) throws RemoteException, ServerException;
 	
 	interface PlayerUpdateVisitor {
 		void visitHeroProbe(HeroProbe hp);
@@ -99,6 +100,8 @@ public interface IServer extends Remote {
 		
 		void visitFightPropertyChange(FightPropertyChange fpc);
 		void visitWeaponChange(WeaponChange wc);
+		
+		void visitKRChange(KRChange krc);
 	}
 	
 	interface GMUpdateVisitor extends PlayerUpdateVisitor {
@@ -234,17 +237,20 @@ public interface IServer extends Remote {
 	}
 
 	abstract class Attack extends RemoteUpdate {
-		protected Attack(String heroName, String text, boolean hit, int tp) {
+		protected Attack(String heroName, String text, boolean hit, int quality, int tp) {
 			super(heroName);
 			this.text = text;
 			this.hit = hit;
+			this.quality = quality;
 			this.tp = tp;
 		}
 		
 		public String getText() { return text; }
 		public boolean wasHit() { return hit; }
 		public int getTP() { return tp; }
+		public int getQuality() { return quality; }
 
+		private int quality;
 		private String text;
 		private boolean hit;
 		private int tp;
@@ -252,15 +258,12 @@ public interface IServer extends Remote {
 	
 	abstract class MeleeAttack extends Attack {
 		protected MeleeAttack(String heroName, String text, int quality, boolean hit, int tp, boolean isWeaponLess) {
-			super(heroName, text, hit, tp);
-			this.quality = quality;
+			super(heroName, text, hit, quality, tp);
 			this.isWeaponLess = isWeaponLess;
 		}
 		
-		public int getQuality() { return quality; }
 		public boolean isWeaponLess() { return isWeaponLess; }
 		
-		private int quality;
 		private boolean isWeaponLess;
 	}
 	
@@ -288,22 +291,22 @@ public interface IServer extends Remote {
 	}
 	
 	abstract class ProjectileAttack extends Attack {
-		protected ProjectileAttack(String heroName, String text, boolean hit, int tp) {
-			super(heroName, text, hit, tp);
+		protected ProjectileAttack(String heroName, String text, boolean hit, int quality, int tp) {
+			super(heroName, text, hit, quality, tp);
 		}
 	}
 	
 	class HeroProjectileAttack extends ProjectileAttack {
-		public HeroProjectileAttack(String heroName, String text, boolean hit, int tp) {
-			super(heroName, text, hit, tp);
+		public HeroProjectileAttack(String heroName, String text, boolean hit, int quality, int tp) {
+			super(heroName, text, hit, quality, tp);
 		}
 		public void visitByPlayer(PlayerUpdateVisitor visitor) { visitor.visitHeroProjectileAttack(this); }
 		public void visitByGM(GMUpdateVisitor visitor) { visitByPlayer(visitor); }
 	}
 	
 	class OpponentProjectileAttack extends ProjectileAttack {
-		public OpponentProjectileAttack(String opponentName, String heroName, String text, boolean hit, int tp) {
-			super(heroName, text, hit, tp);
+		public OpponentProjectileAttack(String opponentName, String heroName, String text, boolean hit, int quality, int tp) {
+			super(heroName, text, hit, quality, tp);
 			this.opponentName = opponentName;
 		}
 		
@@ -370,6 +373,22 @@ public interface IServer extends Remote {
 		private String fightMode;
 		private String firstHand;
 		private String secondHand;
+	}
+	
+	class KRChange extends RemoteUpdate {
+		public KRChange(int newKr) {
+			super("");
+			this.kr = newKr;
+		}
+		
+		public int getKR() {
+			return kr;
+		}
+		
+		public void visitByPlayer(PlayerUpdateVisitor visitor) { visitor.visitKRChange(this); }
+		public void visitByGM(GMUpdateVisitor visitor) { visitByPlayer(visitor); }
+		
+		private int kr;
 	}
 
 }

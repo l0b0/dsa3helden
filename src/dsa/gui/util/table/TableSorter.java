@@ -495,7 +495,7 @@ public class TableSorter extends AbstractTableModel {
         }
     }
 
-    private static class Arrow implements Icon {
+    public static class Arrow implements Icon {
         private boolean descending;
         private int size;
         private int priority;

@@ -270,4 +270,8 @@ public final class OpponentsFrame extends SubFrame
     // is always initiated by this frame
   }
   
+  public void characterReplaced(Hero oldHero, Hero newHero) {
+	  // irrelevant
+  }
+  
 }

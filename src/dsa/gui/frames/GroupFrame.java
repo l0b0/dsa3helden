@@ -482,6 +482,12 @@ public final class GroupFrame extends SubFrame
   public void orderChanged() {
   }
   
+  public void characterReplaced(Hero oldHero, Hero newHero) {
+	  oldHero.removeHeroObserver(nameChanger);
+	  newHero.addHeroObserver(nameChanger);
+	  updateData();
+  }
+  
   public void opponentsChanged() {
   }
 

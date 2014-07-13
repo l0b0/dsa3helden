@@ -437,6 +437,11 @@ public final class ControlFrame extends SubFrame
         
         public void opponentsChanged() {
         }
+        
+        public void characterReplaced(Hero oldHero, Hero newHero) {
+        	oldHero.removeHeroObserver(nameListener);
+        	newHero.addHeroObserver(nameListener);
+        }
       });
       heroBox.addItemListener(new ItemListener() {
         public void itemStateChanged(ItemEvent e) {

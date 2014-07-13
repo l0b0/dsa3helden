@@ -539,7 +539,7 @@ public class Server implements IServer {
 
 	@Override
 	public void informGMOfProjectileAttack(int clientId, String heroName,
-			String text, boolean hit, int tp, boolean informOtherPlayers)
+			String text, boolean hit, int quality, int tp, boolean informOtherPlayers)
 			throws RemoteException, ServerException {
 		if (mShutdown)
 			throw new ServerShutdownException();
@@ -555,12 +555,12 @@ public class Server implements IServer {
 			throw new ServerException("Hero is online for another player");
 
 		if (!informOtherPlayers) {
-			mUpdatesPerClient.get(GM_ID).add(new HeroProjectileAttack(heroName, text, hit, tp));
+			mUpdatesPerClient.get(GM_ID).add(new HeroProjectileAttack(heroName, text, hit, quality, tp));
 		}
 		else {
 			for (int id : mClientPlayers.keySet()) {
 				if (id != clientId) {
-					mUpdatesPerClient.get(id).add(new HeroProjectileAttack(heroName, text, hit, tp));					
+					mUpdatesPerClient.get(id).add(new HeroProjectileAttack(heroName, text, hit, quality, tp));					
 				}
 			}
 		}
@@ -768,12 +768,12 @@ public class Server implements IServer {
 			throw new ServerException("Hero is not online");
 		
 		if (!informOtherPlayers) {
-			mUpdatesPerClient.get(mRemoteHeroes.get(heroName)).add(new HeroProjectileAttack(heroName, text, false, 0));
+			mUpdatesPerClient.get(mRemoteHeroes.get(heroName)).add(new HeroProjectileAttack(heroName, text, false, 0, 0));
 		}
 		else {
 			for (int id : mClientPlayers.keySet()) {
 				if (id != GM_ID) {
-					mUpdatesPerClient.get(id).add(new HeroProjectileAttack(heroName, text, false, 0));
+					mUpdatesPerClient.get(id).add(new HeroProjectileAttack(heroName, text, false, 0, 0));
 				}
 			}
 		}
@@ -785,7 +785,7 @@ public class Server implements IServer {
 
 	@Override
 	public void informPlayerOfOpponentProjectileAttack(String heroName,
-			String opponentName, String text, boolean hit, int tp, boolean informOtherPlayers)
+			String opponentName, String text, boolean hit, int quality, int tp, boolean informOtherPlayers)
 			throws RemoteException, ServerException {
 		if (mShutdown)
 			throw new ServerShutdownException();
@@ -797,12 +797,12 @@ public class Server implements IServer {
 			throw new ServerException("Hero is not online");
 		
 		if (!informOtherPlayers) {
-			mUpdatesPerClient.get(mRemoteHeroes.get(heroName)).add(new OpponentProjectileAttack(opponentName, heroName, text, hit, tp));
+			mUpdatesPerClient.get(mRemoteHeroes.get(heroName)).add(new OpponentProjectileAttack(opponentName, heroName, text, hit, quality, tp));
 		}
 		else {
 			for (int id : mClientPlayers.keySet()) {
 				if (id != GM_ID) {
-					mUpdatesPerClient.get(id).add(new OpponentProjectileAttack(opponentName, heroName, text, hit, tp));
+					mUpdatesPerClient.get(id).add(new OpponentProjectileAttack(opponentName, heroName, text, hit, quality, tp));
 				}
 			}
 		}
@@ -943,6 +943,19 @@ public class Server implements IServer {
 		}
 		
 		mLog.addLog(IRemoteLog.LogCategory.Game, "Waffen-Update für " + heroName + " empfangen.");
+		
+		RescheduleTimeoutTimer(GM_ID);
+	}
+	
+	@Override
+	public void informPlayersOfKRChange(int newKr) throws RemoteException, ServerException {
+		if (mShutdown)
+			throw new ServerShutdownException();
+		for (int id : mClientPlayers.keySet()) {
+			mUpdatesPerClient.get(id).add(new KRChange(newKr));
+		}
+		
+		mLog.addLog(IRemoteLog.LogCategory.Game, "KR-Update empfangen.");
 		
 		RescheduleTimeoutTimer(GM_ID);
 	}

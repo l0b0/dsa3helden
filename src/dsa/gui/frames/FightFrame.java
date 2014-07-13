@@ -1250,13 +1250,14 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     s += "Wurf: " + roll + "\n";
     boolean hit = false;
     int tp = 0;
+    int q = 0;
     if (roll == 1 || roll <= at - mod - Markers.getMarkers(currentHero)) {
       if (roll == 1)
         s += "Perfekt g";
       else
         s += "G";
       s += "etroffen! -- Qualität ";
-      int q = (at - mod - Markers.getMarkers(currentHero) - roll) / 2;
+      q = (at - mod - Markers.getMarkers(currentHero) - roll) / 2;
       s += q + "\n";
       String tps = tp1Label.getText();
       DiceSpecification ds = DiceSpecification.parse(tps);
@@ -1273,7 +1274,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
 	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
 	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
 	if (sendToServer) {
-		RemoteManager.getInstance().informOfHeroProjectileAT(currentHero, s, hit, tp, informOtherPlayers);
+		RemoteManager.getInstance().informOfHeroProjectileAT(currentHero, s, hit, q, tp, informOtherPlayers);
 	}
   }
 
@@ -1330,7 +1331,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     int defaultTP = 1;
     if (RemoteManager.getInstance().isConnectedAsPlayer()) {
 	  RemoteFight.Attack receivedAt = RemoteManager.getInstance().getLastAttackAgainstHero(currentHero);
-	  if (receivedAt != null && !receivedAt.isProjectile()) {
+	  if (receivedAt != null) {
 		  defaultQuality = receivedAt.getQuality();
 		  defaultTP = receivedAt.getTP();
 		  RemoteManager.getInstance().removeLastAttackAgainstHero(currentHero);
@@ -1913,7 +1914,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     int defaultTP = 1;
     if (RemoteManager.getInstance().isConnectedAsPlayer()) {
 	  RemoteFight.Attack receivedAt = RemoteManager.getInstance().getLastAttackAgainstHero(currentHero);
-	  if (receivedAt != null && !receivedAt.isProjectile()) {
+	  if (receivedAt != null) {
 		  defaultQuality = receivedAt.getQuality();
 		  defaultTP = receivedAt.getTP();
 		  RemoteManager.getInstance().removeLastAttackAgainstHero(currentHero);

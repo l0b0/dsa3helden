@@ -82,10 +82,11 @@ public class AttackDialog extends BGDialog {
   private int at;
 
   public static class AttackResult {
-    public AttackResult(boolean fumble, int param, int tp, int pa) {
+    public AttackResult(boolean fumble, boolean hit, int param, int tp, int pa) {
       this.fumble = fumble;
       if (!fumble) quality = param; else fumbleType = param;
       this.tp = tp;
+      this.hit = hit;
       paradeIndex = pa;
     }
     public AttackResult(int fumbleType) {
@@ -94,6 +95,7 @@ public class AttackDialog extends BGDialog {
     }
     
     public boolean hasFumbled() { return fumble; }
+    public boolean hasHit() { return hit; }
     public int getQuality() { return quality; }
     public int getTP() { return tp; }
     public int getFumbleType() { return fumbleType; }
@@ -108,6 +110,7 @@ public class AttackDialog extends BGDialog {
     public void setCopy(boolean copy) { this.copy = copy; }
     
     private boolean fumble;
+    private boolean hit;
     private int quality;
     private int tp;
     private int fumbleType;
@@ -307,7 +310,7 @@ public class AttackDialog extends BGDialog {
           int fumbleType = ((Number)fumbleField.getValue()).intValue();
           if (fumbleType >= 11) {
             int tp = ((Number)fumbleField2.getValue()).intValue();
-            result = new AttackResult(true, fumbleType, tp, paWeapon);
+            result = new AttackResult(true, false, fumbleType, tp, paWeapon);
           }
           else {
             result = new AttackResult(fumbleType);
@@ -315,12 +318,12 @@ public class AttackDialog extends BGDialog {
         }
         else {
           if (qualityField.getText().equals("--")) {
-            result = new AttackResult(false, 0, 0, paWeapon);
+            result = new AttackResult(false, false, 0, 0, paWeapon);
           }
           else {
             int quality = Integer.parseInt(qualityField.getText());
             int tp = ((Number)tpField.getValue()).intValue();
-            result = new AttackResult(false, quality, tp, paWeapon);
+            result = new AttackResult(false, true, quality, tp, paWeapon);
           }
         }
         result.setCopy(copyBox.isSelected());

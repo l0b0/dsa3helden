@@ -27,4 +27,6 @@ public interface GroupObserver extends CharactersObserver {
   
   void opponentsChanged();
   
+  void characterReplaced(Hero oldHero, Hero newHero);
+  
 }

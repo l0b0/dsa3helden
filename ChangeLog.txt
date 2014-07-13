@@ -1,3 +1,17 @@
+Version 1.11.1
+--------------
+- Kampfrundenzähler im Fenster Kampf (Meister)
+- Tabellen im Fenster Kampf (Meister) sortierbar nach Name, LE, 
+  Kampfstatus
+- 4. Stabzauber kann nicht verwendet werden, wenn das Flammenschwert
+  als Waffe benutzt wird
+- Fernkampfattacken können im Online-Spiel korrekt abgewehrt werden
+  (Voreinstellung von Qualität / TP bei Parade / Ausweichen)
+- Bugfix: Fenster Kampf (Meister) aktualisierte sich beim 
+  Online-Spiel nur für Änderungen am aktuell selektierten Helden
+- Bugfix: mögliche Exception beim Aktualisieren eines online 
+  verbundenen Helden, der Zusatzdateien verlinkt hat
+
 Version 1.11.0
 --------------
 - Direkter Austausch von Daten und Probeergebnissen im Online-Spiel

@@ -45,6 +45,7 @@ import dsa.remote.IServer.HeroPropertyUpdate;
 import dsa.remote.IServer.HeroRegeneration;
 import dsa.remote.IServer.HeroRemoval;
 import dsa.remote.IServer.HeroUpdate;
+import dsa.remote.IServer.KRChange;
 import dsa.remote.IServer.OpponentMeleeAttack;
 import dsa.remote.IServer.OpponentProjectileAttack;
 import dsa.remote.IServer.Parade;
@@ -236,7 +237,7 @@ class GMRemoteClient extends RemoteClient implements IServer.GMUpdateVisitor, Ch
 		}								
 	}
 	
-	public void informPlayerOfOpponentProjectileAT(Hero hero, Opponent opponent, String text, boolean hit, int tp, boolean informOtherPlayers) {
+	public void informPlayerOfOpponentProjectileAT(Hero hero, Opponent opponent, String text, boolean hit, int quality, int tp, boolean informOtherPlayers) {
 		if (!isConnected())
 			return;
 		if (!mHeroesOnline.contains(hero))
@@ -249,7 +250,7 @@ class GMRemoteClient extends RemoteClient implements IServer.GMUpdateVisitor, Ch
 							);
 		}
 		try {
-			getServer().informPlayerOfOpponentProjectileAttack(hero.getName(), opponent != null ? opponent.getName() : "", text, hit, tp, informOtherPlayers);
+			getServer().informPlayerOfOpponentProjectileAttack(hero.getName(), opponent != null ? opponent.getName() : "", text, hit, quality, tp, informOtherPlayers);
 		}
 		catch (RemoteException re) {
 			handleRemoteException(re);
@@ -334,6 +335,20 @@ class GMRemoteClient extends RemoteClient implements IServer.GMUpdateVisitor, Ch
 			handleServerException(se);
 		}										
 	}
+	
+	public void informPlayersOfKRChange(int newKr) {
+		if (!isConnected())
+			return;
+		try {
+			getServer().informPlayersOfKRChange(newKr);
+		}
+		catch (RemoteException re) {
+			handleRemoteException(re);
+		}
+		catch (ServerException se) {
+			handleServerException(se);
+		}										
+	}
 
 	@Override
 	public void visitHeroProbe(HeroProbe hp) {
@@ -404,7 +419,7 @@ class GMRemoteClient extends RemoteClient implements IServer.GMUpdateVisitor, Ch
 					"Fernkampf-AT von " + Strings.firstWord(hpa.getHeroName()) + ": " + hpa.getText());
 		}
 		if (getRemoteFight() != null && hpa.wasHit()) {
-			getRemoteFight().attackReceivedByHero(hpa.getHeroName(), 0, hpa.getTP(), true);
+			getRemoteFight().attackReceivedByHero(hpa.getHeroName(), hpa.getQuality(), hpa.getTP(), true);
 		}
 	}
 
@@ -502,6 +517,11 @@ class GMRemoteClient extends RemoteClient implements IServer.GMUpdateVisitor, Ch
 	}
 
 	@Override
+	public void visitKRChange(KRChange krc) {
+		getLog().addLog(IRemoteLog.LogCategory.Game, "Neue Kampfrunde: " + krc.getKR());
+	}
+
+	@Override
 	public void visitOpponentMeleeAttack(OpponentMeleeAttack oma) {
 	}
 
@@ -561,6 +581,10 @@ class GMRemoteClient extends RemoteClient implements IServer.GMUpdateVisitor, Ch
 
 	@Override
 	public void orderChanged() {
+	}
+	
+	@Override
+	public void characterReplaced(Hero oldHero, Hero newHero) {
 	}
 
 	@Override

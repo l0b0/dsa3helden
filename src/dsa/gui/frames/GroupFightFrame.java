@@ -27,15 +27,23 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.ParseException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import dsa.control.Dice;
 import dsa.control.Fighting;
@@ -80,15 +88,26 @@ public class GroupFightFrame extends SubFrame
     enemiesPanel.setBorder(BorderFactory.createTitledBorder(
         BorderFactory.createEtchedBorder(), "Gegner"));
     enemiesPanel.add(enemiesTable.getPanelWithTable(), BorderLayout.CENTER);
+    JPanel outerRoundsPanel = new JPanel(new BorderLayout());
+    JPanel roundsPanel = new JPanel();
+    roundsPanel.setLayout(new BoxLayout(roundsPanel, BoxLayout.X_AXIS));
+    roundsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    roundsPanel.add(new JLabel("Kampfrunde:"));
+    roundsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    roundsPanel.add(getRoundsSpinner());
+    roundsPanel.add(Box.createHorizontalGlue());
+    outerRoundsPanel.add(roundsPanel, BorderLayout.WEST);
+    mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+    mainPanel.add(outerRoundsPanel);
+    mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
     mainPanel.add(heroesPanel);
     mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
     mainPanel.add(enemiesPanel);
     this.setContentPane(mainPanel);
     myCharacterObserver = new MyCharacterObserver();
-    Hero currentHero = Group.getInstance().getActiveHero();
-    if (currentHero != null) {
-      currentHero.addHeroObserver(myCharacterObserver);
-    }
+	for (Hero hero : Group.getInstance().getAllCharacters())  {
+		hero.addHeroObserver(myCharacterObserver);
+	}
     Group.getInstance().addObserver(this);
     OptionsChange.addListener(this);
     this.addWindowListener(new WindowAdapter() {
@@ -106,9 +125,16 @@ public class GroupFightFrame extends SubFrame
       private void cleanup() {
         Group.getInstance().removeObserver(GroupFightFrame.this);
         OptionsChange.removeListener(GroupFightFrame.this);
+        for (Hero hero : Group.getInstance().getAllCharacters()) {
+        	hero.removeObserver(myCharacterObserver);
+        }
+        heroesTable.saveSortingState("Helden");
+        enemiesTable.saveSortingState("Gegner");
         done = true;
       }
     });
+    heroesTable.restoreSortingState("Helden");
+    enemiesTable.restoreSortingState("Gegner");
     updateData();
   }
   
@@ -122,7 +148,57 @@ public class GroupFightFrame extends SubFrame
   private FightTable heroesTable;
   private FightTable enemiesTable;
   
+  private JSpinner roundsSpinner;
+  private boolean listen = true;
+  
+  private JSpinner getRoundsSpinner() {
+	  if (roundsSpinner == null) {
+		  roundsSpinner = new JSpinner();
+		  roundsSpinner.setModel(new SpinnerNumberModel(1, 1, 999, 1));
+	      roundsSpinner.addChangeListener(new ChangeListener() {
+	          public void stateChanged(ChangeEvent evt) {
+	        	  updateKr();
+	          }
+	      });
+	      roundsSpinner.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+			}
+
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
+					try {
+						roundsSpinner.commitEdit();
+						updateKr();
+					}
+					catch (ParseException e) {
+						
+					}
+				}
+			}
+	    	  
+	      });
+	  }
+	  return roundsSpinner;
+  }
+  
+  private void updateKr() {
+ 	 if (!listen) 
+		 return;
+	 int kr = ((Integer)roundsSpinner.getModel().getValue()).intValue();
+	 Group.getInstance().setKR(kr);
+	 if (RemoteManager.getInstance().isConnectedAsGM()) {
+		 RemoteManager.getInstance().informPlayersOfKRChange(kr);
+	 }
+  }
+  
   private void updateData() {
+  listen = false;
     heroesTable.clear();
     enemiesTable.clear();
     for (Hero hero : Group.getInstance().getAllCharacters()) {
@@ -134,6 +210,8 @@ public class GroupFightFrame extends SubFrame
       o.addObserver(new MyOpponentObserver(o));
     }
     updateOpponentNames();
+    getRoundsSpinner().setValue(Group.getInstance().getKR());
+    listen = true;
   }
   
   private void updateOpponentNames() {
@@ -171,25 +249,27 @@ public class GroupFightFrame extends SubFrame
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
-    if (oldCharacter != null) {
-      oldCharacter.removeHeroObserver(myCharacterObserver);
-    }
-    if (newCharacter != null) {
-      newCharacter.addHeroObserver(myCharacterObserver);
-    }
     updateData();
   }
 
   public void characterAdded(Hero character) {
     if (!character.isDifference()) heroesTable.addFighter(character);
+    character.addHeroObserver(myCharacterObserver);
   }
 
   public void characterRemoved(Hero character) {
+	character.removeHeroObserver(myCharacterObserver);
     updateData();
   }
   
   public void opponentsChanged() {
     updateData();
+  }
+  
+  public void characterReplaced(Hero oldHero, Hero newHero) {
+	  oldHero.removeHeroObserver(myCharacterObserver);
+	  newHero.addHeroObserver(myCharacterObserver);
+	  updateData();
   }
 
   public void globalLockChanged() {
@@ -261,7 +341,7 @@ public class GroupFightFrame extends SubFrame
     }
     else {
     	int paIndex = opponentWeapons.length > 0 ? 0 : -1;
-    	result = new AttackDialog.AttackResult(false, receivedAt.getQuality(), receivedAt.getTP(), paIndex);
+    	result = new AttackDialog.AttackResult(false, true, receivedAt.getQuality(), receivedAt.getTP(), paIndex);
     	result.setCopy(false);
     	result.setSendToPlayer(false);
     	result.setSendToAll(false);
@@ -303,6 +383,9 @@ public class GroupFightFrame extends SubFrame
       text += "Patzer! ";
       text += doFumble(fighter, weaponName, fumbleType, tp, result.sendToPlayer(), result.sendToAll());
     }
+    else if (!result.hasHit()) {
+    	text += " Nicht getroffen.";
+    }
     else {
     	text += " Qualität " + result.getQuality() + ", " + result.getTP() + " TP";
     }
@@ -316,26 +399,28 @@ public class GroupFightFrame extends SubFrame
     if (result.sendToPlayer()) {
     	if (fighter instanceof Hero) {
     		if (weapon != null && Weapons.isFarRangedCategory(weapon.getType())) {
-    			RemoteManager.getInstance().informOfHeroProjectileAT((Hero)fighter, text, !result.hasFumbled(), result.getTP(), result.sendToAll());
+    			RemoteManager.getInstance().informOfHeroProjectileAT((Hero)fighter, text, !result.hasFumbled() && result.hasHit(), 
+    					result.getQuality(), result.getTP(), result.sendToAll());
     		}
     		else {
-    			RemoteManager.getInstance().informOfHeroAt((Hero)fighter, text, result.getQuality(), !result.hasFumbled(), result.getTP(), 
+    			RemoteManager.getInstance().informOfHeroAt((Hero)fighter, text, result.getQuality(), !result.hasFumbled() && result.hasHit(), result.getTP(), 
     				weapon != null && Weapons.isAUCategory(weapon.getType()), result.sendToAll());
     		}
     	}
     	else if (opponent instanceof Hero) {
     		if (weapon != null && Weapons.isFarRangedCategory(weapon.getType())) {
-    			RemoteManager.getInstance().informOfOpponentProjectileAT((Hero)opponent, (Opponent)fighter, text, !result.hasFumbled(), 
-    					result.getTP(), result.sendToAll());
+    			RemoteManager.getInstance().informOfOpponentProjectileAT((Hero)opponent, (Opponent)fighter, text, !result.hasFumbled() && result.hasHit(), 
+    					result.getQuality(), result.getTP(), result.sendToAll());
     		}
     		else {
-    			RemoteManager.getInstance().informOfOpponentAt((Hero)opponent, (Opponent)fighter, text, result.getQuality(), !result.hasFumbled(), result.getTP(), 
+    			RemoteManager.getInstance().informOfOpponentAt((Hero)opponent, (Opponent)fighter, text, result.getQuality(), !result.hasFumbled() && result.hasHit(), result.getTP(), 
     				weapon != null && Weapons.isAUCategory(weapon.getType()), result.sendToAll());
     		}
     	}
     }
     
     if (result.hasFumbled()) return;
+    if (!result.hasHit()) return;
     
     if (farRanged && result.getTP() <= 0) return;
     
@@ -347,7 +432,7 @@ public class GroupFightFrame extends SubFrame
     
     String paText = "";
     ParadeDialog.ParadeResult paradeResult = null;
-    if (!farRanged && Fighting.canDefend(opponent)) {
+    if (Fighting.canDefend(opponent)) {
       String paradeWeapon = null;
       if (Group.getInstance().getOptions().useWV()) {
         if (result.getParadeIndex() == -1) paradeWeapon = "Nichts";
@@ -547,15 +632,21 @@ public class GroupFightFrame extends SubFrame
   
   private class MyCharacterObserver implements CharacterObserver {
     public void armourRemoved(String armour) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void atPADistributionChanged(String talent) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void beModificationChanged() {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void bfChanged(String item) {
@@ -563,49 +654,67 @@ public class GroupFightFrame extends SubFrame
 
     public void currentEnergyChanged(Energy energy) {
       if (energy == Energy.LE) {
-        updateData(Group.getInstance().getActiveHero());        
+      	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
       }
     }
 
     public void currentPropertyChanged(Property property) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void currentTalentChanged(String talent) {
       if (Talents.getInstance().getTalent(talent).isFightingTalent()) {
-        updateData(Group.getInstance().getActiveHero());
+      	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
       }
     }
 
     public void defaultEnergyChanged(Energy energy) {
       if (energy == Energy.LE) {
-        updateData(Group.getInstance().getActiveHero());
+      	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
       }
     }
 
     public void defaultPropertyChanged(Property property) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void defaultTalentChanged(String talent) {
       if (Talents.getInstance().getTalent(talent).isFightingTalent()) {
-        updateData(Group.getInstance().getActiveHero());
+      	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
       }
     }
 
     public void derivedValueChanged(DerivedValue dv) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void increaseTriesChanged() {
     }
 
     public void nameChanged(String oldName, String newName) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void shieldRemoved(String name) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void stepIncreased() {
@@ -624,18 +733,24 @@ public class GroupFightFrame extends SubFrame
     }
 
     public void weaponRemoved(String weapon) {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
 
     public void weightChanged() {
     }
     
     public void activeWeaponsChanged() {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
     
     public void fightingStateChanged() {
-      updateData(Group.getInstance().getActiveHero());
+    	for (Hero hero : Group.getInstance().getAllCharacters()) {
+    		updateData(hero);
+    	}
     }
     
     public void opponentWeaponChanged(int weaponNr) {

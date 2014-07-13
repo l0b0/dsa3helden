@@ -50,10 +50,12 @@ public class Directories {
     try {
 	    File test = new File(relativePath);
 	    if (test.isAbsolute()) return test.getCanonicalPath();
-	    if (f.getParentFile() == null) return relativePath;
+	    if (f == null || f.getParentFile() == null) return relativePath;
     }
     catch (IOException e) {
     }
+    if (f == null)
+    	return relativePath;
     try {
 	    String p1 = f.getParentFile().getCanonicalPath();
 	    p1 += File.separator + relativePath;

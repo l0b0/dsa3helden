@@ -24,11 +24,17 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -40,6 +46,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -54,6 +61,7 @@ import dsa.gui.util.table.SpinnerCellEditor;
 import dsa.gui.util.table.ComboBoxCellEditor;
 import dsa.gui.util.table.TableButtonInput;
 import dsa.gui.util.table.TableCheckboxInput;
+import dsa.gui.util.table.TableSorter;
 import dsa.model.DiceSpecification;
 import dsa.model.Fighter;
 import dsa.model.characters.Energy;
@@ -77,6 +85,9 @@ public final class FightTable
   private ArrayList<Fighter> opponents;
   
   private HashMap<String, Fighter> targets = new HashMap<String, Fighter>();
+  
+  private int mSortingColumn = -1;
+  private int mSortingDirection = 0;
 
   private static final class ViewportFillingTable extends JTable {
     public ViewportFillingTable(TableModel tm, TableColumnModel tcm) {
@@ -286,6 +297,9 @@ public final class FightTable
     tcm.getColumn(getDazedColumn()).setHeaderRenderer(
         headerRenderer);
     
+    mTable.getTableHeader().addMouseListener(new SortingMouseListener());
+    mTable.getTableHeader().setDefaultRenderer(new SortableHeaderRenderer(mTable.getTableHeader().getDefaultRenderer()));
+    
     JScrollPane scrollPane = new JScrollPane(mTable);
     scrollPane.setOpaque(false);
     scrollPane.getViewport().setOpaque(false);
@@ -294,6 +308,91 @@ public final class FightTable
     mPanel.add(scrollPane, BorderLayout.CENTER);
   }
   
+  private class SortingMouseListener extends MouseAdapter {
+      public void mouseClicked(MouseEvent e) {
+          JTableHeader h = (JTableHeader) e.getSource();
+          TableColumnModel columnModel = h.getColumnModel();
+          int viewColumn = columnModel.getColumnIndexAtX(e.getX());
+          int column = columnModel.getColumn(viewColumn).getModelIndex();
+          if (column == getNameColumn() || column == getLEColumn() || column == getGroundedColumn() || column == getDazedColumn()) {
+        	  if (column == mSortingColumn) {
+        		  mSortingDirection++;
+        		  if (mSortingDirection == 2)
+        			  mSortingDirection = -1;
+        		  if (mSortingDirection == 0) 
+        			  mSortingColumn = -1;
+        	  }
+        	  else {
+        		  mSortingColumn = column;
+        		  mSortingDirection = 1;
+        	  }
+        	  resortFighters();
+          }
+      }	  
+  }
+  
+  private Icon getHeaderRendererIcon(int column, int size) {
+	  if (column != mSortingColumn) {
+		  return null;
+	  }
+      if (mSortingDirection == 0) {
+          return null;
+      }
+      return new TableSorter.Arrow(mSortingDirection == -1, size, 0);
+  }
+
+  private class SortableHeaderRenderer implements TableCellRenderer {
+      private TableCellRenderer tableCellRenderer;
+
+      public SortableHeaderRenderer(TableCellRenderer tableCellRenderer) {
+          this.tableCellRenderer = tableCellRenderer;
+      }
+
+      public Component getTableCellRendererComponent(JTable table, 
+                                                     Object value,
+                                                     boolean isSelected, 
+                                                     boolean hasFocus,
+                                                     int row, 
+                                                     int column) {
+          Component c = tableCellRenderer.getTableCellRendererComponent(table, 
+                  value, isSelected, hasFocus, row, column);
+          if (c instanceof JLabel) {
+              JLabel l = (JLabel) c;
+              l.setHorizontalTextPosition(JLabel.LEFT);
+              int modelColumn = table.convertColumnIndexToModel(column);
+              l.setIcon(getHeaderRendererIcon(modelColumn, l.getFont().getSize()));
+          }
+          return c;
+      }
+  }
+  
+  private boolean isSorting() {
+	  return mSortingColumn != -1;
+  }
+  
+  public void restoreSortingState(String title) {
+    java.util.prefs.Preferences prefs = java.util.prefs.Preferences
+        .userNodeForPackage(dsa.gui.util.table.TableSorter.class);
+    int oldColumn = mSortingColumn;
+    int oldDirection = mSortingDirection;
+    mSortingColumn = prefs.getInt(title + "_SortingColumn", -1);
+    mSortingDirection = prefs.getInt(title + "_SortingDirection", -1);
+    if (mSortingColumn != oldColumn || mSortingDirection != oldDirection) {
+    	sortingStateChanged();
+    }
+  }
+
+  public void saveSortingState(String title) {
+    java.util.prefs.Preferences prefs = java.util.prefs.Preferences
+        .userNodeForPackage(dsa.gui.util.table.TableSorter.class);
+    prefs.putInt(title + "_SortingColumn", mSortingColumn);
+    prefs.putInt(title + "_SortingDirection", mSortingDirection);
+  }
+  
+  private void sortingStateChanged() {
+	  resortFighters();
+  }
+
   public void dazedOptionChanged() {
     mTable.getColumnModel().getColumn(getDazedColumn()).setCellRenderer(
       TableCheckboxInput.createCheckBoxCellRenderer(mTable.getDefaultRenderer(Optional.NULL_INT.getClass()), 
@@ -335,10 +434,60 @@ public final class FightTable
       if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero))
       	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.dazed, true);
     }
+    if (mSortingColumn == column) {
+    	resortFighters();
+    }
   }
   
   public void addFighter(Fighter fighter) {
-    addFighter(fighter, fighters.size());
+    addFighterBeforeSorting(fighter);
+    if (isSorting()) {
+    	resortFighters();
+    }
+    else {
+    	addFighter(fighter, fighters.size(), true);
+    }
+  }
+  
+  private ArrayList<Fighter> mFightersBeforeSorting = new ArrayList<Fighter>();
+  private ArrayList<Fighter> mFightersAfterSorting = new ArrayList<Fighter>();
+  
+  private void addFighterBeforeSorting(Fighter fighter) {
+	  mFightersBeforeSorting.add(fighter);
+	  mFightersAfterSorting.add(fighter);
+  }
+  
+  private void resortFighters() {
+	  if (isSorting()) {
+		  Collections.sort(mFightersAfterSorting, new Comparator<Fighter>() {
+			public int compare(Fighter f1, Fighter f2) {
+				int value = 0;
+				if (mSortingColumn == getNameColumn()) {
+					value = f1.getName().compareTo(f2.getName());
+				}
+				else if (mSortingColumn == getLEColumn()) {
+					value = f1.getCurrentLE() - f2.getCurrentLE();
+				}
+				else if (mSortingColumn == getGroundedColumn()) {
+					value = f1.isGrounded() ? (f2.isGrounded() ? 0 : -1) : 1; 
+				}
+				else if (mSortingColumn == getDazedColumn()) {
+					value = f1.isDazed() ? (f2.isDazed() ? 0 : -1) : 1;
+				}
+				return mSortingDirection == -1 ? -value : (mSortingDirection == 1 ? value : 0);
+			}
+		  });
+	  }
+	  else {
+		  mFightersAfterSorting.clear();
+		  mFightersAfterSorting.addAll(mFightersBeforeSorting);
+	  }
+	  mModel.setRowCount(0);
+	  fighters.clear();
+	  for (int i = 0; i < mFightersAfterSorting.size(); ++i) {
+		  addFighter(mFightersAfterSorting.get(i), fighters.size(), false);
+	  }
+	  mModel.fireTableDataChanged();
   }
   
   private void retrieveTarget(Object[] rowData, Fighter fighter, int index) {
@@ -353,7 +502,7 @@ public final class FightTable
       Fighting.canAttack(fighter);
   }
   
-  private void addFighter(Fighter fighter, int position) {
+  private void addFighter(Fighter fighter, int position, boolean fireChangeEvent) {
     Object[] rowData = new Object[getNrOfColumns()];
     rowData[getNameColumn()] = (fighter instanceof Hero) ? dsa.util.Strings.cutTo(fighter.getName(), ' ') : fighter.getName();
     List<String> weapons = fighter.getFightingWeapons();
@@ -389,7 +538,8 @@ public final class FightTable
       mModel.insertRow(position + i, rowData2);
       fighters.add(position + i, fighter);
     }
-    mModel.fireTableDataChanged();
+    if (fireChangeEvent)
+    	mModel.fireTableDataChanged();
   }
   
   public void setOpponents(ArrayList<Fighter> opponents) {
@@ -424,25 +574,37 @@ public final class FightTable
       ++index;
     }
     if (index == fighters.size()) return;
-    while (fighters.size() > index && fighters.get(index) == fighter) {
-      mModel.removeRow(index);
-      fighters.remove(index);
+    if (!isSorting()) {
+	    while (fighters.size() > index && fighters.get(index) == fighter) {
+	      mModel.removeRow(index);
+	      fighters.remove(index);
+	    }
+	    addFighter(fighter, index, true);
     }
-    addFighter(fighter, index);
+    else {
+    	resortFighters();
+    }
   }
   
   public void leChanged(Fighter fighter) {
-    int index = 0;
-    while (index < fighters.size()) {
-      if (fighters.get(index) == fighter) break;
-      ++index;
+    if (mSortingColumn == getLEColumn()) {
+    	resortFighters();
     }
-    if (index == fighters.size()) return;
-    mModel.setValueAt(fighter.getCurrentLE(), index, getLEColumn());
+    else {
+	    int index = 0;
+	    while (index < fighters.size()) {
+	      if (fighters.get(index) == fighter) break;
+	      ++index;
+	    }
+	    if (index == fighters.size()) return;
+	    mModel.setValueAt(fighter.getCurrentLE(), index, getLEColumn());
+    }
   }
   
   public void clear() {
     fighters.clear();
+    mFightersBeforeSorting.clear();
+    mFightersAfterSorting.clear();
     mModel.setRowCount(0);
   }
   

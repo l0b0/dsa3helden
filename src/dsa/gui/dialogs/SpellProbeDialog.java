@@ -40,6 +40,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import dsa.control.Dice;
+import dsa.control.Fighting;
 import dsa.control.Markers;
 import dsa.control.Probe;
 import dsa.gui.lf.BGDialog;
@@ -187,13 +188,15 @@ public final class SpellProbeDialog extends BGDialog {
       List<String> rituals = hero.getRituals();
       for (int i = 0; i < rituals.size(); ++i) {
         if (rituals.get(i).equals("4. Stabzauber")) {
-          checkBox.setEnabled(true);
-          checkBox.setSelected(true);
-          checkBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-              calcCosts();
-            }
-          });
+          if (!Fighting.Flammenschwert1.equals(hero.getFirstHandWeapon()) && !Fighting.Flammenschwert2.equals(hero.getFirstHandWeapon())) {
+	          checkBox.setEnabled(true);
+	          checkBox.setSelected(true);
+	          checkBox.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	              calcCosts();
+	            }
+	          });
+          }
         }
       }
     }

@@ -65,6 +65,8 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
   
   private Opponents opponents;
   
+  private int kr;
+  
   private static Group instance = new Group();
 
   public static Group getInstance() {
@@ -189,6 +191,11 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
 	    if (activeHero == oldHero) {
 	    	setActiveHero(newHero);
 	    }
+	    for (CharactersObserver observer : observers) {
+	        if (observer instanceof GroupObserver) {
+	          ((GroupObserver) observer).characterReplaced(oldHero, newHero);
+	        }
+	    }
   }
 
   public Set<String> getOpponentNames() {
@@ -262,7 +269,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     return changed || options.isChanged() || opponents.wasChanged();
   }
   
-  private static final int GROUP_VERSION = 8;
+  private static final int GROUP_VERSION = 9;
 
   public void writeToFile(java.io.File f) throws java.io.IOException {
     PrintWriter file = new PrintWriter(new OutputStreamWriter(new FileOutputStream(f), "ISO-8859-1"));
@@ -287,6 +294,8 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       file.println(date.toString());
       // version 7
       file.println(tradeZone);
+      // version 9
+      file.println(kr);
       
       file.println("-End Characters-");
       file.flush();
@@ -411,6 +420,20 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     }
     else
       tradeZone = "GA";
+    if (version >= 9) {
+    	line = file.readLine();
+    	testEmpty(line);
+    	try {
+    		kr = Integer.parseInt(line);
+    		if (kr < 1 || kr > 999)
+    			throw new IOException("Falsche KR in " + f.getName());
+    	}
+    	catch (NumberFormatException e) {
+    		throw new IOException("Falsche KR in " + f.getName());
+    	}
+    }
+    else
+    	kr = 1;
     while (line != null && !line.equals("-End Characters-")) {
       line = file.readLine();
       testEmpty(line);
@@ -470,6 +493,7 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     currentFileName = "";
     date = new Date(1, Date.Month.Praios, 17, Date.Era.nach, Date.Event.Hal);
     tradeZone = "GA";
+    kr = 1;
     for (CharactersObserver o : observers) {
       if (o instanceof GroupObserver) {
         ((GroupObserver)o).groupLoaded();
@@ -596,6 +620,17 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
     }
     tradeZone = zone;
     changed = true;
+  }
+  
+  public int getKR() { 
+	  return kr;
+  }
+  
+  public void setKR(int kr) {
+	  if (this.kr == kr)
+		  return;
+	  this.kr = kr;
+	  changed = true;
   }
 
 }

@@ -39,6 +39,7 @@ import dsa.remote.IServer.HeroProbe;
 import dsa.remote.IServer.HeroProjectileAttack;
 import dsa.remote.IServer.HeroPropertyUpdate;
 import dsa.remote.IServer.HeroRegeneration;
+import dsa.remote.IServer.KRChange;
 import dsa.remote.IServer.OpponentMeleeAttack;
 import dsa.remote.IServer.OpponentProjectileAttack;
 import dsa.remote.IServer.Parade;
@@ -276,7 +277,7 @@ class PlayerRemoteClient extends RemoteClient implements IServer.PlayerUpdateVis
 		}						
 	}
 	
-	public void informOfProjectileAT(Hero hero, String text, boolean hit, int tp, boolean informOtherPlayers) {
+	public void informOfProjectileAT(Hero hero, String text, boolean hit, int quality, int tp, boolean informOtherPlayers) {
 		if (!isConnected())
 			return;
 		if (!mHeroesOnline.contains(hero))
@@ -286,7 +287,7 @@ class PlayerRemoteClient extends RemoteClient implements IServer.PlayerUpdateVis
 					"Fernkampf-AT von " + Strings.firstWord(hero.getName()) + ": " + text);
 		}		
 		try {
-			getServer().informGMOfProjectileAttack(getClientId(), hero.getName(), text, hit, tp, informOtherPlayers);
+			getServer().informGMOfProjectileAttack(getClientId(), hero.getName(), text, hit, quality, tp, informOtherPlayers);
 		}
 		catch (RemoteException re) {
 			handleRemoteException(re);
@@ -505,11 +506,11 @@ class PlayerRemoteClient extends RemoteClient implements IServer.PlayerUpdateVis
 			getLog().addLog(IRemoteLog.LogCategory.Game,
 					opa.getOpponentName().length() > 0 ? 
 							"Fernkampf-AT von " + opa.getOpponentName() + " auf " + Strings.firstWord(opa.getHeroName()) + ": " + opa.getText() :
-							"Fernakmpf-AT auf " + Strings.firstWord(opa.getHeroName()) + ": " + opa.getText()
+							"Fernkampf-AT auf " + Strings.firstWord(opa.getHeroName()) + ": " + opa.getText()
 							);
 		}
 		if (getRemoteFight() != null && opa.wasHit()) {
-			getRemoteFight().attackReceivedAgainstHero(opa.getHeroName(), 0, opa.getTP(), true);
+			getRemoteFight().attackReceivedAgainstHero(opa.getHeroName(), opa.getQuality(), opa.getTP(), true);
 		}
 	}
 
@@ -588,6 +589,11 @@ class PlayerRemoteClient extends RemoteClient implements IServer.PlayerUpdateVis
 			hero.fireActiveWeaponsChanged();
 		}
 		mListenForChanges = true;
+	}
+	
+	@Override
+	public void visitKRChange(KRChange krc) {
+		getLog().addLog(IRemoteLog.LogCategory.Game, "Neue Kampfrunde: " + krc.getKR());
 	}
 
 	private Hero getHero(String name) {

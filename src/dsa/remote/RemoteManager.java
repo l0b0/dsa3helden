@@ -240,18 +240,18 @@ public class RemoteManager extends LogManager {
 		}
 	}
 	
-	public void informOfHeroProjectileAT(Hero hero, String text, boolean hit, int tp, boolean informOtherPlayers) {
+	public void informOfHeroProjectileAT(Hero hero, String text, boolean hit, int quality, int tp, boolean informOtherPlayers) {
 		if (mGMClient != null && mGMClient.isConnected()) {
 			mGMClient.informPlayerOfHeroProjectileAT(hero, text, informOtherPlayers);
 		}
 		if (mPlayerClient != null && mPlayerClient.isConnected()) {
-			mPlayerClient.informOfProjectileAT(hero, text, hit, tp, informOtherPlayers);
+			mPlayerClient.informOfProjectileAT(hero, text, hit, quality, tp, informOtherPlayers);
 		}		
 	}
 	
-	public void informOfOpponentProjectileAT(Hero hero, Opponent opponent, String text, boolean hit, int tp, boolean informOtherPlayers) {
+	public void informOfOpponentProjectileAT(Hero hero, Opponent opponent, String text, boolean hit, int quality, int tp, boolean informOtherPlayers) {
 		if (mGMClient != null && mGMClient.isConnected()) {
-			mGMClient.informPlayerOfOpponentProjectileAT(hero, opponent, text, hit, tp, informOtherPlayers);
+			mGMClient.informPlayerOfOpponentProjectileAT(hero, opponent, text, hit, quality, tp, informOtherPlayers);
 		}
 	}
 	
@@ -291,6 +291,12 @@ public class RemoteManager extends LogManager {
 	public void informPlayerOfWeaponChange(Hero hero) {
 		if (mGMClient != null && mGMClient.isConnected()) {
 			mGMClient.informPlayerOfWeaponChange(hero);
+		}
+	}
+	
+	public void informPlayersOfKRChange(int kr) {
+		if (mGMClient != null && mGMClient.isConnected()) {
+			mGMClient.informPlayersOfKRChange(kr);
 		}
 	}
 	

@@ -381,7 +381,7 @@ public class GroupFightFrame extends SubFrame
       int fumbleType = result.getFumbleType();
       int tp = result.getTP();
       text += "Patzer! ";
-      text += doFumble(fighter, weaponName, fumbleType, tp, result.sendToPlayer(), result.sendToAll());
+      text += doFumble(fighter, weaponName, farRanged, fumbleType, tp, result.sendToPlayer(), result.sendToAll());
     }
     else if (!result.hasHit()) {
     	text += " Nicht getroffen.";
@@ -446,12 +446,18 @@ public class GroupFightFrame extends SubFrame
       paradeResult = dialog2.getResult();
       ParadeDialog.ParadeOutcome outcome = paradeResult.getOutcome();
       boolean success = true;
-      if (outcome == ParadeDialog.ParadeOutcome.NoHit)
-        paText = paradeResult.isEvasion() ? "Ausgewichen." : "Pariert.";
+      if (outcome == ParadeDialog.ParadeOutcome.NoHit) {
+    	if (opponent instanceof Hero) {
+    		paText = paradeResult.isEvasion() ? "Ausgewichen." : "Pariert.";
+    	}
+    	else {
+    		paText = "Pariert / Ausgewichen.";
+    	}
+      }
       else if (outcome == ParadeDialog.ParadeOutcome.Canceled)
         return;
       else if (outcome == ParadeDialog.ParadeOutcome.Fumble) {
-        paText = "Patzer! " + doFumble(opponent, paradeResult.getWeapon(), paradeResult.getFumbleType(), 
+        paText = "Patzer! " + doFumble(opponent, paradeResult.getWeapon(), false, paradeResult.getFumbleType(), 
             paradeResult.getFumbleSP(), paradeResult.sendToPlayer(), paradeResult.sendToAll());
         success = false;
       }
@@ -528,95 +534,106 @@ public class GroupFightFrame extends SubFrame
   }
 
 
-  private String doFumble(Fighter fighter, String weaponName, int fumbleType, int sp, boolean sendToPlayer, boolean sendToAll) {
+  private String doFumble(Fighter fighter, String weaponName, boolean farRanged, int fumbleType, int sp, boolean sendToPlayer, boolean sendToAll) {
 	String info = "";
-    switch (fumbleType) {
-    case 2:
-      info = Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
-              + weaponName + "!";
-      JOptionPane.showMessageDialog(this, "Kampf", 
-          info, JOptionPane.PLAIN_MESSAGE);
-      if (fighter instanceof Hero) {
-        int bfRoll = Dice.roll(6) + Dice.roll(6);
-        Hero hero = (Hero) fighter;
-        boolean breakWeapon = true;
-        int bf = hero.getBF(weaponName, 1);
-        if (bfRoll > bf) {
-          if (bfRoll < 10) ++bf;
-          bfRoll = Dice.roll(6) + Dice.roll(6);
-          if (bfRoll > bf) {
-            breakWeapon = false;
-          }
-          else if (bfRoll < 10) ++bf;
-        }
-        if (breakWeapon) {
-          JOptionPane.showMessageDialog(this, "Kampf", 
-              "Die Waffe zerbricht!", JOptionPane.PLAIN_MESSAGE);
-          hero.removeWeapon(weaponName);
-          info += "Die Waffe zerbricht!";
-        }
-        else {
-          hero.setBF(weaponName, 1, bf);
-        }
-      }
-      break;
-    case 3:
-    	info = Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
-    	          + weaponName + "!"; 
-      JOptionPane.showMessageDialog(this, "Kampf", 
-          info, JOptionPane.PLAIN_MESSAGE);
-      break;
-    case 4:
-    case 5:
-      info = "Die Waffe ist beschädigt.";
-      if (fighter instanceof Hero) {
-        int bfRoll = Dice.roll(6) + Dice.roll(6);
-        Hero hero = (Hero) fighter;
-        boolean breakWeapon = true;
-        int bf = hero.getBF(weaponName, 1);
-        if (bfRoll > bf) {
-          if (bfRoll < 10) ++bf;
-          breakWeapon = false;
-        }
-        if (breakWeapon) {
-          JOptionPane.showMessageDialog(this, "Kampf", 
-              "Die Waffe zerbricht!", JOptionPane.PLAIN_MESSAGE);
-          info += "Die Waffe zerbricht!";
-          hero.removeWeapon(weaponName);
-        }
-        else {
-          hero.setBF(weaponName, 1, bf);
-        }
-      }
-      break;
-    case 6:
-    case 7:
-    case 8:
-      info = "Stolpern";
-      fighter.setHasStumbled(true);
-      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && sendToPlayer)
-      	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.stumbled, sendToAll);
-      break;
-    case 9:
-    case 10:
-      info = "Sturz";
-      fighter.setGrounded(true);
-      if (fighter instanceof Hero) updateData((Hero)fighter);
-      else updateData((Opponent)fighter);
-      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && sendToPlayer)
-        	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.grounded, sendToAll);
-      break;
-    case 11:
-      info = "Selbst verletzt.";
-    case 12:
-      if (info.equals("")) info = "Selbst schwer verletzt."; 
-      fighter.setCurrentLE(fighter.getCurrentLE() - sp);
-      if (fighter instanceof Hero) updateData((Hero)fighter);
-      else updateData((Opponent)fighter);
-      break;
-    default:
-        break;
-    }
+	if (!farRanged) {
+	    switch (fumbleType) {
+	    case 2:
+	      info = Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
+	              + weaponName + "!";
+	      JOptionPane.showMessageDialog(this, "Kampf", 
+	          info, JOptionPane.PLAIN_MESSAGE);
+	      if (fighter instanceof Hero) {
+	        int bfRoll = Dice.roll(6) + Dice.roll(6);
+	        Hero hero = (Hero) fighter;
+	        boolean breakWeapon = true;
+	        int bf = hero.getBF(weaponName, 1);
+	        if (bfRoll > bf) {
+	          if (bfRoll < 10) ++bf;
+	          bfRoll = Dice.roll(6) + Dice.roll(6);
+	          if (bfRoll > bf) {
+	            breakWeapon = false;
+	          }
+	          else if (bfRoll < 10) ++bf;
+	        }
+	        if (breakWeapon) {
+	          JOptionPane.showMessageDialog(this, "Kampf", 
+	              "Die Waffe zerbricht!", JOptionPane.PLAIN_MESSAGE);
+	          hero.removeWeapon(weaponName);
+	          info += "Die Waffe zerbricht!";
+	        }
+	        else {
+	          hero.setBF(weaponName, 1, bf);
+	        }
+	      }
+	      break;
+	    case 3:
+	    	info = Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
+	    	          + weaponName + "!"; 
+	      JOptionPane.showMessageDialog(this, "Kampf", 
+	          info, JOptionPane.PLAIN_MESSAGE);
+	      break;
+	    case 4:
+	    case 5:
+	      info = "Die Waffe ist beschädigt.";
+	      if (fighter instanceof Hero) {
+	        int bfRoll = Dice.roll(6) + Dice.roll(6);
+	        Hero hero = (Hero) fighter;
+	        boolean breakWeapon = true;
+	        int bf = hero.getBF(weaponName, 1);
+	        if (bfRoll > bf) {
+	          if (bfRoll < 10) ++bf;
+	          breakWeapon = false;
+	        }
+	        if (breakWeapon) {
+	          JOptionPane.showMessageDialog(this, "Kampf", 
+	              "Die Waffe zerbricht!", JOptionPane.PLAIN_MESSAGE);
+	          info += "Die Waffe zerbricht!";
+	          hero.removeWeapon(weaponName);
+	        }
+	        else {
+	          hero.setBF(weaponName, 1, bf);
+	        }
+	      }
+	      break;
+	    case 6:
+	    case 7:
+	    case 8:
+	      info = "Stolpern";
+	      fighter.setHasStumbled(true);
+	      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && sendToPlayer)
+	      	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.stumbled, sendToAll);
+	      break;
+	    case 9:
+	    case 10:
+	      info = "Sturz";
+	      fighter.setGrounded(true);
+	      if (fighter instanceof Hero) updateData((Hero)fighter);
+	      else updateData((Opponent)fighter);
+	      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && sendToPlayer)
+	        	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.grounded, sendToAll);
+	      break;
+	    case 11:
+	      info = "Selbst verletzt.";
+	    case 12:
+	      if (info.equals("")) info = "Selbst schwer verletzt."; 
+	      fighter.setCurrentLE(fighter.getCurrentLE() - sp);
+	      if (fighter instanceof Hero) updateData((Hero)fighter);
+	      else updateData((Opponent)fighter);
+	      break;
+	    default:
+	        break;
+	    }
+	}
+	else {
+		info = Fighting.getFKFumbleResult(fumbleType);
+		if (fumbleType == 2 && fighter instanceof Hero) {
+			((Hero)fighter).removeWeapon(weaponName);
+		}
+		else if (fumbleType >= 11) {
+			info += " " + sp + " TP.";
+		}
+	}
     return info;
   }
   

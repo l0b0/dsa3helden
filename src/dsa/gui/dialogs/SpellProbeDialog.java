@@ -221,48 +221,119 @@ public final class SpellProbeDialog extends BGDialog {
   int aeSum = 0;
   int leSum = 0;
   int permanentSum = 0;
+  String costInfo = "";
 
   private void calcCosts() {
     aeSum = 0;
     leSum = 0;
     permanentSum = 0;
+    costInfo = "";
     int variant = 0;
     Spell spell = (Spell) Talents.getInstance().getTalent(talentName);
-    if (spell.getNrOfVariants() > 1) variant = variantCombo.getSelectedIndex();
+    if (spell.getNrOfVariants() > 1) {
+    	variant = variantCombo.getSelectedIndex();
+    	costInfo = "Variante: " + variantCombo.getSelectedItem() + "; ";
+    }
     List<Cost> costs = spell.getCosts(variant);
     int spinnerIndex = 0;
     for (int i = 0; i < costs.size(); ++i) {
       Cost cost = costs.get(i);
       if (cost.getCostType() == Spell.CostType.Custom) {
-        aeSum += getSpinnerValue(spinnerIndex); ++spinnerIndex;
+        int val = getSpinnerValue(spinnerIndex); ++spinnerIndex;
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        aeSum += val;
+        if (i > 0) costInfo += "; ";
+        costInfo += "Frei bestimmte Kosten: " + val + " ASP"; 
       }
       else if (cost.getCostType() == Spell.CostType.Fixed) {
-        aeSum += cost.getCost().calcValue();
+        int val= cost.getCost().calcValue();
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        aeSum += val;
+        if (i > 0) costInfo += "; ";
+        if (cost.getCost().getNrOfDices() > 0) {
+        	costInfo += "Feste Kosten: " + cost.getCost();
+        	if (cost.getMinimumCost() > 0) costInfo += " (Min. " + cost.getMinimumCost() + ")";
+        	costInfo += " ASP = " + val + " ASP";
+        }
+        else {
+        	costInfo += "Feste Kosten: " + val + " ASP";
+        }
       }
       else if (cost.getCostType() == Spell.CostType.LP) {
-        leSum += cost.getCost().calcValue();
+        int val = cost.getCost().calcValue();
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        leSum += val;
+        if (i > 0) costInfo += "; ";
+        costInfo += "LE-Kosten: " + val;
       }
       else if (cost.getCostType() == Spell.CostType.Multiplied) {
-        aeSum += getSpinnerValue(spinnerIndex) * cost.getCost().calcValue(); ++spinnerIndex;
+        int val1 = getSpinnerValue(spinnerIndex);
+        int val2 = cost.getCost().calcValue(); 
+        int val = val1 * val2;
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        ++spinnerIndex;
+        aeSum += val;
+        if (i > 0) costInfo += "; ";
+        costInfo += "Kosten: " + val1 + " (" + cost.getText() + ") mal " + val2;
+    	if (cost.getMinimumCost() > 0) costInfo += " (Min. " + cost.getMinimumCost() + ")";
+    	costInfo += " ASP = " + val + " ASP";  
       }
       else if (cost.getCostType() == Spell.CostType.Permanent) {
-        permanentSum += cost.getCost().calcValue();
+        int val = cost.getCost().calcValue();
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        permanentSum += val;
+        if (i > 0) costInfo += "; ";
+        costInfo += "Permanente Kosten: " + val + " ASP";
       }
       else if (cost.getCostType() == Spell.CostType.Quadratic) {
         int value = getSpinnerValue(spinnerIndex); ++spinnerIndex;
-        aeSum += value * value;
+        int val = value * value;
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        aeSum += val;
+        if (i > 0) costInfo += "; ";
+        costInfo += "Kosten: " + value + " (" + cost.getText() + ") zum Quadrat";
+    	if (cost.getMinimumCost() > 0) costInfo += " (Min. " + cost.getMinimumCost() + ")";
+        costInfo += " ASP = " + val + " ASP";
       }
       else if (cost.getCostType() == Spell.CostType.Special) {
         // nothing
+        if (i > 0) costInfo += "; ";
+    	costInfo += "Spezielle Kosten, ASP müssen manuell abgezogen werden.";
       }
       else if (cost.getCostType() == Spell.CostType.Step) {
-        aeSum += hero.getStep();
+        int val = hero.getStep();
+        if (val < cost.getMinimumCost()) val = cost.getMinimumCost();
+        aeSum += val;
+        if (i > 0) costInfo += "; ";
+        costInfo += "Kosten: Stufe";
+    	if (cost.getMinimumCost() > 0) costInfo += " (Min. " + cost.getMinimumCost() + ")";
+    	costInfo += " ASP = " + val + " ASP";
       }
       else if (cost.getCostType() == Spell.CostType.Variable) {
         int value = getSpinnerValue(spinnerIndex); ++spinnerIndex;
+        int sum = 0;
         for (int j = 0; j < value; ++j) {
-          aeSum += cost.getCost().calcValue();
+          sum += cost.getCost().calcValue();
         }
+        if (sum < cost.getMinimumCost()) sum = cost.getMinimumCost();
+        aeSum += sum;
+        if (i > 0) costInfo += "; ";
+        costInfo += "Kosten: " + value + " (" + cost.getText() + ") mal " + cost.getCost();
+    	if (cost.getMinimumCost() > 0) costInfo += " (Min. " + cost.getMinimumCost() + ")";
+    	costInfo += " ASP = " + sum + " ASP"; 
+      }
+      else if (cost.getCostType() == Spell.CostType.Dice) {
+          int value = getSpinnerValue(spinnerIndex); ++spinnerIndex;
+          int sum = 0;
+          for (int j = 0; j < value; ++j) {
+            sum += cost.getCost().calcValue();
+          }
+          if (sum < cost.getMinimumCost()) sum = cost.getMinimumCost();
+          aeSum += sum;
+          if (i > 0) costInfo += "; ";
+          costInfo += "Kosten: " + value + " mal " + cost.getCost();
+          if (cost.getMinimumCost() > 0) costInfo += " (Min. " + cost.getMinimumCost() + ")";
+      	  costInfo += " ASP = " + sum + " ASP"; 
       }
     }
     if (checkBox.isSelected()) aeSum -= 2;
@@ -297,7 +368,7 @@ public final class SpellProbeDialog extends BGDialog {
     for (int i = 0; i < costs.size(); ++i) {
       Spell.CostType ct = costs.get(i).getCostType();
       if (ct == Spell.CostType.Custom || ct == Spell.CostType.Multiplied 
-          || ct == Spell.CostType.Quadratic || ct == Spell.CostType.Variable) {
+          || ct == Spell.CostType.Quadratic || ct == Spell.CostType.Variable || ct == Spell.CostType.Dice) {
         nrOfRows += 2;
       }
       else nrOfRows += 1;
@@ -306,35 +377,55 @@ public final class SpellProbeDialog extends BGDialog {
     for (int i = 0; i < costs.size(); ++i) {
       Spell.CostType ct = costs.get(i).getCostType();
       if (ct == Spell.CostType.Fixed) {
-        addText("Der Zauber hat feste Kosten von " + costs.get(i).getCost() + " ASP.");
+        addText("Der Zauber hat feste Kosten von " + costs.get(i).getCost()
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ " ASP.");
       }
       else if (ct == Spell.CostType.Permanent) {
-        addText("Der Zauber hat permanente Kosten von " + costs.get(i).getCost() + " ASP.");
+        addText("Der Zauber hat permanente Kosten von " + costs.get(i).getCost() 
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ " ASP.");
       }
       else if (ct == Spell.CostType.LP) {
-        addText("Der Zauber hat feste Kosten von " + costs.get(i).getCost() + " LP.");
+        addText("Der Zauber hat feste Kosten von " + costs.get(i).getCost() 
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ " LP.");
       }
       else if (ct == Spell.CostType.Special) {
         addText("Der Zauber hat spezielle Kosten. Bitte manuell die Energien anpassen.");
       }
       else if (ct == Spell.CostType.Step) {
-        addText("Der Zauber hat feste Kosten von " + hero.getStep() + " (Stufe) ASP.");
+        addText("Der Zauber hat feste Kosten von " + hero.getStep() + " (Stufe)"
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ " ASP.");
       }
       else if (ct == Spell.CostType.Custom) {
         addText("Der Zauber hat frei bestimmbare Kosten.");
         addVariablePane("Bitte Kosten angeben: ", costs.get(i).getCost().calcValue());
       }
       else if (ct == Spell.CostType.Multiplied) {
-        addText("Der Zauber kostet " + costs.get(i).getCost() + " mal " + costs.get(i).getText() + " ASP.");
+        addText("Der Zauber kostet " + costs.get(i).getCost() + " mal " + costs.get(i).getText() 
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ " ASP.");
         addVariablePane(costs.get(i).getText() + ": ", 1);
       }
       else if (ct == Spell.CostType.Quadratic) {
-        addText("Der Zauber kostet " + costs.get(i).getText() + " zum Quadrat ASP.");
+        addText("Der Zauber kostet " + costs.get(i).getText() + " zum Quadrat"
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ " ASP.");
         addVariablePane(costs.get(i).getText() + ": ", 1);        
       }
       else if (ct == Spell.CostType.Variable) {
-        addText("Der Zauber kostet " + costs.get(i).getCost() + " ASP pro " + costs.get(i).getText() + ".");
+        addText("Der Zauber kostet " + costs.get(i).getCost() + " ASP pro " + costs.get(i).getText() 
+        		+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+        		+ ".");
         addVariablePane(costs.get(i).getText() + ": ", 0);
+      }
+      else if (ct == Spell.CostType.Dice) {
+    	  addText("Der Zauber kostet auswählbar viele " + costs.get(i).getCost()
+    	  	+ (costs.get(i).getMinimumCost() > 0 ? (" (Min. " + costs.get(i).getMinimumCost() + ")") : "")
+    	  	+ " ASP.");
+    	  addVariablePane(costs.get(i).getCost() + ": ", 1, hero.getStep() + 1);
       }
     }
     calcCosts();
@@ -350,12 +441,16 @@ public final class SpellProbeDialog extends BGDialog {
   }
   
   private void addVariablePane(String text, int minimum) {
+	addVariablePane(text, minimum, 150);
+  }
+  
+  private void addVariablePane(String text, int minimum, int maximum) {
     JPanel pane = new JPanel();
     pane.setLayout(new FlowLayout(FlowLayout.LEFT));
     JLabel l = new JLabel();
     l.setText(text);
     pane.add(l);
-    JSpinner spinner = new JSpinner(new SpinnerNumberModel(minimum == 0 ? 1 : minimum, minimum, 150, 1));
+    JSpinner spinner = new JSpinner(new SpinnerNumberModel(minimum == 0 ? 1 : minimum, minimum, maximum, 1));
     spinner.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
         calcCosts();
@@ -438,40 +533,46 @@ public final class SpellProbeDialog extends BGDialog {
     int result = probe.performDetailedTest(throw1, throw2, throw3);
     String s = "\n (Wurf: " + throw1 + ", " + throw2 + ", " + throw3 + ")";
     if (result == Probe.DAEMONENPECH) {
-      removeCosts(false);
-      return "DÄMONISCHES PECH! 3x die 20!";
+      String costs = removeCosts(false);
+      return "DÄMONISCHES PECH! 3x die 20!" + "\n" + costs;
     }
     else if (result == Probe.PATZER) {
-      removeCosts(false);
-      return "Patzer (2 20er)!" + s;
+    	String costs = removeCosts(false);
+      return "Patzer (2 20er)!" + s + "\n" + costs;
     }
     else if (result == Probe.PERFEKT) {
-      removeCosts(true);
-      return "Perfekt (2 1er)!" + s;
+    	String costs = removeCosts(true);
+      return "Perfekt (2 1er)!" + s + "\n" + costs;
     }
     else if (result == Probe.GOETTERGLUECK) {
-      removeCosts(true);
-      return "GÖTTLICHE GUNST! 3x die 1!";
+    	String costs = removeCosts(true);
+      return "GÖTTLICHE GUNST! 3x die 1!" + "\n" + costs;
     }
     else if (result == Probe.FEHLSCHLAG) {
-      removeCosts(false);
-      return "Nicht gelungen." + s;
+    	String costs = removeCosts(false);
+      return "Nicht gelungen." + s + "\n" + costs;
     }
     else {
-      removeCosts(true);
+    	String costs = removeCosts(true);
       return "Gelungen; " + result + (result == 1 ? " Punkt" : " Punkte")
-          + " übrig." + s;
+          + " übrig." + s + "\n" + costs;
     }
   }
   
-  private void removeCosts(boolean success) {
+  private String removeCosts(boolean success) {
     int aeCosts = success ? aeSum : (int) Math.floor(((double)aeSum) / 2.0);
     int leCosts = success ? leSum : (int) Math.floor(((double)leSum) / 2.0);
     if (aeCosts < 1) aeCosts = 1;
     int permanentCosts = success ? permanentSum : 0;
+    String costs = costInfo;
+    costs += ".\nTatsächliche Kosten: " + aeCosts + " ASP";
+    if (leCosts > 0) costs += ", " + leCosts + " LEP";
+    if (permanentCosts > 0) costs += ", " + permanentCosts + " permanente ASP";
+    costs += ".";
     hero.changeCurrentEnergy(Energy.AE, -aeCosts);
     if (leCosts > 0) hero.changeCurrentEnergy(Energy.LE, -leCosts);
-    if (permanentCosts > 0) hero.changeDefaultEnergy(Energy.AE, -permanentCosts); 
+    if (permanentCosts > 0) hero.changeDefaultEnergy(Energy.AE, -permanentCosts);
+    return costs;
   }
 
   /**

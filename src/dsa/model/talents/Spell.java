@@ -47,7 +47,8 @@ public interface Spell extends NormalTalent {
     Step,
     Permanent,
     LP,
-    Special
+    Special,
+    Dice
   }
   
   public static class Cost {

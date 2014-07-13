@@ -92,6 +92,11 @@ public class SpellImpl extends NormalTalent implements Spell {
       ds = DiceSpecification.parse(tokens.nextToken());
       t = CostType.Variable;
     }
+    else if (costTypeToken.equals("D")) {
+        checkToken(tokens);
+        ds = DiceSpecification.parse(tokens.nextToken());
+        t = CostType.Dice;
+    }
     else if (costTypeToken.equals("Q")) {
       checkToken(tokens);
       text = tokens.nextToken();

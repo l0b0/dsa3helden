@@ -1242,7 +1242,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       s += "Zuschlag durch Marker: " + Markers.getMarkers(currentHero) + "\n";
     }
     if (currentHero.hasStumbled()) {
-      s += "Zuschlag durch Solpern: 5\n";
+      s += "Zuschlag durch Stolpern: 5\n";
       currentHero.setHasStumbled(false);
       if (RemoteManager.getInstance().isConnected())
       	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.stumbled, false);
@@ -1251,7 +1251,23 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     boolean hit = false;
     int tp = 0;
     int q = 0;
-    if (roll == 1 || roll <= at - mod - Markers.getMarkers(currentHero)) {
+    if (roll == 20) {
+    	s += "Patzer! ";
+      	int fumbleRoll = Dice.roll(6) + Dice.roll(6);
+    	s += Fighting.getFKFumbleResult(fumbleRoll);
+    	if (fumbleRoll >= 11) {
+	      String tps = tp1Label.getText();
+	      DiceSpecification ds = DiceSpecification.parse(tps);
+	      tp = ds.calcValue();
+	      tp += w.getDistanceTPMod(dialog.getDistance());
+	      s += " " + tp + " TP.";
+    	}
+    	else if (fumbleRoll == 2) {
+    		currentHero.removeWeapon(w.getName());
+    	}
+    	hit = false;
+    }
+    else if (roll == 1 || roll <= at - mod - Markers.getMarkers(currentHero)) {
       if (roll == 1)
         s += "Perfekt g";
       else
@@ -1268,8 +1284,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       s += "Trefferpunkte: " + tp;
       hit = true;
     }
-    else
+    else {
       s += "Daneben.";
+      hit = false;
+    }
     int dialogResult = ProbeResultDialog.showDialog(this, s, "Attacke", true);
 	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
 	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
@@ -2144,6 +2162,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   private void changeMarkers() {
+	if (currentHero == null)
+		return;
     int leMarkers = currentHero.getMarkers() - currentHero.getExtraMarkers();
     int newMarkers = ((Number) markerSpinner.getValue()).intValue();
     if (currentHero.getExtraMarkers() != (newMarkers - leMarkers)) {

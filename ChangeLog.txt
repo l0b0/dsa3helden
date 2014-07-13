@@ -1,3 +1,14 @@
+Version 1.11.2
+--------------
+- Ausführliche Zauberkostenanzeige nach der Zauberprobe
+- Minimalkosten von Zaubern wie z.B. Imperavi werden berücksichtigt
+- Spezielle Zauberkostenart für Ignifaxius eingebaut
+- Fernkampf-Patzer eingeführt (nach Patzer-Tabelle von DSA4.1)
+- Fernkampf-Dialog zeigt Zusatz-Zeit fürs Zielen an
+- Bugfix: Exception im Kampf (Spieler)-Fenster beim Beenden des
+  Programms, wenn mit Markern gearbeitet wird
+- Bugfix: Tippfehler beim Stolpern korrigiert
+
 Version 1.11.1
 --------------
 - Kampfrundenzähler im Fenster Kampf (Meister)

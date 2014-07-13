@@ -678,5 +678,20 @@ public final class Fighting {
       else return new ArrayList<String>();
     }
   }
+  
+  public static String getFKFumbleResult(int fumbleRoll) {
+  	if (fumbleRoll == 2) {
+  		return "Die Waffe ist zerstört.";
+  	}
+  	else if (fumbleRoll == 3) {
+  		return "Die Waffe ist beschädigt.";
+  	}
+  	else if (fumbleRoll < 11) {
+  		return "Fehlschuss, 1 KR Zeitverlust.";
+  	}
+  	else {
+  		return "Kamerad (oder selbst) getroffen.";
+  	}
+  }
 
 }

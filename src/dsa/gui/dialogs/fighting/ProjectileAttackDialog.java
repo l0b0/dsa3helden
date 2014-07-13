@@ -441,9 +441,9 @@ public final class ProjectileAttackDialog extends BGDialog {
     if (shootBox == null) {
       shootBox = new JComboBox();
       shootBox.setBounds(new java.awt.Rectangle(130, 190, 211, 21));
-      shootBox.addItem("Schnellschuss");
-      shootBox.addItem("Normaler Schuss");
-      shootBox.addItem("Gezielter Schuss");
+      shootBox.addItem("Schnellschuss (+0 KR)");
+      shootBox.addItem("Normaler Schuss (+1 KR)");
+      shootBox.addItem("Gezielter Schuss (+3 KR)");
       shootBox.setSelectedIndex(1);
       shootBox.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {

@@ -128,11 +128,11 @@ public class AttackDialog extends BGDialog {
   	super(owner, true);
     this.attacker = attacker;
     this.weaponNr = weaponNr;
-  	initialize();
-    this.setLocationRelativeTo(owner);
     String weaponName = attacker.getFightingWeapons().get(weaponNr);
     Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
     farRanged = (weapon != null) && weapon.isFarRangedWeapon();
+  	initialize();
+    this.setLocationRelativeTo(owner);
     Optional<Integer> atValue = attacker.getAT(weaponNr);
     at = atValue.hasValue() ? atValue.getValue() : 7;
     if (farRanged) {
@@ -248,53 +248,7 @@ public class AttackDialog extends BGDialog {
     });
     fumbleField.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
-        int value = ((Number)fumbleField.getValue()).intValue();
-        switch (value) {
-        case 2:
-          fumbleLabel.setText("Waffe verloren");
-          fumbleLabel1.setText("Waffe schwer beschädigt");
-          break;
-        case 3:
-          fumbleLabel.setText("Waffe verloren");
-          break;
-        case 4:
-        case 5:
-          fumbleLabel.setText("Waffe beschädigt");
-          break;
-        case 6:
-        case 7:
-        case 8:
-          fumbleLabel.setText("Stolpern");
-          break;
-        case 9:
-        case 10:
-          fumbleLabel.setText("Sturz");
-          break;
-        case 11:
-          fumbleLabel.setText("Selbst leicht verletzt");
-          ((SpinnerNumberModel)fumbleField2.getModel()).setMinimum(1);
-          ((SpinnerNumberModel)fumbleField2.getModel()).setMaximum(6);
-          break;
-        case 12:
-          fumbleLabel.setText("Selbst schwer verletzt");
-          ((SpinnerNumberModel)fumbleField2.getModel()).setMinimum(2);
-          ((SpinnerNumberModel)fumbleField2.getModel()).setMaximum(12);
-          break;
-        default:
-          fumbleLabel.setText("");
-          break;
-        }
-        fumbleField2.setEnabled(value >= 11);
-        fumbleField2.setVisible(value >= 11);
-        fumbleButton2.setEnabled(value >= 11);
-        fumbleButton2.setVisible(value >= 11);
-        if (value >= 11) {
-          fumbleLabel1.setText("SP:");
-          calcSP();
-        }
-        else if (value != 2) {
-          fumbleLabel1.setText("");
-        }
+    	fumbleValueChanged();
       }
     });
     cancelButton.addActionListener(new ActionListener() {
@@ -361,6 +315,74 @@ public class AttackDialog extends BGDialog {
       }
     });
     calcQualityAndTP();
+  }
+  
+  private void fumbleValueChanged() {
+      int value = ((Number)fumbleField.getValue()).intValue();
+      if (!farRanged) {
+	        switch (value) {
+	        case 2:
+	          fumbleLabel.setText("Waffe verloren");
+	          fumbleLabel1.setText("Waffe schwer beschädigt");
+	          break;
+	        case 3:
+	          fumbleLabel.setText("Waffe verloren");
+	          break;
+	        case 4:
+	        case 5:
+	          fumbleLabel.setText("Waffe beschädigt");
+	          break;
+	        case 6:
+	        case 7:
+	        case 8:
+	          fumbleLabel.setText("Stolpern");
+	          break;
+	        case 9:
+	        case 10:
+	          fumbleLabel.setText("Sturz");
+	          break;
+	        case 11:
+	          fumbleLabel.setText("Selbst leicht verletzt");
+	          ((SpinnerNumberModel)fumbleField2.getModel()).setMinimum(1);
+	          ((SpinnerNumberModel)fumbleField2.getModel()).setMaximum(6);
+	          break;
+	        case 12:
+	          fumbleLabel.setText("Selbst schwer verletzt");
+	          ((SpinnerNumberModel)fumbleField2.getModel()).setMinimum(2);
+	          ((SpinnerNumberModel)fumbleField2.getModel()).setMaximum(12);
+	          break;
+	        default:
+	          fumbleLabel.setText("");
+	          break;
+	        }
+	        fumbleField2.setEnabled(value >= 11);
+	        fumbleField2.setVisible(value >= 11);
+	        fumbleButton2.setEnabled(value >= 11);
+	        fumbleButton2.setVisible(value >= 11);
+	        if (value >= 11) {
+	          fumbleLabel1.setText("SP:");
+	          calcSP();
+	        }
+	        else if (value != 2) {
+	          fumbleLabel1.setText("");
+	        }
+      }
+      else {
+      	fumbleLabel.setText(Fighting.getFKFumbleResult(value));
+      	if (value >= 11) {
+	          ((SpinnerNumberModel)fumbleField2.getModel()).setMinimum(1);
+	          ((SpinnerNumberModel)fumbleField2.getModel()).setMaximum(attacker.getTP(weaponNr).getDiceSize() * attacker.getTP(weaponNr).getNrOfDices());
+	          fumbleLabel1.setText("TP:");
+	          calcSP();
+      	}
+      	else {
+	        	fumbleLabel1.setText("");
+      	}
+	        fumbleField2.setEnabled(value >= 11);
+	        fumbleField2.setVisible(value >= 11);
+	        fumbleButton2.setEnabled(value >= 11);
+	        fumbleButton2.setVisible(value >= 11);
+      }	  
   }
 
   public String getHelpPage() {
@@ -505,6 +527,10 @@ public class AttackDialog extends BGDialog {
   private JSpinner getFumbleField() {
     if (fumbleField == null) {
       int min = (attacker instanceof dsa.model.characters.Hero) ? 2 : 6;
+      if (farRanged) {
+    	  min = 2;
+      }
+      
       fumbleField = new JSpinner(new SpinnerNumberModel(7, min, 12, 1));
       fumbleField.setBounds(new Rectangle(110, 130, 51, 21));
       fumbleField.setEnabled(false);
@@ -627,10 +653,15 @@ public class AttackDialog extends BGDialog {
 
   private void calcFumble() {
     int value = Dice.roll(6) + Dice.roll(6);
-    if (!(attacker instanceof dsa.model.characters.Hero)) 
+    if (!farRanged && !(attacker instanceof dsa.model.characters.Hero))  
       while (value < 6)
         value = Dice.roll(6) + Dice.roll(6);
-    fumbleField.setValue(value);
+    if (((Number)fumbleField.getValue()).intValue() != value) {
+    	fumbleField.setValue(value);
+    }
+    else {
+    	fumbleValueChanged();
+    }
   }
 
   private void calcTP() {
@@ -656,11 +687,20 @@ public class AttackDialog extends BGDialog {
   }
 
   private void calcSP() {
-    int newValue = Dice.roll(6);
-    if (((Number)fumbleField.getValue()).intValue() == 12) {
-      newValue += Dice.roll(6);
-    }
-    fumbleField2.setValue(newValue);
+	if (!farRanged) {
+	    int newValue = Dice.roll(6);
+	    if (((Number)fumbleField.getValue()).intValue() == 12) {
+	      newValue += Dice.roll(6);
+	    }
+	    fumbleField2.setValue(newValue);
+	}
+	else {
+	      int tp = attacker.getTP(weaponNr).calcValue();
+          String weaponName = attacker.getFightingWeapons().get(weaponNr);
+	      Weapon weapon = Weapons.getInstance().getWeapon(weaponName);
+	      tp += weapon.getDistanceTPMod(distance);
+	      fumbleField2.setValue(tp);
+	}
   }
 
   private void calcQualityAndTP() {

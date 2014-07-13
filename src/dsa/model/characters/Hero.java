@@ -192,6 +192,7 @@ public interface Hero extends Printable, Fighter, ThingCarrier {
   void removeHeroObserver(CharacterObserver observer);
 
   void storeToFile(java.io.File file, File realFile) throws java.io.IOException;
+  String storeToString();
 
   boolean isChanged();
 

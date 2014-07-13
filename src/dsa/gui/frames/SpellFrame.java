@@ -59,7 +59,7 @@ public final class SpellFrame extends TalentFrame {
   }
   
   public String getHelpPage() {
-    return "Zauber";
+    return "Zauber"; //$NON-NLS-1$
   }
 
   protected boolean isColumnEditable(int column) {
@@ -124,8 +124,8 @@ public final class SpellFrame extends TalentFrame {
     Talent talent = this.talents.get(i);
     int displayIndex = model.getRowCount() - 1;
     if (!talent.isSpell()) {
-      model.setValueAt("-", displayIndex, getCategoryColumn());
-      model.setValueAt("-", displayIndex, getOriginColumn());
+      model.setValueAt("-", displayIndex, getCategoryColumn()); //$NON-NLS-1$
+      model.setValueAt("-", displayIndex, getOriginColumn()); //$NON-NLS-1$
     }
     else {
       Spell spell = (Spell) talent;
@@ -187,9 +187,9 @@ public final class SpellFrame extends TalentFrame {
 
   protected Vector<String> getColumnIdentifiers() {
     Vector<String> defaultNames = super.getColumnIdentifiers();
-    defaultNames.add(getCategoryColumn(), "Kategorie");
-    defaultNames.add(getOriginColumn(), "Ursprung");
-    defaultNames.add(getIncrCountColumn(), "+");
+    defaultNames.add(getCategoryColumn(), Localization.getString("Zauber.Kategorie")); //$NON-NLS-1$
+    defaultNames.add(getOriginColumn(), Localization.getString("Zauber.Ursprung")); //$NON-NLS-1$
+    defaultNames.add(getIncrCountColumn(), "+"); //$NON-NLS-1$
     return defaultNames;
   }
 
@@ -198,7 +198,7 @@ public final class SpellFrame extends TalentFrame {
   protected void addSubclassSpecificComponents(java.awt.Container container) {
     JPanel panel = new JPanel();
     panel.setLayout(null);
-    mCheckbox = new JCheckBox("Unbekannte Zauber anzeigen");
+    mCheckbox = new JCheckBox(Localization.getString("Zauber.UnbekannteZauberZeigen")); //$NON-NLS-1$
     mCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         displayUnknownSpells = mCheckbox.isSelected();
@@ -239,10 +239,10 @@ public final class SpellFrame extends TalentFrame {
 
   private JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(5, 5, 34, 20);
-      addButton.setToolTipText("Zauber hinzufügen ...");
+      addButton.setToolTipText(Localization.getString("Zauber.ZauberHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           addSpell();
@@ -296,10 +296,10 @@ public final class SpellFrame extends TalentFrame {
 
   private JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(45, 5, 34, 20);
-      removeButton.setToolTipText("Zauber entfernen ...");
+      removeButton.setToolTipText(Localization.getString("Zauber.ZauberEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           removeSpell();
@@ -314,8 +314,8 @@ public final class SpellFrame extends TalentFrame {
     if (row < 0) return;
     String talent = (String) mSorter.getValueAt(row, getNameDummyColumn());
     if (!currentHero.hasTalent(talent)) return;
-    if (JOptionPane.showConfirmDialog(this, "Zauber \"" + talent
-        + "\" wirklich entfernen?", "Zauber entfernen",
+    if (JOptionPane.showConfirmDialog(this, Localization.getString("Zauber.ZauberEntfernen1") + talent //$NON-NLS-1$
+        + Localization.getString("Zauber.ZauberEntfernen2"), Localization.getString("Zauber.ZauberEntfernenTitel"), //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
       currentHero.removeTalent(talent);
     }
@@ -346,12 +346,12 @@ public final class SpellFrame extends TalentFrame {
   protected void loadSubclassState() {
     displayUnknownSpells = java.util.prefs.Preferences.userNodeForPackage(
         dsa.gui.PackageID.class).getBoolean(
-        getTitle() + "DisplayUnknownSpells", false);
+        getTitle() + "DisplayUnknownSpells", false); //$NON-NLS-1$
   }
 
   protected void saveSubclassState() {
     java.util.prefs.Preferences.userNodeForPackage(dsa.gui.PackageID.class)
-        .putBoolean(getTitle() + "DisplayUnknownSpells", displayUnknownSpells);
+        .putBoolean(getTitle() + "DisplayUnknownSpells", displayUnknownSpells); //$NON-NLS-1$
   }
 
   private boolean displayUnknownSpells;

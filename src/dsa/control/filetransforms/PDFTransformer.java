@@ -40,7 +40,7 @@ import dsa.util.LookupTable.LookupPerformer.NextCharResult;
 
 class PDFTransformer extends AbstractFileTransformer {
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   @Override
   protected void doTransform(Component component, String message)
       throws IOException {

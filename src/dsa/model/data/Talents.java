@@ -265,14 +265,12 @@ public class Talents {
     PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
         fileName)));
     try {
-      int lineNr = 0;
       for (Talent talent : getTalentsInCategory("Zauber")) {
         if (talent instanceof Spell) {
           Spell spell = (Spell) talent;
           if (spell.isUserDefined()) {
             out.println("Spell");
-            lineNr++;
-            lineNr += spell.store(out);
+            spell.store(out);
           }
         }
       }

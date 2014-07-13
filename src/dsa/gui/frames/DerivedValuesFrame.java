@@ -115,7 +115,7 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
   }
   
   public String getHelpPage() {
-    return "Berechnete_Werte";
+    return "Berechnete_Werte"; //$NON-NLS-1$
   }
 
   public DerivedValuesFrame(String title) {
@@ -145,7 +145,7 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
   private Hero currentHero = null;
 
   private static String getModSign(int value) {
-    return value > 0 ? "+" : "";
+    return value > 0 ? "+" : ""; //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   private static final Color DARKGREEN = new Color(0, 175, 0);
@@ -156,33 +156,33 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
 
   private void updateData() {
     if (currentHero != null) {
-      atDField.setText(""
+      atDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.AT));
-      atCField.setText(""
+      atCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.AT));
-      paDField.setText(""
+      paDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.PA));
-      paCField.setText(""
+      paCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA));
-      fkDField.setText(""
+      fkDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.FK));
-      fkCField.setText(""
+      fkCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.FK));
-      awDField.setText(""
+      awDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.AW));
-      awCField.setText(""
+      awCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.AW));
-      abDField.setText(""
+      abDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.AB));
-      abCField.setText(""
+      abCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.AB));
-      tkDField.setText(""
+      tkDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.TK));
-      tkCField.setText(""
+      tkCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.TK));
-      mrDField.setText(""
+      mrDField.setText("" //$NON-NLS-1$
           + currentHero.getDefaultDerivedValue(Hero.DerivedValue.MR));
-      mrCField.setText(""
+      mrCField.setText("" //$NON-NLS-1$
           + currentHero.getCurrentDerivedValue(Hero.DerivedValue.MR));
       
       boolean active = !currentHero.isDifference();
@@ -218,33 +218,33 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
       mrModLabel.setForeground(getColor(value));
     }
     else {
-      atDField.setText("-");
-      atCField.setText("-");
-      atModLabel.setText("-");
+      atDField.setText("-"); //$NON-NLS-1$
+      atCField.setText("-"); //$NON-NLS-1$
+      atModLabel.setText("-"); //$NON-NLS-1$
       atModLabel.setForeground(Color.BLACK);
-      paDField.setText("-");
-      paCField.setText("-");
-      paModLabel.setText("-");
+      paDField.setText("-"); //$NON-NLS-1$
+      paCField.setText("-"); //$NON-NLS-1$
+      paModLabel.setText("-"); //$NON-NLS-1$
       paModLabel.setForeground(Color.BLACK);
-      fkDField.setText("-");
-      fkCField.setText("-");
-      fkModLabel.setText("-");
+      fkDField.setText("-"); //$NON-NLS-1$
+      fkCField.setText("-"); //$NON-NLS-1$
+      fkModLabel.setText("-"); //$NON-NLS-1$
       fkModLabel.setForeground(Color.BLACK);
-      awDField.setText("-");
-      awCField.setText("-");
-      awModLabel.setText("-");
+      awDField.setText("-"); //$NON-NLS-1$
+      awCField.setText("-"); //$NON-NLS-1$
+      awModLabel.setText("-"); //$NON-NLS-1$
       awModLabel.setForeground(Color.BLACK);
-      abDField.setText("-");
-      abCField.setText("-");
-      abModLabel.setText("-");
+      abDField.setText("-"); //$NON-NLS-1$
+      abCField.setText("-"); //$NON-NLS-1$
+      abModLabel.setText("-"); //$NON-NLS-1$
       abModLabel.setForeground(Color.BLACK);
-      tkDField.setText("-");
-      tkCField.setText("-");
-      tkModLabel.setText("-");
+      tkDField.setText("-"); //$NON-NLS-1$
+      tkCField.setText("-"); //$NON-NLS-1$
+      tkModLabel.setText("-"); //$NON-NLS-1$
       tkModLabel.setForeground(Color.BLACK);
-      mrDField.setText("-");
-      mrCField.setText("-");
-      mrModLabel.setText("-");
+      mrDField.setText("-"); //$NON-NLS-1$
+      mrCField.setText("-"); //$NON-NLS-1$
+      mrModLabel.setText("-"); //$NON-NLS-1$
       mrModLabel.setForeground(Color.BLACK);
     }
   }
@@ -295,7 +295,7 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
   private void initialize() {
     // this.setSize(new java.awt.Dimension(274,252));
     this.setContentPane(getJContentPane());
-    this.setTitle("Berechnete Werte");
+    this.setTitle(Localization.getString("BerechneteWerte.BerechneteWerte")); //$NON-NLS-1$
   }
 
   private boolean disableChange = false;
@@ -307,7 +307,7 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
 
     public void propertyChange(PropertyChangeEvent evt) {
       if (DerivedValuesFrame.this.disableChange) return;
-      if (!evt.getPropertyName().equals("value")) return;
+      if (!evt.getPropertyName().equals("value")) return; //$NON-NLS-1$
       if (currentHero != null) {
         int value = ((Number) ((JFormattedTextField) evt.getSource())
             .getValue()).intValue();
@@ -327,46 +327,46 @@ public class DerivedValuesFrame extends SubFrame implements CharactersObserver,
       final int modWidth = 40;
       jLabel8 = new JLabel();
       jLabel8.setBounds(new java.awt.Rectangle(9, 27, 127, 19));
-      jLabel8.setText("Magie-Resistenz:");
+      jLabel8.setText(Localization.getString("BerechneteWerte.MagieResistenz")); //$NON-NLS-1$
       mrModLabel = new JLabel();
       mrModLabel.setBounds(255, 27, modWidth, 19);
       jLabel7 = new JLabel();
       jLabel7.setBounds(new java.awt.Rectangle(9, 189, 127, 19));
-      jLabel7.setText("Tragkraft (Unzen):");
+      jLabel7.setText(Localization.getString("BerechneteWerte.TragkraftUnzen")); //$NON-NLS-1$
       tkModLabel = new JLabel();
       tkModLabel.setBounds(255, 189, modWidth, 19);
       jLabel6 = new JLabel();
       jLabel6.setBounds(new java.awt.Rectangle(207, 9, 37, 19));
-      jLabel6.setText("Akt");
+      jLabel6.setText(Localization.getString("BerechneteWerte.Akt")); //$NON-NLS-1$
       jLabel5 = new JLabel();
       jLabel5.setBounds(new java.awt.Rectangle(153, 9, 37, 19));
-      jLabel5.setText("Std");
+      jLabel5.setText(Localization.getString("BerechneteWerte.Std")); //$NON-NLS-1$
       JLabel modLabel = new JLabel();
       modLabel.setBounds(255, 9, 30, 19);
-      modLabel.setText("Mod.");
+      modLabel.setText(Localization.getString("BerechneteWerte.Mod")); //$NON-NLS-1$
       jLabel4 = new JLabel();
       jLabel4.setBounds(new java.awt.Rectangle(9, 162, 127, 19));
-      jLabel4.setText("Ausweichen-Bonus:");
+      jLabel4.setText(Localization.getString("BerechneteWerte.AusweichenBonus")); //$NON-NLS-1$
       abModLabel = new JLabel();
       abModLabel.setBounds(255, 162, modWidth, 19);
       jLabel3 = new JLabel();
       jLabel3.setBounds(new java.awt.Rectangle(9, 135, 127, 19));
-      jLabel3.setText("AusWeichen-Basis:");
+      jLabel3.setText(Localization.getString("BerechneteWerte.AusweichenBasis")); //$NON-NLS-1$
       awModLabel = new JLabel();
       awModLabel.setBounds(255, 135, modWidth, 19);
       jLabel2 = new JLabel();
       jLabel2.setBounds(new java.awt.Rectangle(9, 108, 127, 19));
-      jLabel2.setText("FernKampf-Basis:");
+      jLabel2.setText(Localization.getString("BerechneteWerte.FernkampfBasis")); //$NON-NLS-1$
       fkModLabel = new JLabel();
       fkModLabel.setBounds(255, 108, modWidth, 19);
       jLabel1 = new JLabel();
       jLabel1.setBounds(new java.awt.Rectangle(9, 81, 127, 19));
-      jLabel1.setText("PArade-Basis:");
+      jLabel1.setText(Localization.getString("BerechneteWerte.ParadeBasis")); //$NON-NLS-1$
       paModLabel = new JLabel();
       paModLabel.setBounds(255, 81, modWidth, 19);
       jLabel = new JLabel();
       jLabel.setBounds(new java.awt.Rectangle(9, 54, 127, 19));
-      jLabel.setText("ATtacke-Basis:");
+      jLabel.setText(Localization.getString("BerechneteWerte.AttackeBasis")); //$NON-NLS-1$
       atModLabel = new JLabel();
       atModLabel.setBounds(255, 54, modWidth, 19);
       jContentPane = new JPanel();

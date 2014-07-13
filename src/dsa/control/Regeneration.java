@@ -93,10 +93,16 @@ public class Regeneration {
 			value = changeRegenValue(value, options);
 			value = Math.min(value, missingLE);
 			hero.changeCurrentEnergy(Energy.LE, value);
-			return getIndent(options) + "LE: " + value + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.LE) 
-			        + "\n" + getIndent(options) + "AE: "
+			String result = getIndent(options) + "LE: " + value + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.LE);
+			if (hero.getCurrentEnergy(Energy.LE) == hero.getDefaultEnergy(Energy.LE)) 
+				result += " (voll)";
+			result += "\n" + getIndent(options) + "AE: "
 					+ ((aeChange > 0) ? "1 Punkt" : "0 Punkte")
 					+ " regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.AE);
+			if (hero.getCurrentEnergy(Energy.AE) == hero.getDefaultEnergy(Energy.AE))
+				result += " (voll)";
+			return result;
+			
 		} else if (hero.hasEnergy(Energy.AE)
 				&& hero.getCurrentEnergy(Energy.AE) < hero
 						.getDefaultEnergy(Energy.AE)) {
@@ -122,8 +128,13 @@ public class Regeneration {
 				second = Math.min(second, missingAE);
 				hero.changeCurrentEnergy(Energy.LE, first);
 				hero.changeCurrentEnergy(Energy.AE, second);
-				String text = getIndent(options) + "LE: " + first + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.LE) + "\n";
+				String text = getIndent(options) + "LE: " + first + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.LE);
+				if (hero.getCurrentEnergy(Energy.LE) == hero.getDefaultEnergy(Energy.LE)) 
+					text += " (voll)";
+				text += "\n";
 				text += getIndent(options) + "AE: " + second + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.AE);
+				if (hero.getCurrentEnergy(Energy.AE) == hero.getDefaultEnergy(Energy.AE))
+					text += " (voll)";
 				if (hasBonus) {
 					text += "\n" + getIndent(options) + "  (Gewürfelt: " + aeRoll + ", Bonus: "
 							+ bonusRegeneration + ")";
@@ -138,6 +149,8 @@ public class Regeneration {
 				value = Math.min(value, missingAE);
 				hero.changeCurrentEnergy(Energy.AE, value);
 				String text = getIndent(options) + "AE: " + value + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.AE);
+				if (hero.getCurrentEnergy(Energy.AE) == hero.getDefaultEnergy(Energy.AE))
+					text += " (voll)";
 				if (hasBonus) {
 					text += "\n" + getIndent(options) + "  (Gewürfelt: " + aeRoll + ", Bonus: "
 							+ bonusRegeneration + ")";
@@ -151,7 +164,10 @@ public class Regeneration {
 			value = changeRegenValue(value, options);
 			value = Math.min(value, missingLE);
 			hero.changeCurrentEnergy(Energy.LE, value);
-			return getIndent(options) + "LE: " + value + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.LE);
+			String result = getIndent(options) + "LE: " + value + " Punkte regeneriert; jetzt bei " + hero.getCurrentEnergy(Energy.LE);
+			if (hero.getCurrentEnergy(Energy.LE) == hero.getDefaultEnergy(Energy.LE)) 
+				result += " (voll)";
+			return result;
 		}
 
 	}

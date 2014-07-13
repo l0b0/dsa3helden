@@ -48,7 +48,7 @@ public class FightingTalentsFrame extends TalentFrame {
   }
   
   public String getHelpPage() {
-    return "Kampftalente";
+    return "Kampftalente"; //$NON-NLS-1$
   }
 
   protected boolean isColumnEditable(int column) {
@@ -197,14 +197,14 @@ public class FightingTalentsFrame extends TalentFrame {
     TableCellEditor editor = TableButtonInput.createDummyCellEditor();
     tcm.addColumn(new TableColumn(getATColumn(), 20, greyingRenderer, editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getATColumn());
-    JButton incrATButton = TableButtonInput.createButton(ImageManager.getIcon("move_left"));
+    JButton incrATButton = TableButtonInput.createButton(ImageManager.getIcon("move_left")); //$NON-NLS-1$
     incrATButton.addActionListener(new ATPAMover(true));
     TableCellRenderer atRenderer = TableButtonInput.createButtonCellRenderer(incrATButton,
         new javax.swing.table.DefaultTableCellRenderer());
     tcm.addColumn(new TableColumn(getATIncrColumn(), 20, atRenderer,
         editor));
     tcm.moveColumn(tcm.getColumnCount() - 1, getATIncrColumn());
-    JButton incrPAButton = TableButtonInput.createButton(ImageManager.getIcon("move_right"));
+    JButton incrPAButton = TableButtonInput.createButton(ImageManager.getIcon("move_right")); //$NON-NLS-1$
     incrPAButton.addActionListener(new ATPAMover(false));
     TableCellRenderer paRenderer = TableButtonInput.createButtonCellRenderer(incrPAButton,
         new javax.swing.table.DefaultTableCellRenderer());
@@ -217,10 +217,10 @@ public class FightingTalentsFrame extends TalentFrame {
 
   protected Vector<String> getColumnIdentifiers() {
     Vector<String> defaultNames = super.getColumnIdentifiers();
-    defaultNames.add(getATColumn(), "AT");
-    defaultNames.add(getATIncrColumn(), "");
-    defaultNames.add(getPAIncrColumn(), "");
-    defaultNames.add(getPAColumn(), "PA");
+    defaultNames.add(getATColumn(), Localization.getString("Kampftalente.AT")); //$NON-NLS-1$
+    defaultNames.add(getATIncrColumn(), ""); //$NON-NLS-1$
+    defaultNames.add(getPAIncrColumn(), ""); //$NON-NLS-1$
+    defaultNames.add(getPAColumn(), Localization.getString("Kampftalente.PA")); //$NON-NLS-1$
     return defaultNames;
   }
 

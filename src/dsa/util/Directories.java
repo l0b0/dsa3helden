@@ -65,6 +65,8 @@ public class Directories {
   }
 
   public static String getRelativePath(String absolutePath, File f) throws IOException {
+	if (f == null)
+		return absolutePath;
     File abs = new File(absolutePath);
     if (abs.getParentFile() == null) return absolutePath;
     if (f.getParentFile() == null) return absolutePath;

@@ -1,3 +1,17 @@
+Version 1.11.0
+--------------
+- Direkter Austausch von Daten und Probeergebnissen im Online-Spiel
+- Bei Zauberproben wird der Zauber im Ergebnis dazu geschrieben
+- Regenerations-Button aktiv, sobald irgendeinem Held in der Gruppe
+  AE oder LE fehlt
+- Lange Namen von Gegnern im Fenster Kampf (Meister), in der Mitte 
+  gekürzt
+- Flammenschwert wird automatisch zur Waffenauswahl beim Kampf 
+  hinzugefügt und ASP für seine Verwendung abgezogen
+- Etwas robusteres Laden von Gruppen
+- Fehlerdialog, wenn Öffnen von Fenstern fehlschlägt
+- Übersetzung einiger Fenster in andere Sprachen ermöglicht
+
 Version 1.10.0
 --------------
 - Würfeln einer freien Anzahl Würfel

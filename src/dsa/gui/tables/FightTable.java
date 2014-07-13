@@ -21,6 +21,7 @@ package dsa.gui.tables;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -54,7 +56,10 @@ import dsa.gui.util.table.TableButtonInput;
 import dsa.gui.util.table.TableCheckboxInput;
 import dsa.model.DiceSpecification;
 import dsa.model.Fighter;
+import dsa.model.characters.Energy;
 import dsa.model.characters.Group;
+import dsa.model.characters.Hero;
+import dsa.remote.RemoteManager;
 import dsa.util.Optional;
 
 public final class FightTable 
@@ -85,6 +90,7 @@ public final class FightTable
   
   public interface Client {
     void doAttack(Fighter fighter, int weaponIndex, Fighter opponent);
+    Component getMessageBoxParent();
   }
   
   private Client mClient;
@@ -207,6 +213,7 @@ public final class FightTable
     greyingRenderer.setHorizontalAlignment(SwingConstants.CENTER);
     TableCellEditor dummyEditor = TableButtonInput.createDummyCellEditor();
     TableCellRenderer bgRenderer = new BGTableCellRenderer();
+    TableCellRenderer middleShorteningRenderer = CellRenderers.createMiddleShorteningCellRenderer();
     JButton attackButton = TableButtonInput.createButton(ImageManager.getIcon("attack"));
     attackButton.setToolTipText("Attacke");
     attackButton.addActionListener(new ActionListener() {
@@ -243,7 +250,7 @@ public final class FightTable
     TableCellRenderer dazedRenderer = TableCheckboxInput.createCheckBoxCellRenderer(bgRenderer, withDazed);
     
     TableColumnModel tcm = new DefaultTableColumnModel();
-    tcm.addColumn(new TableColumn(getNameColumn(), 100, bgRenderer, dummyEditor));
+    tcm.addColumn(new TableColumn(getNameColumn(), 100, middleShorteningRenderer, dummyEditor));
     tcm.addColumn(new TableColumn(getWeaponColumn(), 100, bgRenderer, weaponEditor));
     tcm.addColumn(new TableColumn(getLEColumn(), 45, bgRenderer, leEditor));
     tcm.addColumn(new TableColumn(getATColumn(), 40, bgRenderer, dummyEditor));
@@ -253,7 +260,7 @@ public final class FightTable
     tcm.addColumn(new TableColumn(getMRColumn(), 40, bgRenderer, dummyEditor));
     tcm.addColumn(new TableColumn(getGroundedColumn(), 25, groundedRenderer, dummyEditor));
     tcm.addColumn(new TableColumn(getDazedColumn(), 25, dazedRenderer, dummyEditor));
-    tcm.addColumn(new TableColumn(getOpponentColumn(), 100, bgRenderer, targetEditor));
+    tcm.addColumn(new TableColumn(getOpponentColumn(), 100, middleShorteningRenderer, targetEditor));
     tcm.addColumn(new TableColumn(getAttackColumn(), 30, atRenderer, dummyEditor));
     tcm.addColumn(new TableColumn(getHealColumn(), 30, healRenderer, dummyEditor));
     
@@ -317,10 +324,16 @@ public final class FightTable
   public void checkBoxValueChanged(int row, int column, boolean newValue)
   {
     if (column == getGroundedColumn()) {
-      fighters.get(row).setGrounded(newValue);
+      Fighter fighter = fighters.get(row);	
+      fighter.setGrounded(newValue);
+      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero))
+      	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.grounded, true);
     }
     else if (column == getDazedColumn()) {
-      fighters.get(row).setDazed(newValue);
+      Fighter fighter = fighters.get(row);	
+      fighter.setDazed(newValue);
+      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero))
+      	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.dazed, true);
     }
   }
   
@@ -335,14 +348,14 @@ public final class FightTable
       return;
     }
     String target = fighter.getTarget(index);
-    rowData[getOpponentColumn()] = dsa.util.Strings.cutTo(target, ' ');
+    rowData[getOpponentColumn()] = target;
     rowData[getAttackColumn()] = Boolean.valueOf(!target.equals("")) && 
       Fighting.canAttack(fighter);
   }
   
   private void addFighter(Fighter fighter, int position) {
     Object[] rowData = new Object[getNrOfColumns()];
-    rowData[getNameColumn()] = dsa.util.Strings.cutTo(fighter.getName(), ' ');
+    rowData[getNameColumn()] = (fighter instanceof Hero) ? dsa.util.Strings.cutTo(fighter.getName(), ' ') : fighter.getName();
     List<String> weapons = fighter.getFightingWeapons();
     rowData[getWeaponColumn()] = weapons.size() > 0 ? weapons.get(0) : "";
     rowData[getLEColumn()] = fighter.getCurrentLE();
@@ -438,7 +451,7 @@ public final class FightTable
       ArrayList<String> items = new ArrayList<String>();
       items.add("<keiner>");
       for (int i = 0; i < opponents.size(); ++i) {
-        items.add(dsa.util.Strings.cutTo(opponents.get(i).getName(), ' '));
+        items.add(opponents.get(i).getName());
       }
       return items;
     }
@@ -480,10 +493,28 @@ public final class FightTable
       List<String> items = fighters.get(row).getPossibleWeapons(weaponIndex);
       if (index < 0 || index >= items.size()) return;
       String item = items.get(index);
+      String oldItem = fighters.get(row).getFightingWeapons().get(weaponIndex);
       fighters.get(row).setUsedWeapon(weaponIndex, item);
       mModel.setValueAt(fighters.get(row).getAT(weaponIndex), row, getATColumn());
       mModel.setValueAt(fighters.get(row).getPA(weaponIndex), row, getPAColumn());
       mModel.setValueAt(fighters.get(row).getTP(weaponIndex), row, getTPColumn());
+      if (fighters.get(row) instanceof Hero && RemoteManager.getInstance().isConnectedAsGM()) {
+    	  RemoteManager.getInstance().informPlayerOfWeaponChange((Hero)fighters.get(row));
+      }
+      boolean change = oldItem == null || !oldItem.equals(item);
+      if (change && (Fighting.Flammenschwert1.equals(item) || Fighting.Flammenschwert2.equals(item))) {
+      	if (!Fighting.Flammenschwert1.equals(oldItem) && !Fighting.Flammenschwert2.equals(oldItem) && fighters.get(row) instanceof Hero) {
+      		Hero hero = (Hero)fighters.get(row);
+  	    	if (JOptionPane.showConfirmDialog(mClient.getMessageBoxParent(), "ASP für Umwandlung abziehen?", "Heldenverwaltung", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+  	    		if (hero.getCurrentEnergy(Energy.AE) >= 5) {
+  	    			hero.changeCurrentEnergy(Energy.AE, -5);
+  	    		}
+  	    		else {
+  	    			JOptionPane.showMessageDialog(mClient.getMessageBoxParent(), "Nicht genügend ASP vorhanden!", "Heldenverwaltung", JOptionPane.INFORMATION_MESSAGE);
+  	    		}
+  	    	}
+      	}
+      }
     }
   }
   

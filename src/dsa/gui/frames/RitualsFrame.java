@@ -54,12 +54,12 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
    * 
    */
   public RitualsFrame() {
-    super("Sonderfertigkeiten");
+    super(Localization.getString("Sonderfertigkeiten.Sonderfertigkeiten")); //$NON-NLS-1$
     initialize();
   }
 
   public String getHelpPage() {
-    return "Sonderfertigkeiten";
+    return "Sonderfertigkeiten"; //$NON-NLS-1$
   }
   
   /**
@@ -69,7 +69,7 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
   private void initialize() {
     // this.setSize(new java.awt.Dimension(364,253));
     this.setContentPane(getJContentPane());
-    this.setTitle("Sonderfertigkeiten");
+    this.setTitle(Localization.getString("Sonderfertigkeiten.Sonderfertigkeiten")); //$NON-NLS-1$
     // this.pack();
     Group.getInstance().addObserver(this);
     currentHero = Group.getInstance().getActiveHero();
@@ -154,7 +154,7 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
 
   private JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
       addButton.setBounds(10, 5, 60, 25);
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -170,8 +170,8 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
 
   private JButton getTestButton() {
     if (testButton == null) {
-      testButton = new JButton(ImageManager.getIcon("probe"));
-      testButton.setDisabledIcon(ImageManager.getIcon("probe_disabled"));
+      testButton = new JButton(ImageManager.getIcon("probe")); //$NON-NLS-1$
+      testButton.setDisabledIcon(ImageManager.getIcon("probe_disabled")); //$NON-NLS-1$
       testButton.setBounds(10, 40, 60, 25);
       testButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -190,8 +190,8 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
 
   private JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(10, 75, 60, 25);
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -229,13 +229,13 @@ public class RitualsFrame extends SubFrame implements CharactersObserver,
   private JPanel getJContentPane() {
     if (jContentPane == null) {
       JLabel jLabel = new JLabel();
-      jLabel.setText("");
+      jLabel.setText(""); //$NON-NLS-1$
       jLabel.setPreferredSize(new java.awt.Dimension(10, 10));
       JLabel jLabel2 = new JLabel();
-      jLabel2.setText("");
+      jLabel2.setText(""); //$NON-NLS-1$
       jLabel2.setPreferredSize(new java.awt.Dimension(10, 10));
       JLabel jLabel3 = new JLabel();
-      jLabel3.setText("");
+      jLabel3.setText(""); //$NON-NLS-1$
       jLabel3.setPreferredSize(new java.awt.Dimension(10, 10));
       jContentPane = new JPanel();
       jContentPane.setLayout(new BorderLayout());

@@ -69,7 +69,7 @@ public class ImageFrame extends SubFrame implements CharactersObserver {
   }
   
   public String getHelpPage() {
-    return "Bild";
+    return "Bild"; //$NON-NLS-1$
   }
 
   private void initialize() {
@@ -81,7 +81,7 @@ public class ImageFrame extends SubFrame implements CharactersObserver {
 
   private void updateData() {
     Hero hero = Group.getInstance().getActiveHero();
-    String location = "";
+    String location = ""; //$NON-NLS-1$
     if (hero != null) {
       location = hero.getPictureLocation();
       getNameSelectButton().setEnabled(!hero.isDifference());
@@ -111,7 +111,7 @@ public class ImageFrame extends SubFrame implements CharactersObserver {
       lowerPane.setLayout(null);
       lowerPane.add(getNameField(), null);
       lowerPane.add(getNameSelectButton(), null);
-      JLabel label = new JLabel("Datei:");
+      JLabel label = new JLabel(Localization.getString("Bild.Datei")); //$NON-NLS-1$
       label.setBounds(5, 5, 50, 20);
       lowerPane.add(label, null);
       lowerPane.setPreferredSize(new Dimension(350, 40));
@@ -142,7 +142,7 @@ public class ImageFrame extends SubFrame implements CharactersObserver {
 
   private JButton getNameSelectButton() {
     if (nameSelectButton == null) {
-      nameSelectButton = new JButton("...");
+      nameSelectButton = new JButton("..."); //$NON-NLS-1$
       nameSelectButton.setBounds(285, 5, 40, 20);
       nameSelectButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -160,25 +160,25 @@ public class ImageFrame extends SubFrame implements CharactersObserver {
       chooser = new JFileChooser(new File(textField.getText()));
     }
     else {
-      File f = Directories.getLastUsedDirectory(this, "HeroImages");
+      File f = Directories.getLastUsedDirectory(this, "HeroImages"); //$NON-NLS-1$
       if (f != null)
         chooser = new JFileChooser(f);
       else
         chooser = new JFileChooser();
     }
     dsa.gui.util.ExampleFileFilter filter = new ExampleFileFilter();
-    filter.addExtension("png");
-    filter.addExtension("jpeg");
-    filter.addExtension("jpg");
-    filter.addExtension("gif");
-    filter.setDescription("Bilder");
+    filter.addExtension("png"); //$NON-NLS-1$
+    filter.addExtension("jpeg"); //$NON-NLS-1$
+    filter.addExtension("jpg"); //$NON-NLS-1$
+    filter.addExtension("gif"); //$NON-NLS-1$
+    filter.setDescription(Localization.getString("Bild.Bilder")); //$NON-NLS-1$
     chooser.setFileFilter(filter);
     chooser.setAcceptAllFileFilterUsed(true);
     chooser.setMultiSelectionEnabled(false);
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       textField.setText(chooser.getSelectedFile().getAbsolutePath());
       Group.getInstance().getActiveHero().setPicture(textField.getText());
-      Directories.setLastUsedDirectory(this, "HeroImages", chooser
+      Directories.setLastUsedDirectory(this, "HeroImages", chooser //$NON-NLS-1$
           .getSelectedFile());
       updatePicture();
     }

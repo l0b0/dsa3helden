@@ -83,7 +83,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
       boolean done = false;
 
       public void windowClosing(WindowEvent e) {
-        mTable.saveSortingState("Ausrüstung");
+        mTable.saveSortingState("Ausrüstung"); //$NON-NLS-1$
         Group.getInstance().removeObserver(AbstractThingsFrame.this);
         Things.getInstance().removeObserver(AbstractThingsFrame.this);
         framesOfContainers.closeAllFrames();
@@ -94,7 +94,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
-          mTable.saveSortingState("Ausrüstung");
+          mTable.saveSortingState("Ausrüstung"); //$NON-NLS-1$
           Group.getInstance().removeObserver(AbstractThingsFrame.this);
           Things.getInstance().removeObserver(AbstractThingsFrame.this);
           framesOfContainers.closeAllFrames();
@@ -144,7 +144,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
      
     panel.add(rightPanel, BorderLayout.EAST);
     
-    mTable.restoreSortingState("Ausrüstung");
+    mTable.restoreSortingState("Ausrüstung"); //$NON-NLS-1$
     mTable.setFirstSelectedRow();
     
     thingsPanel = panel;
@@ -170,7 +170,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
 
   JLabel getSumLabel() {
     if (sumLabel == null) {
-      sumLabel = new JLabel("");
+      sumLabel = new JLabel(""); //$NON-NLS-1$
       sumLabel.setForeground(java.awt.Color.BLUE);
       sumLabel.setBounds(getSumLabelPos());
     }
@@ -187,9 +187,9 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
   
   JButton getBuyButton() {
     if (buyButton == null) {
-      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton = new JButton(ImageManager.getIcon("money")); //$NON-NLS-1$
       buyButton.setBounds(getBuyButtonPos());
-      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.setToolTipText(Localization.getString("AusruestungsBasis.GegenstandKaufen")); //$NON-NLS-1$
       buyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           buyItem();
@@ -213,9 +213,9 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
   
   JButton getEditButton() {
     if (editButton == null) {
-      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton = new JButton(ImageManager.getIcon("edit")); //$NON-NLS-1$
       editButton.setBounds(getEditButtonPos());
-      editButton.setToolTipText("Inhalt ansehen");
+      editButton.setToolTipText(Localization.getString("AusruestungsBasis.InhaltAnsehen")); //$NON-NLS-1$
       editButton.setEnabled(false);
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -288,10 +288,10 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
 
   JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(getAddButtonPos());
-      addButton.setToolTipText("Gegenstand hinzufügen");
+      addButton.setToolTipText(Localization.getString("AusruestungsBasis.GegenstandHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectItem();
@@ -316,10 +316,10 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
 
   JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(getRemoveButtonPos());
-      removeButton.setToolTipText("Gegenstand entfernen");
+      removeButton.setToolTipText(Localization.getString("AusruestungsBasis.GegenstandEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
@@ -365,10 +365,10 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
     format.setMinimumFractionDigits(0);
     format.setMinimumIntegerDigits(1);
 
-    String text = "Gesamt: Wert ca. " + format.format(valueD)
-        + " Dukaten, Gewicht ca. ";
+    String text = Localization.getString("AusruestungsBasis.GesamtWert") + format.format(valueD) //$NON-NLS-1$
+        + Localization.getString("AusruestungsBasis.DukatenGewicht"); //$NON-NLS-1$
     format.setMaximumFractionDigits(3);
-    text += format.format(weightStones) + " Stein";
+    text += format.format(weightStones) + Localization.getString("AusruestungsBasis.Stein"); //$NON-NLS-1$
     return text;
   }
 
@@ -392,7 +392,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
     }
     else {
       sumLabel
-          .setText("Gesamt: Wert 0 Dukaten, Gewicht 0 Stein");
+          .setText(Localization.getString("AusruestungsBasis.GesamtNull")); //$NON-NLS-1$
       addButton.setEnabled(false);
       removeButton.setEnabled(false);
       buyButton.setEnabled(false);
@@ -468,10 +468,10 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
       else if (extraData.getType() != ExtraThingData.Type.Thing) {
         try {
           ExtraThingData data = (ExtraThingData)extraData;
-          String category = data.getProperty("Category");
-          int value = data.getPropertyInt("Worth");
-          int weight = data.getPropertyInt("Weight");
-          boolean singular = data.getPropertyInt("Singular") == 1;
+          String category = data.getProperty("Category"); //$NON-NLS-1$
+          int value = data.getPropertyInt("Worth"); //$NON-NLS-1$
+          int weight = data.getPropertyInt("Weight"); //$NON-NLS-1$
+          boolean singular = data.getPropertyInt("Singular") == 1; //$NON-NLS-1$
           thing = new Thing(newName, new Optional<Integer>(value), Thing.Currency.S, weight, category, true, singular, false);
           Things.getInstance().addThing(thing);
           mTable.addThing(thing);
@@ -482,8 +482,8 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
         }
       }
       else {
-        JOptionPane.showMessageDialog(this, "Unbekannter Gegenstand.", 
-            "Gegenstand hinzufügen", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, Localization.getString("AusruestungsBasis.UnbekannterGegenstand"),  //$NON-NLS-1$
+            Localization.getString("AusruestungsBasis.GegenstandHinzufuegen"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
         return false;
       }
     }
@@ -506,7 +506,7 @@ abstract class AbstractThingsFrame extends AbstractDnDFrame implements Character
         removeContents = true;
       }
       else { 
-        switch (JOptionPane.showConfirmDialog(this, "Inhalt ebenfalls entfernen?", "Heldenverwaltung", 
+        switch (JOptionPane.showConfirmDialog(this, Localization.getString("AusruestungsBasis.InhaltAuchEntfernen"), Localization.getString("AusruestungsBasis.Heldenverwaltung"),  //$NON-NLS-1$ //$NON-NLS-2$
             JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE)) {
         case JOptionPane.YES_OPTION:
           removeContents = true;

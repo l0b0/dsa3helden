@@ -61,6 +61,8 @@ import javax.swing.JToggleButton;
 
 import dsa.control.GroupOperations;
 import dsa.control.OnlineOperations;
+import dsa.remote.RemoteManager;
+import dsa.remote.ServerManager;
 import dsa.util.Directories;
 import dsa.gui.dialogs.AnimalSelectionDialog;
 import dsa.gui.dialogs.DiceRollDialog;
@@ -109,7 +111,7 @@ public final class ControlFrame extends SubFrame
    * This is the default constructor
    */
   public ControlFrame(boolean loadLastGroup) {
-    super("Heldenverwaltung");
+    super(Localization.getString("Hauptfenster.Heldenverwaltung")); //$NON-NLS-1$
     inStart = true;
     listenForFrames = false;
     initialize(loadLastGroup);
@@ -118,7 +120,7 @@ public final class ControlFrame extends SubFrame
     listenForFrames = true;
     rebuildLayoutsPanel();
     inStart = false;
-    boolean checkForNewVersion = Preferences.userNodeForPackage(dsa.gui.PackageID.class).getBoolean("VersionCheckAtStart", true);
+    boolean checkForNewVersion = Preferences.userNodeForPackage(dsa.gui.PackageID.class).getBoolean("VersionCheckAtStart", true); //$NON-NLS-1$
     if (checkForNewVersion) {
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
@@ -131,7 +133,7 @@ public final class ControlFrame extends SubFrame
   private boolean inStart = false;
 
   public String getHelpPage() {
-    return "Hauptfenster";
+    return "Hauptfenster";  //$NON-NLS-1$
   }
 
   private DropTarget dropTarget = null;
@@ -149,10 +151,10 @@ public final class ControlFrame extends SubFrame
     this.setDefaultCloseOperation(javax.swing.JFrame.DO_NOTHING_ON_CLOSE);
     if (loadLastGroup) {
       String fileName = Preferences.userNodeForPackage(dsa.gui.PackageID.class)
-          .get("lastUsedGroupFile", "");
-      if (!fileName.equals("")) loadChars(fileName);
+          .get("lastUsedGroupFile", ""); //$NON-NLS-1$ //$NON-NLS-2$
+      if (!fileName.equals("")) loadChars(fileName); //$NON-NLS-1$
       String lastHero = Preferences.userNodeForPackage(dsa.gui.PackageID.class)
-          .get("lastActiveHero", "");
+          .get("lastActiveHero", ""); //$NON-NLS-1$ //$NON-NLS-2$
       for (Hero hero : Group.getInstance().getAllCharacters()) {
         if (hero.getName().equals(lastHero)) {
           Group.getInstance().setActiveHero(hero);
@@ -160,7 +162,7 @@ public final class ControlFrame extends SubFrame
         }
       }
       OptionsChange.fireOptionsChanged();
-      getGroupSaveItem().setEnabled(!fileName.equals(""));
+      getGroupSaveItem().setEnabled(!fileName.equals("")); //$NON-NLS-1$
     }
     if (dropTarget == null) {
       dropTarget = new DropTarget(this, this);
@@ -177,93 +179,95 @@ public final class ControlFrame extends SubFrame
       FrameLayouts.getInstance().storeToFile(FrameLayouts.getDefaultLayoutsFilename());
     }
     catch (IOException e) {
-      JOptionPane.showMessageDialog(this, "Fensterlayouts konnten nicht gespeichert werden. Grund:\n" 
-          + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, Localization.getString("Hauptfenster.FensterlayoutsSpeicherFehler")  //$NON-NLS-1$
+          + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
     
-    prefs.putInt("SelectedPaneIndex", getJTabbedPane().getSelectedIndex());
-    prefs.put("lastUsedGroupFile", Group.getInstance().getCurrentFileName());
+    prefs.putInt("SelectedPaneIndex", getJTabbedPane().getSelectedIndex()); //$NON-NLS-1$
+    prefs.put("lastUsedGroupFile", Group.getInstance().getCurrentFileName()); //$NON-NLS-1$
     if (Group.getInstance().getActiveHero() != null) {
       prefs
-          .put("lastActiveHero", Group.getInstance().getActiveHero().getName());
+          .put("lastActiveHero", Group.getInstance().getActiveHero().getName()); //$NON-NLS-1$
     }
     String baseDir = Directories.getUserDataPath();
     try {
-      Talents.getInstance().saveUserTalents(baseDir + "Eigene_Talente.dat");
+      Talents.getInstance().saveUserTalents(baseDir + "Eigene_Talente.dat"); //$NON-NLS-1$
     }
     catch (java.io.IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Talente konnten nicht gespeichert werden. Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.TalenteSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
-      Talents.getInstance().saveUserSpells(baseDir + "Eigene_Zauber.dat");
+      Talents.getInstance().saveUserSpells(baseDir + "Eigene_Zauber.dat"); //$NON-NLS-1$
     }
     catch (java.io.IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Zauber konnten nicht gespeichert werden. Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.ZauberSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
       Things.getInstance().writeUserDefinedThings(
-          baseDir + "Eigene_Ausruestung.dat");
+          baseDir + "Eigene_Ausruestung.dat"); //$NON-NLS-1$
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Ausrüstung konnte nicht gespeichert werden. Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.AusruestungSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
       Weapons.getInstance().storeUserDefinedWeapons(
-          baseDir + "Eigene_Waffen.dat");
+          baseDir + "Eigene_Waffen.dat"); //$NON-NLS-1$
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Waffen konnten nicht gespeichert werden. Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.WaffenSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
       Armours.getInstance().saveUserDefinedArmours(
-          baseDir + "Eigene_Ruestungen.dat");
+          baseDir + "Eigene_Ruestungen.dat"); //$NON-NLS-1$
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Rüstungen konnten nicht gespeichert werden. Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.RuestungenSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
-      Shields.getInstance().writeUserDefinedFile(baseDir + "Eigene_Parade.dat");
+      Shields.getInstance().writeUserDefinedFile(baseDir + "Eigene_Parade.dat"); //$NON-NLS-1$
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Paradehilfen konnten nicht gespeichert werden. Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.ParadeSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
-    	Clothes.getInstance().writeUserDefinedCloths(baseDir + "Eigene_Kleidung.dat");
+    	Clothes.getInstance().writeUserDefinedCloths(baseDir + "Eigene_Kleidung.dat"); //$NON-NLS-1$
     }
     catch (IOException e) {
         JOptionPane.showMessageDialog(this,
-                "Benutzerdefiniert Kleidung konnte nicht gespeichert werden. Grund:\n"
-                    + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);    	
+                Localization.getString("Hauptfenster.KleidungSpeicherFehler") //$NON-NLS-1$
+                    + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE);    	 //$NON-NLS-1$
     }
     try {
-      Opponents.getOpponentsDB().writeToFile(baseDir + "Eigene_Gegner.dat", true);
+      Opponents.getOpponentsDB().writeToFile(baseDir + "Eigene_Gegner.dat", true); //$NON-NLS-1$
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Benutzerdefinierte Gegner konnten nicht gespeichert werden. Grund:\n"
-          + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.GegnerSpeicherFehler") //$NON-NLS-1$
+          + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
     try {
       prefs.flush();
     }
     catch (BackingStoreException e) {
       JOptionPane.showMessageDialog(this,
-          "Einstellungen konnten nicht gespeichert werden.Grund:\n"
-              + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.EinstellungenSpeicherFehler") //$NON-NLS-1$
+              + e.getMessage(), Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
+    RemoteManager.getInstance().disconnect();
+    ServerManager.getInstance().stopServer();
     Group.getInstance().setActiveHero(null);
     dispose();
     if (FrameManagement.getInstance().getOpenFrames().size() == 0) {
@@ -281,8 +285,8 @@ public final class ControlFrame extends SubFrame
     }
     catch (IOException e) {
       JOptionPane.showMessageDialog(this,
-          "Gruppe konnte nicht geladen werden! Fehler:\n" + e.getMessage(),
-          "Heldenverwaltung", JOptionPane.ERROR_MESSAGE);
+          Localization.getString("Hauptfenster.GruppenLadeFehler") + e.getMessage(), //$NON-NLS-1$
+          Localization.getString("Hauptfenster.Heldenverwaltung"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
     }
   }
 
@@ -298,7 +302,7 @@ public final class ControlFrame extends SubFrame
       jContentPane.add(getJTabbedPane(), java.awt.BorderLayout.CENTER);
       getJTabbedPane().setSelectedIndex(
           Preferences.userNodeForPackage(dsa.gui.PackageID.class).getInt(
-              "SelectedPaneIndex", 0));
+              "SelectedPaneIndex", 0)); //$NON-NLS-1$
       jContentPane.add(getAlwaysPane(), java.awt.BorderLayout.NORTH);
     }
     return jContentPane;
@@ -309,6 +313,8 @@ public final class ControlFrame extends SubFrame
   private JToggleButton stepButton;
 
   private JToggleButton derivedValuesButton;
+  
+  private JToggleButton onlineButton, onlineServerButton;
 
   private final class MyWindowListener extends WindowAdapter {
     public void windowClosing(WindowEvent e) {
@@ -360,18 +366,18 @@ public final class ControlFrame extends SubFrame
       alwaysPane = new JPanel();
       alwaysPane.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER,
           12, 10));
-      newHeroButton = new JButton(ImageManager.getIcon("tsa"));
+      newHeroButton = new JButton(ImageManager.getIcon("tsa")); //$NON-NLS-1$
       newHeroButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           GroupOperations.newHero(ControlFrame.this);
         }
       });
       final int BUTTON_SIZE = 22;
-      newHeroButton.setToolTipText("Neuen Helden erzeugen");
+      newHeroButton.setToolTipText(Localization.getString("Hauptfenster.NeuenHeldenErzeugen")); //$NON-NLS-1$
       newHeroButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
       alwaysPane.add(newHeroButton);
       
-      printHeroButton = new JButton(ImageManager.getIcon("print"));
+      printHeroButton = new JButton(ImageManager.getIcon("print")); //$NON-NLS-1$
       printHeroButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           PrintingDialog dialog = new PrintingDialog(Group.getInstance()
@@ -379,7 +385,7 @@ public final class ControlFrame extends SubFrame
           dialog.setVisible(true);
         }
       });
-      printHeroButton.setToolTipText("Heldendaten drucken...");
+      printHeroButton.setToolTipText(Localization.getString("Hauptfenster.HeldendatenDrucken")); //$NON-NLS-1$
       printHeroButton.setEnabled(false);
       printHeroButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
       alwaysPane.add(printHeroButton);
@@ -408,7 +414,7 @@ public final class ControlFrame extends SubFrame
               physButton.doClick();
             }
             else {
-              FrameManagement.getInstance().getFrame("Grunddaten").toFront();
+              FrameManagement.getInstance().getFrame(Localization.getString("Hauptfenster.Grunddaten")).toFront(); //$NON-NLS-1$
             }
           }
         }
@@ -448,18 +454,18 @@ public final class ControlFrame extends SubFrame
           heroBox.getPreferredSize().height));
       alwaysPane.add(heroBox);
       
-      lockButton = new JToggleButton(ImageManager.getIcon("locked"));
+      lockButton = new JToggleButton(ImageManager.getIcon("locked")); //$NON-NLS-1$
       lockButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           lockButton.setIcon(ImageManager
-              .getIcon(lockButton.isSelected() ? "unlocked" : "locked"));
+              .getIcon(lockButton.isSelected() ? "unlocked" : "locked")); //$NON-NLS-1$ //$NON-NLS-2$
           Group.getInstance().setGlobalUnlock(lockButton.isSelected());
         }
       });
-      lockButton.setToolTipText("Alles schützen / freigeben");
+      lockButton.setToolTipText(Localization.getString("Hauptfenster.AllesSchuetzenFreigeben")); //$NON-NLS-1$
       alwaysPane.add(lockButton);
       
-      groupButton = new JToggleButton(ImageManager.getIcon("group"));
+      groupButton = new JToggleButton(ImageManager.getIcon("group")); //$NON-NLS-1$
       groupButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -479,11 +485,11 @@ public final class ControlFrame extends SubFrame
 
         private GroupFrame frame = null;
       });
-      groupButton.setToolTipText("Gruppe");
+      groupButton.setToolTipText(Localization.getString("Hauptfenster.Gruppe")); //$NON-NLS-1$
       alwaysPane.add(groupButton);
-      frameButtons.put("Gruppe", groupButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Gruppe"), groupButton); //$NON-NLS-1$
       
-      saveAllButton = new JButton(ImageManager.getIcon("saveall"));
+      saveAllButton = new JButton(ImageManager.getIcon("saveall")); //$NON-NLS-1$
       saveAllButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           GroupOperations.saveAllHeroes(ControlFrame.this);
@@ -491,18 +497,18 @@ public final class ControlFrame extends SubFrame
           rebuildLastGroupsMenu();
         }
       });
-      saveAllButton.setToolTipText("Alles speichern");
+      saveAllButton.setToolTipText(Localization.getString("Hauptfenster.AllesSpeichern")); //$NON-NLS-1$
       saveAllButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
       alwaysPane.add(saveAllButton);
       
-      diceButton = new JButton(ImageManager.getIcon("probe"));
+      diceButton = new JButton(ImageManager.getIcon("probe")); //$NON-NLS-1$
       diceButton.addActionListener(new ActionListener() {
     	  public void actionPerformed(ActionEvent e) {
     		  DiceRollDialog dialog = new DiceRollDialog(ControlFrame.this);
     		  dialog.setVisible(true);
     	  }
       });
-      diceButton.setToolTipText("Frei Würfeln");
+      diceButton.setToolTipText(Localization.getString("Hauptfenster.FreiWuerfeln")); //$NON-NLS-1$
       diceButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
       alwaysPane.add(diceButton);
     }
@@ -530,13 +536,13 @@ public final class ControlFrame extends SubFrame
     if (jTabbedPane == null) {
       jTabbedPane = new JTabbedPane();
       jTabbedPane.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
-      jTabbedPane.addTab("Layouts", null, getLayoutsPanel(), null);
-      jTabbedPane.addTab("Allgemein", null, getHeroPanel(), null);
-      jTabbedPane.addTab("Talente", null, getTalentsPanel(), null);
-      jTabbedPane.addTab("Kampf", null, getFightPanel(), null);
-      jTabbedPane.addTab("Gegenstände", null, getThingsPanel(), null);
-      jTabbedPane.addTab("Tiere", null, getAnimalsPanel(), null);
-      jTabbedPane.addTab("Sonstiges", null, getOthersPanel(), null);
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Layouts"), null, getLayoutsPanel(), null); //$NON-NLS-1$
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Allgemein"), null, getHeroPanel(), null); //$NON-NLS-1$
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Talente"), null, getTalentsPanel(), null); //$NON-NLS-1$
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Kampf"), null, getFightPanel(), null); //$NON-NLS-1$
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Gegenstaende"), null, getThingsPanel(), null); //$NON-NLS-1$
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Tiere"), null, getAnimalsPanel(), null); //$NON-NLS-1$
+      jTabbedPane.addTab(Localization.getString("Hauptfenster.Sonstiges"), null, getOthersPanel(), null); //$NON-NLS-1$
     }
     return jTabbedPane;
   }
@@ -566,7 +572,7 @@ public final class ControlFrame extends SubFrame
           .userNodeForPackage(dsa.gui.PackageID.class);
       if (hero != null) {
     	String name = hero.getName();
-    	String keyExt = "_AnimalFrameCount";
+    	String keyExt = "_AnimalFrameCount"; //$NON-NLS-1$
     	if (name.length() + keyExt.length() > Preferences.MAX_KEY_LENGTH)
     	{
     		name = name.substring(0, Preferences.MAX_KEY_LENGTH - keyExt.length());
@@ -581,7 +587,7 @@ public final class ControlFrame extends SubFrame
               break;
             }
           }
-          prefs.putInt(name + "_AnimalFrame_" + nr, index);
+          prefs.putInt(name + "_AnimalFrame_" + nr, index); //$NON-NLS-1$
           ++nr;
         }
       }
@@ -619,7 +625,7 @@ public final class ControlFrame extends SubFrame
     int nrOfAnimals = hero.getNrOfAnimals();
     for (int i = 0; i < nrOfAnimals; ++i) {
       dsa.model.data.Animal animal = hero.getAnimal(i);
-      String entry = animal.getName() + " (" + animal.getCategory() + " )";
+      String entry = animal.getName() + " (" + animal.getCategory() + " )"; //$NON-NLS-1$ //$NON-NLS-2$
       animalsModel.addElement(entry);
     }
     if (nrOfAnimals > 0 && !hero.isDifference()) {
@@ -635,15 +641,15 @@ public final class ControlFrame extends SubFrame
       Preferences prefs = Preferences
           .userNodeForPackage(dsa.gui.PackageID.class);
       String name = hero.getName();
-	  String keyExt = "_AnimalFrameCount";
+	  String keyExt = "_AnimalFrameCount"; //$NON-NLS-1$
 	  if (name.length() + keyExt.length() > Preferences.MAX_KEY_LENGTH)
 	  {
 		name = name.substring(0, Preferences.MAX_KEY_LENGTH - keyExt.length());
 	  }
       int nrOfOpenFrames = prefs
-          .getInt(name + "_AnimalFrameCount", 0);
+          .getInt(name + "_AnimalFrameCount", 0); //$NON-NLS-1$
       for (int i = 0; i < nrOfOpenFrames; ++i) {
-        int index = prefs.getInt(name + "_AnimalFrame_" + i, -1);
+        int index = prefs.getInt(name + "_AnimalFrame_" + i, -1); //$NON-NLS-1$
         if (index != -1) {
           editAnimal(index, false);
         }
@@ -746,9 +752,9 @@ public final class ControlFrame extends SubFrame
       animalsPane.add(scrollPane, BorderLayout.CENTER);
       JPanel buttonsPane = new JPanel();
       buttonsPane.setLayout(null);
-      addAnimalButton = new JButton(ImageManager.getIcon("increase"));
+      addAnimalButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
       addAnimalButton
-          .setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+          .setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addAnimalButton.setBounds(5, 5, 60, 25);
       addAnimalButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -756,7 +762,7 @@ public final class ControlFrame extends SubFrame
         }
       });
       buttonsPane.add(addAnimalButton, null);
-      editAnimalButton = new JButton("...");
+      editAnimalButton = new JButton("..."); //$NON-NLS-1$
       editAnimalButton.setBounds(5, 40, 60, 25);
       editAnimalButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -764,8 +770,8 @@ public final class ControlFrame extends SubFrame
         }
       });
       buttonsPane.add(editAnimalButton, null);
-      deleteAnimalButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      deleteAnimalButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      deleteAnimalButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      deleteAnimalButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       deleteAnimalButton.setBounds(5, 75, 60, 25);
       deleteAnimalButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -775,13 +781,13 @@ public final class ControlFrame extends SubFrame
       buttonsPane.add(deleteAnimalButton, null);
       buttonsPane.setPreferredSize(new java.awt.Dimension(70, 80));
       animalsPane.add(buttonsPane, BorderLayout.EAST);
-      JLabel filler1 = new JLabel("");
+      JLabel filler1 = new JLabel(""); //$NON-NLS-1$
       filler1.setPreferredSize(new java.awt.Dimension(5, 5));
       animalsPane.add(filler1, BorderLayout.NORTH);
-      JLabel filler2 = new JLabel("");
+      JLabel filler2 = new JLabel(""); //$NON-NLS-1$
       filler2.setPreferredSize(new java.awt.Dimension(5, 5));
       animalsPane.add(filler2, BorderLayout.WEST);
-      JLabel filler3 = new JLabel("");
+      JLabel filler3 = new JLabel(""); //$NON-NLS-1$
       filler3.setPreferredSize(new java.awt.Dimension(5, 5));
       animalsPane.add(filler3, BorderLayout.SOUTH);
       Hero hero = Group.getInstance().getActiveHero();
@@ -803,7 +809,7 @@ public final class ControlFrame extends SubFrame
   private JPanel getHeroPanel() {
     if (heroPanel == null) {
       JPanel temp = new JPanel(new GridLayout(0, 2, HGAP, VGAP));
-      physButton = new JToggleButton("Grunddaten");
+      physButton = new JToggleButton(Localization.getString("Hauptfenster.Grunddaten")); //$NON-NLS-1$
       physButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -811,7 +817,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new PhysFrame("Grunddaten");
+            frame = new PhysFrame(Localization.getString("Hauptfenster.Grunddaten")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.physButton.setSelected(false);
@@ -824,9 +830,9 @@ public final class ControlFrame extends SubFrame
         private PhysFrame frame = null;
       });
       temp.add(physButton);
-      frameButtons.put("Grunddaten", physButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Grunddaten"), physButton); //$NON-NLS-1$
 
-      stepButton = new JToggleButton("Erfahrung");
+      stepButton = new JToggleButton(Localization.getString("Hauptfenster.Erfahrung")); //$NON-NLS-1$
       stepButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -834,7 +840,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new StepFrame("Erfahrung");
+            frame = new StepFrame(Localization.getString("Hauptfenster.Erfahrung")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.stepButton.setSelected(false);
@@ -847,9 +853,9 @@ public final class ControlFrame extends SubFrame
         private StepFrame frame = null;
       });
       temp.add(stepButton);
-      frameButtons.put("Erfahrung", stepButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Erfahrung"), stepButton); //$NON-NLS-1$
 
-      goodPropertiesButton = new JToggleButton("Gute Eigenschaften");
+      goodPropertiesButton = new JToggleButton(Localization.getString("Hauptfenster.GuteEigenschaften")); //$NON-NLS-1$
       goodPropertiesButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -857,7 +863,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new PropertyFrame("Gute Eigenschaften", true);
+            frame = new PropertyFrame(Localization.getString("Hauptfenster.GuteEigenschaften"), true); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.goodPropertiesButton.setSelected(false);
@@ -870,9 +876,9 @@ public final class ControlFrame extends SubFrame
         private PropertyFrame frame = null;
       });
       temp.add(goodPropertiesButton);
-      frameButtons.put("Gute Eigenschaften", goodPropertiesButton);
+      frameButtons.put(Localization.getString("Hauptfenster.GuteEigenschaften"), goodPropertiesButton); //$NON-NLS-1$
 
-      badPropertiesButton = new JToggleButton("Schlechte Eigenschaften");
+      badPropertiesButton = new JToggleButton(Localization.getString("Hauptfenster.SchlechteEigenschaften")); //$NON-NLS-1$
       badPropertiesButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -880,7 +886,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new PropertyFrame("Schlechte Eigenschaften", false);
+            frame = new PropertyFrame(Localization.getString("Hauptfenster.SchlechteEigenschaften"), false); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.badPropertiesButton.setSelected(false);
@@ -893,9 +899,9 @@ public final class ControlFrame extends SubFrame
         private PropertyFrame frame = null;
       });
       temp.add(badPropertiesButton);
-      frameButtons.put("Schlechte Eigenschaften", badPropertiesButton);
+      frameButtons.put(Localization.getString("Hauptfenster.SchlechteEigenschaften"), badPropertiesButton); //$NON-NLS-1$
 
-      energiesButton = new JToggleButton("Energien");
+      energiesButton = new JToggleButton(Localization.getString("Hauptfenster.Energien")); //$NON-NLS-1$
       energiesButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -903,7 +909,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new EnergyFrame("Energien");
+            frame = new EnergyFrame(Localization.getString("Hauptfenster.Energien")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.energiesButton.setSelected(false);
@@ -916,9 +922,9 @@ public final class ControlFrame extends SubFrame
         private EnergyFrame frame = null;
       });
       temp.add(energiesButton);
-      frameButtons.put("Energien", energiesButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Energien"), energiesButton); //$NON-NLS-1$
 
-      derivedValuesButton = new JToggleButton("Berechnete Werte");
+      derivedValuesButton = new JToggleButton(Localization.getString("Hauptfenster.BerechneteWerte")); //$NON-NLS-1$
       derivedValuesButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -926,7 +932,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new DerivedValuesFrame("Berechnete Werte");
+            frame = new DerivedValuesFrame(Localization.getString("Hauptfenster.BerechneteWerte")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.derivedValuesButton.setSelected(false);
@@ -939,20 +945,69 @@ public final class ControlFrame extends SubFrame
         private DerivedValuesFrame frame = null;
       });
       temp.add(derivedValuesButton);
-      frameButtons.put("Berechnete Werte", derivedValuesButton);
+      frameButtons.put(Localization.getString("Hauptfenster.BerechneteWerte"), derivedValuesButton); //$NON-NLS-1$
+      
+      temp.add(new JLabel("")); //$NON-NLS-1$
+      temp.add(new JLabel("")); //$NON-NLS-1$
+      
+      onlineButton = new JToggleButton(Localization.getString("Hauptfenster.OnlineSpiel")); //$NON-NLS-1$
+      onlineButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (frame != null && frame.isVisible()) {
+            frame.dispose();
+            frame = null;
+          }
+          else {
+            frame = new RemoteFrame(Localization.getString("Hauptfenster.OnlineSpiel")); //$NON-NLS-1$
+            frame.addWindowListener(new WindowAdapter() {
+              public void windowClosing(java.awt.event.WindowEvent e) {
+                ControlFrame.this.onlineButton.setSelected(false);
+              }
+            });
+            frame.setVisible(true);
+          }
+        }
+
+        private RemoteFrame frame = null;
+      });
+      temp.add(onlineButton);
+      frameButtons.put(Localization.getString("Hauptfenster.OnlineSpiel"), onlineButton); //$NON-NLS-1$
+      
+      onlineServerButton = new JToggleButton(Localization.getString("Hauptfenster.OnlineServer")); //$NON-NLS-1$
+      onlineServerButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (frame != null && frame.isVisible()) {
+            frame.dispose();
+            frame = null;
+          }
+          else {
+            frame = new ServerFrame(Localization.getString("Hauptfenster.OnlineServer")); //$NON-NLS-1$
+            frame.addWindowListener(new WindowAdapter() {
+              public void windowClosing(java.awt.event.WindowEvent e) {
+                ControlFrame.this.onlineServerButton.setSelected(false);
+              }
+            });
+            frame.setVisible(true);
+          }
+        }
+
+        private ServerFrame frame = null;
+      });
+      temp.add(onlineServerButton);
+      frameButtons.put(Localization.getString("Hauptfenster.OnlineServer"), onlineServerButton); //$NON-NLS-1$
 
       heroPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
       temp3.add(temp, BorderLayout.NORTH);
-      JLabel l1 = new JLabel("");
+      JLabel l1 = new JLabel(""); //$NON-NLS-1$
       l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
-      JLabel l3 = new JLabel("");
+      JLabel l3 = new JLabel(""); //$NON-NLS-1$
       l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
       temp2.add(l3, BorderLayout.NORTH);
       temp2.add(temp3, BorderLayout.CENTER);
       heroPanel.add(l1, BorderLayout.WEST);
-      JLabel l2 = new JLabel("");
+      JLabel l2 = new JLabel(""); //$NON-NLS-1$
       l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
       heroPanel.add(l2, BorderLayout.EAST);
       heroPanel.add(temp2, BorderLayout.CENTER);
@@ -969,7 +1024,7 @@ public final class ControlFrame extends SubFrame
   private JPanel getOthersPanel() {
     if (othersPanel == null) {
       JPanel temp = new JPanel(new GridLayout(0, 2, HGAP, VGAP));
-      langButton = new JToggleButton("Sprachen");
+      langButton = new JToggleButton(Localization.getString("Hauptfenster.Sprachen")); //$NON-NLS-1$
       langButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -977,7 +1032,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new LanguageFrame("Sprachen");
+            frame = new LanguageFrame(Localization.getString("Hauptfenster.Sprachen")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.langButton.setSelected(false);
@@ -990,9 +1045,9 @@ public final class ControlFrame extends SubFrame
         private LanguageFrame frame = null;
       });
       temp.add(langButton);
-      frameButtons.put("Sprachen", langButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Sprachen"), langButton); //$NON-NLS-1$
 
-      bgButton = new JToggleButton("Hintergrund");
+      bgButton = new JToggleButton(Localization.getString("Hauptfenster.Hintergrund")); //$NON-NLS-1$
       bgButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1013,9 +1068,9 @@ public final class ControlFrame extends SubFrame
         private BackgroundFrame frame = null;
       });
       temp.add(bgButton);
-      frameButtons.put("Hintergrund", bgButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Hintergrund"), bgButton); //$NON-NLS-1$
 
-      ritualsButton = new JToggleButton("Sonderfertigkeiten");
+      ritualsButton = new JToggleButton(Localization.getString("Hauptfenster.Sonderfertigkeiten")); //$NON-NLS-1$
       ritualsButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1036,9 +1091,9 @@ public final class ControlFrame extends SubFrame
         private RitualsFrame frame = null;
       });
       temp.add(ritualsButton);
-      frameButtons.put("Sonderfertigkeiten", ritualsButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Sonderfertigkeiten"), ritualsButton); //$NON-NLS-1$
 
-      personsButton = new JToggleButton("Personen");
+      personsButton = new JToggleButton(Localization.getString("Hauptfenster.Personen")); //$NON-NLS-1$
       personsButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1059,9 +1114,9 @@ public final class ControlFrame extends SubFrame
         private PersonsFrame frame = null;
       });
       temp.add(personsButton);
-      frameButtons.put("Personen", personsButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Personen"), personsButton); //$NON-NLS-1$
 
-      magicButton = new JToggleButton("Magie");
+      magicButton = new JToggleButton(Localization.getString("Hauptfenster.Magie")); //$NON-NLS-1$
       magicButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1069,7 +1124,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new MagicAttributeFrame("Magie");
+            frame = new MagicAttributeFrame(Localization.getString("Hauptfenster.Magie")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.magicButton.setSelected(false);
@@ -1082,9 +1137,9 @@ public final class ControlFrame extends SubFrame
         private MagicAttributeFrame frame = null;
       });
       temp.add(magicButton);
-      frameButtons.put("Magie", magicButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Magie"), magicButton); //$NON-NLS-1$
 
-      imageButton = new JToggleButton("Bild");
+      imageButton = new JToggleButton(Localization.getString("Hauptfenster.Bild")); //$NON-NLS-1$
       imageButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1092,7 +1147,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new ImageFrame("Bild");
+            frame = new ImageFrame(Localization.getString("Hauptfenster.Bild")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.imageButton.setSelected(false);
@@ -1105,9 +1160,9 @@ public final class ControlFrame extends SubFrame
         private ImageFrame frame = null;
       });
       temp.add(imageButton);
-      frameButtons.put("Bild", imageButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Bild"), imageButton); //$NON-NLS-1$
 
-      metaButton = new JToggleButton("Metadaten");
+      metaButton = new JToggleButton(Localization.getString("Hauptfenster.Metadaten")); //$NON-NLS-1$
       metaButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1128,20 +1183,20 @@ public final class ControlFrame extends SubFrame
         private TypeMetaFrame frame = null;
       });
       temp.add(metaButton);
-      frameButtons.put("Metadaten", metaButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Metadaten"), metaButton); //$NON-NLS-1$
 
       othersPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
       temp3.add(temp, BorderLayout.NORTH);
-      JLabel l1 = new JLabel("");
+      JLabel l1 = new JLabel(""); //$NON-NLS-1$
       l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
-      JLabel l3 = new JLabel("");
+      JLabel l3 = new JLabel(""); //$NON-NLS-1$
       l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
       temp2.add(l3, BorderLayout.NORTH);
       temp2.add(temp3, BorderLayout.CENTER);
       othersPanel.add(l1, BorderLayout.WEST);
-      JLabel l2 = new JLabel("");
+      JLabel l2 = new JLabel(""); //$NON-NLS-1$
       l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
       othersPanel.add(l2, BorderLayout.EAST);
       othersPanel.add(temp2, BorderLayout.CENTER);
@@ -1163,14 +1218,14 @@ public final class ControlFrame extends SubFrame
     long weight = 0;
     Hero currentHero = Group.getInstance().getActiveHero();
     if (currentHero == null) {
-      sumLabel.setText("");
-      sumLabel3.setText("");
-      sumLabel2.setText("Gesamtgewicht: 0 Stein");
+      sumLabel.setText(""); //$NON-NLS-1$
+      sumLabel3.setText(""); //$NON-NLS-1$
+      sumLabel2.setText(Localization.getString("Hauptfenster.Gesamtgewicht0Stein")); //$NON-NLS-1$
       return;
     }
     Things things = Things.getInstance();
     for (String name : currentHero.getThings()) {
-      if ("Ausrüstung".equals(getTopLevelContainer(currentHero, name))) {
+      if (Localization.getString("Hauptfenster.Ausruestung").equals(getTopLevelContainer(currentHero, name))) { //$NON-NLS-1$
         Thing thing = things.getThing(name);
         if (thing != null) {
           weight += (long) thing.getWeight() * currentHero.getThingCount(name);
@@ -1232,13 +1287,13 @@ public final class ControlFrame extends SubFrame
     format.setMinimumFractionDigits(0);
     format.setMinimumIntegerDigits(1);
 
-    sumLabel.setText("Ausrüstung: " + format.format(weightStones)
-        + " Stein,  Waffen: " + format.format(weaponWeightStones)
-        + " Stein, Parade: " + format.format(shieldWeightStones) + " Stein");
-    sumLabel3.setText("Rüstung: " + format.format(armourWeightStones)
-        + " Stein, Geld: " + format.format(moneyWeightStones) + " Stein");
-    sumLabel2.setText("Gesamtgewicht:  " + format.format(overallWeight)
-        + " Stein;  Tragkraft: " + format.format(kkWeight) + " Stein");
+    sumLabel.setText(Localization.getString("Hauptfenster.AusruestungDoppelpunkt") + format.format(weightStones) //$NON-NLS-1$
+        + Localization.getString("Hauptfenster.SteinWaffen") + format.format(weaponWeightStones) //$NON-NLS-1$
+        + Localization.getString("Hauptfenster.SteinParade") + format.format(shieldWeightStones) + Localization.getString("Hauptfenster.Stein")); //$NON-NLS-1$ //$NON-NLS-2$
+    sumLabel3.setText(Localization.getString("Hauptfenster.RuestungDoppelpunkt") + format.format(armourWeightStones) //$NON-NLS-1$
+        + Localization.getString("Hauptfenster.SteinGeld") + format.format(moneyWeightStones) + Localization.getString("Hauptfenster.Stein")); //$NON-NLS-1$ //$NON-NLS-2$
+    sumLabel2.setText(Localization.getString("Hauptfenster.Gesamtgewicht") + format.format(overallWeight) //$NON-NLS-1$
+        + Localization.getString("Hauptfenster.SteinTragkraft") + format.format(kkWeight) + Localization.getString("Hauptfenster.Stein")); //$NON-NLS-1$ //$NON-NLS-2$
     sumLabel2.setForeground(overallWeight > kkWeight ? Color.RED : DARKGREEN);
   }
 
@@ -1249,7 +1304,7 @@ public final class ControlFrame extends SubFrame
   private JPanel getFightPanel() {
     if (fightPanel == null) {
       JPanel temp = new JPanel(new GridLayout(0, 2, HGAP, VGAP));
-      weaponsButton = new JToggleButton("Waffen");
+      weaponsButton = new JToggleButton(Localization.getString("Hauptfenster.Waffen")); //$NON-NLS-1$
       weaponsButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1270,9 +1325,9 @@ public final class ControlFrame extends SubFrame
         private WeaponsFrame frame = null;
       });
       temp.add(weaponsButton);
-      frameButtons.put("Waffen", weaponsButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Waffen"), weaponsButton); //$NON-NLS-1$
       
-      armoursButton = new JToggleButton("Rüstungen");
+      armoursButton = new JToggleButton(Localization.getString("Hauptfenster.Ruestungen")); //$NON-NLS-1$
       armoursButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1293,9 +1348,9 @@ public final class ControlFrame extends SubFrame
         private ArmoursFrame frame = null;
       });
       temp.add(armoursButton);
-      frameButtons.put("Rüstungen", armoursButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Ruestungen"), armoursButton); //$NON-NLS-1$
       
-      paradeButton = new JToggleButton("Parade");
+      paradeButton = new JToggleButton(Localization.getString("Hauptfenster.Parade")); //$NON-NLS-1$
       paradeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1316,9 +1371,9 @@ public final class ControlFrame extends SubFrame
         private ShieldsFrame frame = null;
       });
       temp.add(paradeButton);
-      frameButtons.put("Parade", paradeButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Parade"), paradeButton); //$NON-NLS-1$
       
-      fightButton = new JToggleButton("Kampf (Spieler)");
+      fightButton = new JToggleButton(Localization.getString("Hauptfenster.KampfSpieler")); //$NON-NLS-1$
       fightButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1339,9 +1394,9 @@ public final class ControlFrame extends SubFrame
         private FightFrame frame = null;
       });
       temp.add(fightButton);
-      frameButtons.put("Kampf (Spieler)", fightButton);
+      frameButtons.put(Localization.getString("Hauptfenster.KampfSpieler"), fightButton); //$NON-NLS-1$
       
-      opponentsButton = new JToggleButton("Gegner");
+      opponentsButton = new JToggleButton(Localization.getString("Hauptfenster.Gegner")); //$NON-NLS-1$
       opponentsButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1362,9 +1417,9 @@ public final class ControlFrame extends SubFrame
         private OpponentsFrame frame = null;
       });
       temp.add(opponentsButton);
-      frameButtons.put("Gegner", opponentsButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Gegner"), opponentsButton); //$NON-NLS-1$
       
-      groupFightButton = new JToggleButton("Kampf (Meister)");
+      groupFightButton = new JToggleButton(Localization.getString("Hauptfenster.KampfMeister")); //$NON-NLS-1$
       groupFightButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1385,20 +1440,20 @@ public final class ControlFrame extends SubFrame
         private GroupFightFrame frame = null;
       });
       temp.add(groupFightButton);
-      frameButtons.put("Kampf (Meister)", groupFightButton);
+      frameButtons.put(Localization.getString("Hauptfenster.KampfMeister"), groupFightButton); //$NON-NLS-1$
 
       fightPanel = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
       temp3.add(temp, BorderLayout.NORTH);
-      JLabel l1 = new JLabel("");
+      JLabel l1 = new JLabel(""); //$NON-NLS-1$
       l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
-      JLabel l3 = new JLabel("");
+      JLabel l3 = new JLabel(""); //$NON-NLS-1$
       l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
       temp2.add(l3, BorderLayout.NORTH);
       temp2.add(temp3, BorderLayout.CENTER);
       fightPanel.add(l1, BorderLayout.WEST);
-      JLabel l2 = new JLabel("");
+      JLabel l2 = new JLabel(""); //$NON-NLS-1$
       l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
       fightPanel.add(l2, BorderLayout.EAST);
       fightPanel.add(temp2, BorderLayout.CENTER);
@@ -1416,7 +1471,7 @@ public final class ControlFrame extends SubFrame
   private JPanel getThingsPanel() {
     if (thingsPanel == null) {
       JPanel temp = new JPanel(new GridLayout(0, 2, HGAP, VGAP));
-      thingsButton = new JToggleButton("Ausrüstung");
+      thingsButton = new JToggleButton(Localization.getString("Hauptfenster.Ausruestung")); //$NON-NLS-1$
       thingsButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1424,7 +1479,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new ThingsFrame(Group.getInstance().getActiveHero(), "Ausrüstung");
+            frame = new ThingsFrame(Group.getInstance().getActiveHero(), Localization.getString("Hauptfenster.Ausruestung")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.thingsButton.setSelected(false);
@@ -1437,9 +1492,9 @@ public final class ControlFrame extends SubFrame
         private ThingsFrame frame = null;
       });
       temp.add(thingsButton);
-      frameButtons.put("Ausrüstung", thingsButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Ausruestung"), thingsButton); //$NON-NLS-1$
 
-      thingsInWarehouseButton = new JToggleButton("Lager");
+      thingsInWarehouseButton = new JToggleButton(Localization.getString("Hauptfenster.Lager")); //$NON-NLS-1$
       thingsInWarehouseButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1447,7 +1502,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new ThingsFrame(Group.getInstance().getActiveHero(), "Lager");
+            frame = new ThingsFrame(Group.getInstance().getActiveHero(), Localization.getString("Hauptfenster.Lager")); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.thingsInWarehouseButton.setSelected(false);
@@ -1460,9 +1515,9 @@ public final class ControlFrame extends SubFrame
         private ThingsFrame frame = null;
       });
       temp.add(thingsInWarehouseButton);
-      frameButtons.put("Lager", thingsInWarehouseButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Lager"), thingsInWarehouseButton); //$NON-NLS-1$
 
-      moneyButton = new JToggleButton("Geld");
+      moneyButton = new JToggleButton(Localization.getString("Hauptfenster.Geld")); //$NON-NLS-1$
       moneyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1470,7 +1525,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new MoneyFrame("Geld", false);
+            frame = new MoneyFrame(Localization.getString("Hauptfenster.Geld"), false); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.moneyButton.setSelected(false);
@@ -1483,9 +1538,9 @@ public final class ControlFrame extends SubFrame
         private MoneyFrame frame = null;
       });
       temp.add(moneyButton);
-      frameButtons.put("Geld", moneyButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Geld"), moneyButton); //$NON-NLS-1$
 
-      bankMoneyButton = new JToggleButton("Bankkonto");
+      bankMoneyButton = new JToggleButton(Localization.getString("Hauptfenster.Bankkonto")); //$NON-NLS-1$
       bankMoneyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1493,7 +1548,7 @@ public final class ControlFrame extends SubFrame
             frame = null;
           }
           else {
-            frame = new MoneyFrame("Bankkonto", true);
+            frame = new MoneyFrame(Localization.getString("Hauptfenster.Bankkonto"), true); //$NON-NLS-1$
             frame.addWindowListener(new WindowAdapter() {
               public void windowClosing(java.awt.event.WindowEvent e) {
                 ControlFrame.this.bankMoneyButton.setSelected(false);
@@ -1506,9 +1561,9 @@ public final class ControlFrame extends SubFrame
         private MoneyFrame frame = null;
       });
       temp.add(bankMoneyButton);
-      frameButtons.put("Bankkonto", bankMoneyButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Bankkonto"), bankMoneyButton); //$NON-NLS-1$
 
-      clothesButton = new JToggleButton("Kleidung");
+      clothesButton = new JToggleButton(Localization.getString("Hauptfenster.Kleidung")); //$NON-NLS-1$
       clothesButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (frame != null && frame.isVisible()) {
@@ -1529,7 +1584,7 @@ public final class ControlFrame extends SubFrame
         private ClothesFrame frame = null;
       });
       temp.add(clothesButton);
-      frameButtons.put("Kleidung", clothesButton);
+      frameButtons.put(Localization.getString("Hauptfenster.Kleidung"), clothesButton); //$NON-NLS-1$
 
       JPanel lower = new JPanel();
       lower.setLayout(null);
@@ -1550,14 +1605,14 @@ public final class ControlFrame extends SubFrame
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
       temp3.add(temp, BorderLayout.NORTH);
-      JLabel l1 = new JLabel("");
+      JLabel l1 = new JLabel(""); //$NON-NLS-1$
       l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
-      JLabel l3 = new JLabel("");
+      JLabel l3 = new JLabel(""); //$NON-NLS-1$
       l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
       temp2.add(l3, BorderLayout.NORTH);
       temp2.add(temp3, BorderLayout.CENTER);
       thingsPanel.add(l1, BorderLayout.WEST);
-      JLabel l2 = new JLabel("");
+      JLabel l2 = new JLabel(""); //$NON-NLS-1$
       l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
       thingsPanel.add(l2, BorderLayout.EAST);
       thingsPanel.add(temp2, BorderLayout.CENTER);
@@ -1684,14 +1739,14 @@ public final class ControlFrame extends SubFrame
       JPanel temp2 = new JPanel(new BorderLayout());
       JPanel temp3 = new JPanel(new BorderLayout());
       temp3.add(temp, BorderLayout.NORTH);
-      JLabel l1 = new JLabel("");
+      JLabel l1 = new JLabel(""); //$NON-NLS-1$
       l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
-      JLabel l3 = new JLabel("");
+      JLabel l3 = new JLabel(""); //$NON-NLS-1$
       l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
       temp2.add(l3, BorderLayout.NORTH);
       temp2.add(temp3, BorderLayout.CENTER);
       talentsPanel.add(l1, BorderLayout.WEST);
-      JLabel l2 = new JLabel("");
+      JLabel l2 = new JLabel(""); //$NON-NLS-1$
       l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
       talentsPanel.add(l2, BorderLayout.EAST);
       talentsPanel.add(temp2, BorderLayout.CENTER);
@@ -1736,21 +1791,21 @@ public final class ControlFrame extends SubFrame
     scrollPane.setBorder(null);
     scrollPane.setOpaque(false);
     scrollPane.getViewport().setOpaque(false);
-    JLabel l3 = new JLabel("");
+    JLabel l3 = new JLabel(""); //$NON-NLS-1$
     l3.setPreferredSize(new java.awt.Dimension(SIDESPACE, VGAP));
     temp2.add(l3, BorderLayout.NORTH);
     temp2.add(scrollPane, BorderLayout.CENTER);
-    JLabel l4 = new JLabel("Im Fenster-Menü können Layouts gespeichert und gelöscht werden.");
+    JLabel l4 = new JLabel(Localization.getString("Hauptfenster.LayoutHint")); //$NON-NLS-1$
     l4.setPreferredSize(new java.awt.Dimension(10, 15));
     temp2.add(l4, BorderLayout.SOUTH);
 
     layoutsPanel.removeAll();
-    JLabel l1 = new JLabel("");
+    JLabel l1 = new JLabel(""); //$NON-NLS-1$
     l1.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
     layoutsPanel.add(l1, BorderLayout.WEST);
-    JLabel l2 = new JLabel("");
+    JLabel l2 = new JLabel(""); //$NON-NLS-1$
     l2.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
-    JLabel l5 = new JLabel("");
+    JLabel l5 = new JLabel(""); //$NON-NLS-1$
     l5.setPreferredSize(new java.awt.Dimension(SIDESPACE, SIDESPACE));
     layoutsPanel.add(l2, BorderLayout.EAST);
     layoutsPanel.add(l5, BorderLayout.SOUTH);
@@ -1776,11 +1831,11 @@ public final class ControlFrame extends SubFrame
         frame = null;
       }
       else {
-        if (category.startsWith("Berufe"))
+        if (category.startsWith(Localization.getString("Hauptfenster.Berufe"))) //$NON-NLS-1$
           frame = new SpecialTalentsFrame(category);
-        else if (category.startsWith("Zauber"))
+        else if (category.startsWith(Localization.getString("Hauptfenster.Zauber"))) //$NON-NLS-1$
           frame = new SpellFrame(category);
-        else if (category.startsWith("Kampf"))
+        else if (category.startsWith(Localization.getString("Hauptfenster.Kampf"))) //$NON-NLS-1$
           frame = new FightingTalentsFrame(category);
         else
           frame = new NormalTalentFrame(category);
@@ -1820,7 +1875,7 @@ public final class ControlFrame extends SubFrame
   private JMenu getExtrasMenu() {
     if (extrasMenu == null) {
       extrasMenu = new JMenu();
-      extrasMenu.setText("Extras");
+      extrasMenu.setText(Localization.getString("Hauptfenster.MenuExtras")); //$NON-NLS-1$
       extrasMenu.setMnemonic(java.awt.event.KeyEvent.VK_X);
       extrasMenu.add(getThingsExportItem());
       extrasMenu.add(getThingsImportItem());
@@ -1840,7 +1895,7 @@ public final class ControlFrame extends SubFrame
   private JMenu getWindowMenu() {
     if (windowMenu == null) {
       windowMenu = new JMenu();
-      windowMenu.setText("Fenster");
+      windowMenu.setText(Localization.getString("Hauptfenster.MenuFenster")); //$NON-NLS-1$
       windowMenu.setMnemonic(java.awt.event.KeyEvent.VK_F);
       windowMenu.add(getSaveWindowsItem());
       windowMenu.add(getLoadWindowsItem());
@@ -1854,7 +1909,7 @@ public final class ControlFrame extends SubFrame
   private JMenu getHelpMenu() {
     if (helpMenu == null) {
       helpMenu = new JMenu();
-      helpMenu.setText("Hilfe");
+      helpMenu.setText(Localization.getString("Hauptfenster.MenuHilfe")); //$NON-NLS-1$
       helpMenu.setMnemonic(java.awt.event.KeyEvent.VK_I);
       helpMenu.add(getHomepageItem());
       helpMenu.add(getManualItem());
@@ -1886,7 +1941,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getThingsExportItem() {
     if (thingsExportItem == null) {
       thingsExportItem = new JMenuItem();
-      thingsExportItem.setText("Gegenstandsexport ...");
+      thingsExportItem.setText(Localization.getString("Hauptfenster.MenuGegenstandsexport")); //$NON-NLS-1$
       thingsExportItem.setMnemonic(java.awt.event.KeyEvent.VK_X);
       thingsExportItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1901,7 +1956,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getThingsImportItem() {
     if (thingsImportItem == null) {
       thingsImportItem = new JMenuItem();
-      thingsImportItem.setText("Gegenstandsimport ...");
+      thingsImportItem.setText(Localization.getString("Hauptfenster.MenuGegenstandsimport")); //$NON-NLS-1$
       thingsImportItem.setMnemonic(java.awt.event.KeyEvent.VK_I);
       thingsImportItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1916,7 +1971,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getHeroComparisonItem() {
     if (heroComparisonItem == null) {
       heroComparisonItem = new JMenuItem();
-      heroComparisonItem.setText("Helden vergleichen ...");
+      heroComparisonItem.setText(Localization.getString("Hauptfenster.MenuHeldenvergleich")); //$NON-NLS-1$
       heroComparisonItem.setMnemonic(java.awt.event.KeyEvent.VK_V);
       heroComparisonItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1931,7 +1986,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getUpdateCheckItem() {
     if (updateCheckItem == null) {
       updateCheckItem = new JMenuItem();
-      updateCheckItem.setText("Auf Update überprüfen");
+      updateCheckItem.setText(Localization.getString("Hauptfenster.MenuUpdate")); //$NON-NLS-1$
       updateCheckItem.setMnemonic(java.awt.event.KeyEvent.VK_P);
       updateCheckItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1945,7 +2000,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getMailItem() {
     if (mailItem == null) {
       mailItem = new JMenuItem();
-      mailItem.setText("E-Mail an Autor");
+      mailItem.setText(Localization.getString("Hauptfenster.MenuMail")); //$NON-NLS-1$
       mailItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
       mailItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -1959,7 +2014,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getManualItem() {
     if (manualItem == null) {
       manualItem = new JMenuItem();
-      manualItem.setText("Anleitung");
+      manualItem.setText(Localization.getString("Hauptfenster.MenuAnleitung")); //$NON-NLS-1$
       manualItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
       manualItem.addActionListener(new ActionListener() {
 
@@ -1972,13 +2027,13 @@ public final class ControlFrame extends SubFrame
             }
           }
           if (desktop == null) {
-            JOptionPane.showMessageDialog(ControlFrame.this, "Das Betriebssystem erlaubt keinen direkten Browser-Aufruf."
-                + "\nBitte öffne manuell hilfe/Start.html",
-                "Fehler", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(ControlFrame.this, Localization.getString("Hauptfenster.BrowserStartFehler") //$NON-NLS-1$
+                + Localization.getString("Hauptfenster.BrowserStartFehler2"), //$NON-NLS-1$
+                Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             return;
           }
           try {
-            File file = new File(Directories.getApplicationPath() + "hilfe/Start.html");
+            File file = new File(Directories.getApplicationPath() + "hilfe/Start.html"); //$NON-NLS-1$
             URI uri = file.toURI();
             desktop.browse(uri);
           }
@@ -1987,9 +2042,9 @@ public final class ControlFrame extends SubFrame
           }
           catch (IOException ex) {
             JOptionPane.showMessageDialog(ControlFrame.this,
-                "Die Anleitung konnte nicht geöffnet werden. Fehler:\n"
-                    + ex.getMessage() + "\nBitte öffne manuell hilfe/Start.html",
-                "Fehler", JOptionPane.ERROR_MESSAGE);
+                Localization.getString("Hauptfenster.HilfeStartFehler") //$NON-NLS-1$
+                    + ex.getMessage() + Localization.getString("Hauptfenster.HilfeStartFehler2"), //$NON-NLS-1$
+                Localization.getString("Hauptfenster.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
           }
         }
       });
@@ -2000,7 +2055,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getHomepageItem() {
     if (homepageItem == null) {
       homepageItem = new JMenuItem();
-      homepageItem.setText("Homepage");
+      homepageItem.setText(Localization.getString("Hauptfenster.MenuHomepage")); //$NON-NLS-1$
       homepageItem.setMnemonic(java.awt.event.KeyEvent.VK_H);
       homepageItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2014,7 +2069,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getOptionsItem() {
     if (optionsItem == null) {
       optionsItem = new JMenuItem();
-      optionsItem.setText("Optionen...");
+      optionsItem.setText(Localization.getString("Hauptfenster.MenuOptionen")); //$NON-NLS-1$
       optionsItem.setMnemonic(java.awt.event.KeyEvent.VK_O);
       optionsItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2030,17 +2085,17 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getAboutItem() {
     if (aboutItem == null) {
       aboutItem = new JMenuItem();
-      aboutItem.setText("Über...");
+      aboutItem.setText(Localization.getString("Hauptfenster.MenuUeber")); //$NON-NLS-1$
       aboutItem.setMnemonic(java.awt.event.KeyEvent.VK_B);
       aboutItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
-          String text = "DSA3-Heldenverwaltung Version "
+          String text = Localization.getString("Hauptfenster.Version") //$NON-NLS-1$
               + dsa.control.Version.getCurrentVersionString()
-              + "\n        von Jörg Rüdenauer\n" + "\nIch danke:"
-              + "\n        Frank Willberger" + "\n        Birgit Bucher"
-              + "\n        allen weiteren Betatestern\n"
-              + "\nSpezieller Dank an Dirk 'Oz' Oetmann" + "\n";
-          JOptionPane.showMessageDialog(ControlFrame.this, text, "Über",
+              + "\n        von Jörg Rüdenauer\n" + Localization.getString("Hauptfenster.Danke") //$NON-NLS-1$ //$NON-NLS-2$
+              + "\n        Frank Willberger" + "\n        Birgit Bucher" //$NON-NLS-1$ //$NON-NLS-2$
+              + Localization.getString("Hauptfenster.Betatester") //$NON-NLS-1$
+              + Localization.getString("Hauptfenster.SpeziellerDank") + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
+          JOptionPane.showMessageDialog(ControlFrame.this, text, Localization.getString("Hauptfenster.Ueber"), //$NON-NLS-1$
               JOptionPane.INFORMATION_MESSAGE);
         }
       });
@@ -2059,7 +2114,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getSaveWindowsItem() {
     if (saveWindowsItem == null) {
       saveWindowsItem = new JMenuItem();
-      saveWindowsItem.setText("Layout speichern...");
+      saveWindowsItem.setText(Localization.getString("Hauptfenster.MenuLayoutSpeichern")); //$NON-NLS-1$
       saveWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_S);
       saveWindowsItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2071,7 +2126,7 @@ public final class ControlFrame extends SubFrame
   }
   
   private void saveWindows() {
-    String name = JOptionPane.showInputDialog(this, "Name für das Fensterlayout:", "Heldenverwaltung", JOptionPane.PLAIN_MESSAGE);
+    String name = JOptionPane.showInputDialog(this, Localization.getString("Hauptfenster.LayoutName"), Localization.getString("Hauptfenster.Heldenverwaltung"), JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
     if (name != null) {
       FrameLayouts.getInstance().storeLayout(name);
       getLoadWindowsItem().setEnabled(true);
@@ -2083,7 +2138,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getLoadWindowsItem() {
     if (loadWindowsItem == null) {
       loadWindowsItem = new JMenuItem();
-      loadWindowsItem.setText("Layout laden...");
+      loadWindowsItem.setText(Localization.getString("Hauptfenster.MenuLayoutLaden")); //$NON-NLS-1$
       loadWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_L);
       loadWindowsItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2097,7 +2152,7 @@ public final class ControlFrame extends SubFrame
     
   private void loadWindows() {
     String[] layouts = FrameLayouts.getInstance().getStoredLayouts();
-    Object layout = JOptionPane.showInputDialog(this, "Zu ladendes Layout wählen:", "Heldenverwaltung", JOptionPane.PLAIN_MESSAGE,
+    Object layout = JOptionPane.showInputDialog(this, Localization.getString("Hauptfenster.Layoutwaehlen"), Localization.getString("Hauptfenster.Heldenverwaltung"), JOptionPane.PLAIN_MESSAGE, //$NON-NLS-1$ //$NON-NLS-2$
         null, layouts, layouts[0]);
     if (layout != null) {
       for (int i = 0; i < layouts.length; ++i) {
@@ -2115,7 +2170,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getDeleteWindowsItem() {
     if (deleteWindowsItem == null) {
       deleteWindowsItem = new JMenuItem();
-      deleteWindowsItem.setText("Layout löschen...");
+      deleteWindowsItem.setText(Localization.getString("Hauptfenster.MenuLayoutLoeschen")); //$NON-NLS-1$
       deleteWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_H);
       deleteWindowsItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2129,7 +2184,7 @@ public final class ControlFrame extends SubFrame
   
   private void deleteWindows() {
     String[] layouts = FrameLayouts.getInstance().getStoredLayouts();
-    Object layout = JOptionPane.showInputDialog(this, "Zu löschendes Layout wählen:", "Heldenverwaltung", JOptionPane.PLAIN_MESSAGE,
+    Object layout = JOptionPane.showInputDialog(this, Localization.getString("Hauptfenster.Layoutwaehlen2"), Localization.getString("Hauptfenster.Heldenverwaltung"), JOptionPane.PLAIN_MESSAGE, //$NON-NLS-1$ //$NON-NLS-2$
         null, layouts, layouts[0]);
     if (layout != null) {
       for (int i = 0; i < layouts.length; ++i) {
@@ -2149,7 +2204,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getCloseWindowsItem() {
     if (closeWindowsItem == null) {
       closeWindowsItem = new JMenuItem();
-      closeWindowsItem.setText("Alle Fenster schließen");
+      closeWindowsItem.setText(Localization.getString("Hauptfenster.MenuAlleFensterSchliessen")); //$NON-NLS-1$
       closeWindowsItem.setMnemonic(java.awt.event.KeyEvent.VK_A);
       closeWindowsItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2169,7 +2224,7 @@ public final class ControlFrame extends SubFrame
   private JMenu getHeroesMenu() {
     if (heroesMenu == null) {
       heroesMenu = new JMenu();
-      heroesMenu.setText("Helden");
+      heroesMenu.setText(Localization.getString("Hauptfenster.MenuHelden")); //$NON-NLS-1$
       heroesMenu.setMnemonic(java.awt.event.KeyEvent.VK_H);
       heroesMenu.add(getNewItem());
       heroesMenu.add(getOpenHeroMenuItem());
@@ -2197,7 +2252,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getPrintMenuItem() {
     if (printMenuItem == null) {
       printMenuItem = new JMenuItem();
-      printMenuItem.setText("Drucken...");
+      printMenuItem.setText(Localization.getString("Hauptfenster.MenuDrucken")); //$NON-NLS-1$
       printMenuItem.setMnemonic(java.awt.event.KeyEvent.VK_D);
       printMenuItem.setEnabled(false);
       printMenuItem.addActionListener(new java.awt.event.ActionListener() {
@@ -2214,7 +2269,7 @@ public final class ControlFrame extends SubFrame
   private JMenu getGroupMenu() {
     if (groupMenu == null) {
       groupMenu = new JMenu();
-      groupMenu.setText("Gruppe");
+      groupMenu.setText(Localization.getString("Hauptfenster.MenuGruppe")); //$NON-NLS-1$
       groupMenu.setMnemonic(java.awt.event.KeyEvent.VK_G);
       buildGroupMenu();
     }
@@ -2232,7 +2287,7 @@ public final class ControlFrame extends SubFrame
     groupMenu.add(getGroupRegionItem());
     java.util.prefs.Preferences prefs = java.util.prefs.Preferences
         .userNodeForPackage(dsa.gui.PackageID.class);
-    int nrOfLastGroups = prefs.getInt("LastUsedGroupsCount", 0);
+    int nrOfLastGroups = prefs.getInt("LastUsedGroupsCount", 0); //$NON-NLS-1$
     if (nrOfLastGroups > 0) groupMenu.addSeparator();
     class LastGroupActionListener implements java.awt.event.ActionListener {
       public LastGroupActionListener(String fileName) {
@@ -2252,11 +2307,11 @@ public final class ControlFrame extends SubFrame
     }
     for (int i = 0; i < nrOfLastGroups; ++i) {
       JMenuItem lastGroupItem = new JMenuItem();
-      lastGroupItem.setText((i + 1) + " "
-          + prefs.get("LastUsedGroupName" + i, "Gruppe " + (i + 1)));
+      lastGroupItem.setText((i + 1) + " " //$NON-NLS-1$
+          + prefs.get("LastUsedGroupName" + i, "Gruppe " + (i + 1))); //$NON-NLS-1$ //$NON-NLS-2$
       lastGroupItem.setMnemonic(java.awt.event.KeyEvent.VK_1 + i);
       lastGroupItem.addActionListener(new LastGroupActionListener(prefs.get(
-          "LastUsedGroupFile" + i, "")));
+          "LastUsedGroupFile" + i, ""))); //$NON-NLS-1$ //$NON-NLS-2$
       groupMenu.add(lastGroupItem);
     }
   }
@@ -2271,7 +2326,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupOpenItem() {
     if (groupOpenItem == null) {
       groupOpenItem = new JMenuItem();
-      groupOpenItem.setText("Öffnen...");
+      groupOpenItem.setText(Localization.getString("Hauptfenster.MenuOeffnen")); //$NON-NLS-1$
       groupOpenItem.setMnemonic(java.awt.event.KeyEvent.VK_F);
       groupOpenItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2290,7 +2345,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupSaveItem() {
     if (groupSaveItem == null) {
       groupSaveItem = new JMenuItem();
-      groupSaveItem.setText("Speichern");
+      groupSaveItem.setText(Localization.getString("Hauptfenster.MenuSpeichern")); //$NON-NLS-1$
       groupSaveItem.setMnemonic(java.awt.event.KeyEvent.VK_S);
       groupSaveItem.setEnabled(false);
       groupSaveItem.addActionListener(new java.awt.event.ActionListener() {
@@ -2306,7 +2361,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupSaveAsItem() {
     if (groupSaveAsItem == null) {
       groupSaveAsItem = new JMenuItem();
-      groupSaveAsItem.setText("Speichern unter...");
+      groupSaveAsItem.setText(Localization.getString("Hauptfenster.MenuSpeichernUnter")); //$NON-NLS-1$
       groupSaveAsItem.setMnemonic(java.awt.event.KeyEvent.VK_U);
       groupSaveAsItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2323,7 +2378,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupNewItem() {
     if (groupNewItem == null) {
       groupNewItem = new JMenuItem();
-      groupNewItem.setText("Neu");
+      groupNewItem.setText(Localization.getString("Hauptfenster.MenuNeu")); //$NON-NLS-1$
       groupNewItem.setMnemonic(java.awt.event.KeyEvent.VK_N);
       groupNewItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2338,7 +2393,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupPrintItem() {
     if (groupPrintItem == null) {
       groupPrintItem = new JMenuItem();
-      groupPrintItem.setText("Drucken...");
+      groupPrintItem.setText(Localization.getString("Hauptfenster.MenuDrucken")); //$NON-NLS-1$
       groupPrintItem.setMnemonic(java.awt.event.KeyEvent.VK_D);
       groupPrintItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2353,7 +2408,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupTimeItem() {
     if (groupTimeItem == null) {
       groupTimeItem = new JMenuItem();
-      groupTimeItem.setText("Spielzeit ...");
+      groupTimeItem.setText(Localization.getString("Hauptfenster.MenuSpielzeit")); //$NON-NLS-1$
       groupTimeItem.setMnemonic(java.awt.event.KeyEvent.VK_Z);
       groupTimeItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2367,7 +2422,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getGroupRegionItem() {
     if (groupZoneItem == null) {
       groupZoneItem = new JMenuItem();
-      groupZoneItem.setText("Handelsregion ...");
+      groupZoneItem.setText(Localization.getString("Hauptfenster.MenuHandelsregion")); //$NON-NLS-1$
       groupZoneItem.setMnemonic(java.awt.event.KeyEvent.VK_R);
       groupZoneItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2386,7 +2441,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getNewItem() {
     if (newItem == null) {
       newItem = new JMenuItem();
-      newItem.setText("Neu...");
+      newItem.setText(Localization.getString("Hauptfenster.MenuNeu2")); //$NON-NLS-1$
       newItem.setMnemonic(java.awt.event.KeyEvent.VK_N);
       newItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2437,7 +2492,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getOpenHeroMenuItem() {
     if (openItem == null) {
       openItem = new JMenuItem();
-      openItem.setText("Öffnen...");
+      openItem.setText(Localization.getString("Hauptfenster.MenuOeffnen")); //$NON-NLS-1$
       openItem.setMnemonic(java.awt.event.KeyEvent.VK_F);
       openItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2457,7 +2512,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getSaveHeroMenuItem() {
     if (saveItem == null) {
       saveItem = new JMenuItem();
-      saveItem.setText("Speichern");
+      saveItem.setText(Localization.getString("Hauptfenster.MenuSpeichern")); //$NON-NLS-1$
       saveItem.setMnemonic(java.awt.event.KeyEvent.VK_S);
       saveItem.setEnabled(false);
       saveItem.addActionListener(new java.awt.event.ActionListener() {
@@ -2477,7 +2532,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getSaveHeroAsMenuItem() {
     if (saveAsItem == null) {
       saveAsItem = new JMenuItem();
-      saveAsItem.setText("Speichern unter...");
+      saveAsItem.setText(Localization.getString("Hauptfenster.MenuSpeichernUnter")); //$NON-NLS-1$
       saveAsItem.setEnabled(false);
       saveAsItem.setMnemonic(java.awt.event.KeyEvent.VK_U);
       saveAsItem.addActionListener(new java.awt.event.ActionListener() {
@@ -2494,7 +2549,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getSaveAllItem() {
     if (saveAllItem == null) {
       saveAllItem = new JMenuItem();
-      saveAllItem.setText("Alle speichern");
+      saveAllItem.setText(Localization.getString("Hauptfenster.MenuAlleSpeichern")); //$NON-NLS-1$
       saveAllItem.setMnemonic(java.awt.event.KeyEvent.VK_L);
       saveAllItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -2513,7 +2568,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getImportHeroMenuItem() {
     if (importItem == null) {
       importItem = new JMenuItem();
-      importItem.setText("Importieren...");
+      importItem.setText(Localization.getString("Hauptfenster.MenuImportieren")); //$NON-NLS-1$
       importItem.setMnemonic(java.awt.event.KeyEvent.VK_I);
       importItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2532,7 +2587,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getQuitMenuItem() {
     if (closeItem == null) {
       closeItem = new JMenuItem();
-      closeItem.setText("Beenden");
+      closeItem.setText(Localization.getString("Hauptfenster.MenuBeenden")); //$NON-NLS-1$
       closeItem.setMnemonic(java.awt.event.KeyEvent.VK_B);
       closeItem.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -2551,7 +2606,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getRemoveHeroMenuItem() {
     if (removeItem == null) {
       removeItem = new JMenuItem();
-      removeItem.setText("Entfernen");
+      removeItem.setText(Localization.getString("Hauptfenster.MenuEntfernen")); //$NON-NLS-1$
       removeItem.setEnabled(false);
       removeItem.setMnemonic(java.awt.event.KeyEvent.VK_E);
       removeItem.addActionListener(new java.awt.event.ActionListener() {
@@ -2571,7 +2626,7 @@ public final class ControlFrame extends SubFrame
   private JMenuItem getCloneHeroMenuItem() {
     if (cloneItem == null) {
       cloneItem = new JMenuItem();
-      cloneItem.setText("Klonen...");
+      cloneItem.setText(Localization.getString("Hauptfenster.MenuKlonen")); //$NON-NLS-1$
       cloneItem.setEnabled(false);
       cloneItem.setMnemonic(java.awt.event.KeyEvent.VK_K);
       cloneItem.addActionListener(new java.awt.event.ActionListener() {
@@ -2610,7 +2665,7 @@ public final class ControlFrame extends SubFrame
     // openItem.setEnabled(true);
     String path = Group.getInstance().getFilePath(newCharacter);
     saveItem.setEnabled(newCharacter != null && path != null
-        && !path.equals("") && !newCharacter.isDifference());
+        && !path.equals("") && !newCharacter.isDifference()); //$NON-NLS-1$
     saveAsItem.setEnabled(newCharacter != null && !newCharacter.isDifference());
     // importItem.setEnabled(true);
     // closeItem.setEnabled(true);

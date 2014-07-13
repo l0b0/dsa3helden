@@ -48,10 +48,12 @@ import dsa.control.Markers;
 import dsa.gui.dialogs.ProbeResultDialog;
 import dsa.gui.dialogs.WeaponsSelectionDialog;
 import dsa.gui.dialogs.AbstractSelectionDialog.SelectionDialogCallback;
+import dsa.gui.dialogs.fighting.HitDialog;
 import dsa.gui.dialogs.fighting.ProjectileAttackDialog;
 import dsa.gui.util.ImageManager;
 import dsa.gui.util.OptionsChange;
 import dsa.model.DiceSpecification;
+import dsa.model.Fighter;
 import dsa.model.characters.CharacterAdapter;
 import dsa.model.characters.CharacterObserver;
 import dsa.model.characters.Group;
@@ -65,7 +67,11 @@ import dsa.model.data.Talents;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
 import dsa.model.talents.Talent;
+import dsa.remote.IServer.FightProperty;
+import dsa.remote.RemoteFight;
+import dsa.remote.RemoteManager;
 import dsa.util.Optional;
+import dsa.util.Strings;
 
 import javax.swing.JCheckBox;
 import java.awt.Rectangle;
@@ -229,7 +235,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       modeBox.setEnabled(true);
       modeBox.removeAllItems();
       modeBox.addItem("Waffenlos");
-      int nrOfCloseRangeWeapons = Fighting.getCloseRangeWeapons(currentHero).size();
+      int nrOfCloseRangeWeapons = Fighting.getCloseRangeWeapons(currentHero, 0).size();
       if (nrOfCloseRangeWeapons > 0) {
         modeBox.addItem("Eine Waffe");
         if (currentHero.getShields().length > 0) {
@@ -296,6 +302,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       else {
         markerSpinner.setEnabled(false);
         markerSpinner.setValue(0);
+      }
+      if (Fighting.Flammenschwert1.equals(currentHero.getFirstHandWeapon()) && currentHero.getCurrentEnergy(Energy.AE) < 2) {
+    	  attack1Button.setEnabled(false);
+      }
+      else if (Fighting.Flammenschwert2.equals(currentHero.getFirstHandWeapon()) && currentHero.getCurrentEnergy(Energy.AE) < 3) {
+    	  attack1Button.setEnabled(false);
       }
       // hand1Changed();
       // hand2Changed();
@@ -535,6 +547,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         currentHero.setDazed(true);
         dazedBox.setSelected(true);
         dazedBox.setEnabled(false);
+        if (RemoteManager.getInstance().isConnected())
+        	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.dazed, true);
       }
       else if (withDazed) {
         dazedBox.setEnabled(true);
@@ -622,6 +636,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     if (!listen && !initializing) return;
     Object mode = modeBox.getSelectedItem();
     if (mode == null) return;
+    boolean change = !mode.toString().equals(currentHero.getFightMode());
     fireActiveWeaponChange = false;
     attack1Button.setEnabled(Fighting.canAttack(currentHero));
     parade1Button.setEnabled(Fighting.canDefend(currentHero));
@@ -641,6 +656,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     if (mode.equals("Waffenlos")) {
       firstHandLabel.setText("Kampftechnik:");
       disableSecondHand();
+      int selectedIndex = -1;
+      int maxTalent = 0;
+      int i = 0;
+      for (String s : Fighting.getPossibleItems(currentHero, mode.toString(), 0)) {
+    	  if (currentHero.getCurrentTalentValue(s) > maxTalent) {
+    		  maxTalent = currentHero.getCurrentTalentValue(s);
+    		  selectedIndex = i;
+    	  }
+    	  ++i;
+      }
+      if (selectedIndex > -1) {
+    	  hand1Box.setSelectedIndex(selectedIndex);
+      }
     }
     else if (mode.equals("Eine Waffe")) {
       firstHandLabel.setText("Erste Hand:");
@@ -679,7 +707,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
     fireActiveWeaponChange = true;
     enableWVControls();
-    currentHero.fireActiveWeaponsChanged();
+    if (change)
+    	currentHero.fireActiveWeaponsChanged();
   }
 
   /**
@@ -861,6 +890,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     Object o = hand1Box.getSelectedItem();
     if (o == null) return;
     String s = o.toString();
+    String oldWeapon = currentHero.getFirstHandWeapon();
+    boolean change = !s.equals(oldWeapon);
     currentHero.setFirstHandWeapon(s);
     if (mode.equals("Waffenlos")) {
       setFirstAT();
@@ -883,7 +914,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     else {
       setFirstWeaponData(s);
     }
-    if (fireActiveWeaponChange) currentHero.fireActiveWeaponsChanged();
+    if (fireActiveWeaponChange && change) currentHero.fireActiveWeaponsChanged();
+    if (change && (s.equals(Fighting.Flammenschwert1) || s.equals(Fighting.Flammenschwert2))) {
+    	if (!Fighting.Flammenschwert1.equals(oldWeapon) && !Fighting.Flammenschwert2.equals(oldWeapon)) {
+	    	if (JOptionPane.showConfirmDialog(this, "ASP für Umwandlung abziehen?", "Heldenverwaltung", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+	    		if (currentHero.getCurrentEnergy(Energy.AE) >= 5) {
+	    			currentHero.changeCurrentEnergy(Energy.AE, -5);
+	    		}
+	    		else {
+	    			JOptionPane.showMessageDialog(this, "Nicht genügend ASP vorhanden!", "Heldenverwaltung", JOptionPane.INFORMATION_MESSAGE);
+	    		}
+	    	}
+    	}
+    }
   }
 
   /**
@@ -911,6 +954,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     Object o = hand2Box.getSelectedItem();
     if (o == null) return;
     String s = o.toString();
+    boolean change = !s.equals(currentHero.getSecondHandItem());
     currentHero.setSecondHandItem(s);
     if (mode.equals("Waffe + Parade")) {
       hand1Changed();
@@ -942,7 +986,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       bf2Label.setText("" + currentHero.getBF(s, 1));
       tp2Label.setToolTipText("KK-Bonus: " + Fighting.getSecondKKBonus(currentHero));
     }
-    if (fireActiveWeaponChange) currentHero.fireActiveWeaponsChanged();
+    if (fireActiveWeaponChange && change) currentHero.fireActiveWeaponsChanged();
   }
 
   /**
@@ -977,6 +1021,13 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       doAttack(true);
     }
     currentHero.setAT1Bonus(0);
+    String weapon = currentHero.getFirstHandWeapon();
+    if (Fighting.Flammenschwert1.equals(weapon)) {
+    	currentHero.changeCurrentEnergy(Energy.AE, -2);
+    }
+    else if (Fighting.Flammenschwert2.equals(weapon)) {
+    	currentHero.changeCurrentEnergy(Energy.AE, -3);
+    }
   }
 
   private void doAttack(boolean weapon1) {
@@ -989,6 +1040,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       if (stumbled) {
         at -= 5;
         currentHero.setHasStumbled(false);
+        if (RemoteManager.getInstance().isConnected())
+        	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.stumbled, false);
       }
       String tpS = weapon1 ? tp1Label.getText() : tp2Label.getText();
       DiceSpecification ds = DiceSpecification.parse(tpS);
@@ -997,7 +1050,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       at += atbonus;
       int atRoll = Dice.roll(20);
       if (atRoll == 20) {
-        doFumble(weapon1);
+        doFumble(weapon1, true);
       }
       else {
         String s = (atRoll == 1 ? "Perfekte Attacke!\n" : "");
@@ -1023,14 +1076,20 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
             hit = false;
           }
         }
+        int tp = 0;
         if (hit) {
-          int tp = ds.calcValue() + q;
+          tp = ds.calcValue() + q;
           if (atRoll == 1) tp += Dice.roll(6);
           if (tp < 0) tp = 0;
           s += "Trefferpunkte: " + tp;
         }
         ImageIcon icon = ImageManager.getIcon(weapon1 ? "attack1" : "attack2");
-        ProbeResultDialog.showDialog(this, s, "Attacke", icon);
+        int dialogResult = ProbeResultDialog.showDialog(this, s, "Attacke", icon, true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+    	if (sendToServer) {
+			RemoteManager.getInstance().informOfHeroAt(currentHero, s, q, hit, tp, false, informOtherPlayers);
+    	}
       }
     }
     catch (NumberFormatException e) {
@@ -1049,10 +1108,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       if (stumbled) {
         at -=5;
         currentHero.setHasStumbled(false);
+        if (RemoteManager.getInstance().isConnected())
+        	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.stumbled, false);
       }
       int atRoll = Dice.roll(20);
       if (atRoll == 20) {
-        doFumble(true);
+        doFumble(true, true);
       }
       else {
         String s = (atRoll == 1 ? "Perfekte Attacke!\n" : "");
@@ -1069,9 +1130,16 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         int q = 0;
         q = (at - atRoll - Markers.getMarkers(currentHero)) / 2;
         s += "Qualität: " + q + "\n";
-        s += calcWeaponlessTP(atRoll == 1, q);
+        StringBuilder tpString = new StringBuilder();
+        int tp = calcWeaponlessTP(atRoll == 1, q, tpString);
+        s += tpString;
         ImageIcon icon = ImageManager.getIcon("attack1");
-        ProbeResultDialog.showDialog(this, s, "Attacke", icon);
+        int dialogResult = ProbeResultDialog.showDialog(this, s, "Attacke", icon, true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+    	if (sendToServer) {
+			RemoteManager.getInstance().informOfHeroAt(currentHero, s, q, true, tp, true, informOtherPlayers);
+    	}
       }
     }
     catch (NumberFormatException e) {
@@ -1079,18 +1147,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     }
   }
 
-  private String calcWeaponlessTP(boolean perfect, int q) {
+  private int calcWeaponlessTP(boolean perfect, int q, StringBuilder resultString) {
     String mode = hand1Box.getSelectedItem().toString();
     String s = "";
+    int tp = 0;
     if (mode.equals("Raufen")) {
-      int tp = Dice.roll(6);
+      tp = Dice.roll(6);
       if (perfect) tp += Dice.roll(6);
       tp += q;
       if (tp < 0) tp = 0;
       s = "Trefferpunkte: " + tp;
     }
     else if (mode.equals("Boxen")) {
-      int tp = Dice.roll(6);
+      tp = Dice.roll(6);
       boolean again = false;
       if (tp == 6) again = true;
       if (perfect) {
@@ -1112,7 +1181,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       s = "Trefferpunkte: " + tp;
     }
     else if (mode.equals("Ringen")) {
-      int tp = Dice.roll(6);
+      tp = Dice.roll(6);
       if (perfect) tp += Dice.roll(6);
       tp += q;
       if (tp < 0) tp = 0;
@@ -1125,7 +1194,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       boolean canTurn = perfect;
       int tp1 = 0;
       int tp2 = 0;
-      int tp = 0;
+      tp = 0;
       do {
         tp1 = Dice.roll(6);
         tp2 = Dice.roll(6);
@@ -1146,7 +1215,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       if (tp < 0) tp = 0;
       s = "Trefferpunkte: " + tp;
     }
-    return s;
+    resultString.append(s);
+    return tp;
   }
 
   private void doProjectileAttack() {
@@ -1174,8 +1244,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     if (currentHero.hasStumbled()) {
       s += "Zuschlag durch Solpern: 5\n";
       currentHero.setHasStumbled(false);
+      if (RemoteManager.getInstance().isConnected())
+      	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.stumbled, false);
     }
     s += "Wurf: " + roll + "\n";
+    boolean hit = false;
+    int tp = 0;
     if (roll == 1 || roll <= at - mod - Markers.getMarkers(currentHero)) {
       if (roll == 1)
         s += "Perfekt g";
@@ -1186,15 +1260,21 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       s += q + "\n";
       String tps = tp1Label.getText();
       DiceSpecification ds = DiceSpecification.parse(tps);
-      int tp = ds.calcValue();
+      tp = ds.calcValue();
       if (roll == 1) tp += Dice.roll(6);
       tp += w.getDistanceTPMod(dialog.getDistance());
       tp += q;
       s += "Trefferpunkte: " + tp;
+      hit = true;
     }
     else
       s += "Daneben.";
-    ProbeResultDialog.showDialog(this, s, "Attacke");
+    int dialogResult = ProbeResultDialog.showDialog(this, s, "Attacke", true);
+	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+	if (sendToServer) {
+		RemoteManager.getInstance().informOfHeroProjectileAT(currentHero, s, hit, tp, informOtherPlayers);
+	}
   }
 
   /**
@@ -1246,73 +1326,122 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     for (int i = -9; i < 13; ++i) {
       quals[i + 9] = i;
     }
+    int defaultQuality = 0;
+    int defaultTP = 1;
+    if (RemoteManager.getInstance().isConnectedAsPlayer()) {
+	  RemoteFight.Attack receivedAt = RemoteManager.getInstance().getLastAttackAgainstHero(currentHero);
+	  if (receivedAt != null && !receivedAt.isProjectile()) {
+		  defaultQuality = receivedAt.getQuality();
+		  defaultTP = receivedAt.getTP();
+		  RemoteManager.getInstance().removeLastAttackAgainstHero(currentHero);
+	  }
+	}
     Integer q = (Integer) JOptionPane.showInputDialog(this, "AT-Qualität:",
-        "Parade", JOptionPane.PLAIN_MESSAGE, icon, quals, quals[9]);
+        "Parade", JOptionPane.PLAIN_MESSAGE, icon, quals, defaultQuality);
     if (q == null) return 0;
     if (currentHero.isGrounded()) q += 5;
     if (currentHero.hasStumbled()) {
       q += 5;
       currentHero.setHasStumbled(false);
+      if (RemoteManager.getInstance().isConnected())
+      	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.stumbled, false);
     }
+    int dialogResult = 0;
+    String text = "";
+    String hitText = "";
+    boolean success = false;
+    int result = 0;
+    
     int d = Dice.roll(20);
     if (d == 20) {
-      doFumble(weapon1);
-      return 0;
+      dialogResult = doFumble(weapon1, false);
     }
     else if (d == 1) {
-    	ProbeResultDialog.showDialog(this, "Mit einer 1 perfekt pariert!",
-          "Parade", icon);
-      return (paValue - q - Markers.getMarkers(currentHero)) / 2;
+    	text = "Mit einer 1 perfekt pariert!";
+    	success = true;
+    	dialogResult = ProbeResultDialog.showDialog(this, text,
+          "Parade", icon, true);
+      result = (paValue - q - Markers.getMarkers(currentHero)) / 2;
     }
     else if (d <= paValue - q - Markers.getMarkers(currentHero)) {
-    	ProbeResultDialog.showDialog(this, "Mit einer " + d + " pariert.",
-          "Parade", icon);
-      return 0;
+    	text = "Mit einer " + d + " pariert.";
+    	success = true;
+    	dialogResult = ProbeResultDialog.showDialog(this, text,
+          "Parade", icon, true);
     }
     else {
-      ProbeResultDialog.showDialog(this, "Mit einer " + d + " nicht pariert.",
-			"Parade", icon);
+    	text = "Mit einer " + d + " nicht pariert.";
+    	success = false;
+      dialogResult = ProbeResultDialog.showDialog(this, text,
+			"Parade", icon, true);
+    }
+    if (!success) {
       int tp = -1;
       while (tp < 0) {
         Object temp = JOptionPane.showInputDialog(this, "Trefferpunkte:", "Parade",
-            JOptionPane.PLAIN_MESSAGE, icon, null, "");
+            JOptionPane.PLAIN_MESSAGE, icon, null, "" + defaultTP);
         if (temp == null) return 0;
-        String text = temp.toString();
+        String text2 = temp.toString();
         try {
-          tp = Integer.parseInt(text);
+          tp = Integer.parseInt(text2);
         }
         catch (NumberFormatException e) {
           JOptionPane.showMessageDialog(this, "Bitte eine Zahl >= 0 eingeben.",
               "Parade", JOptionPane.ERROR_MESSAGE);
         }
       }
-      doHit(tp);
-      return 0;
+      try {
+    	  RemoteManager.getInstance().setListenForHeroChanges(false);
+    		boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    		boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+          hitText = doHit(tp, sendToServer, informOtherPlayers);
+      }
+      finally {
+    	  RemoteManager.getInstance().setListenForHeroChanges(true);
+      }
     }
+    
+	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+	if (sendToServer) {
+		if (d != 20) { 
+			RemoteManager.getInstance().informOfHeroPA(currentHero, text, success, informOtherPlayers);
+		}
+		if (!success) {
+			RemoteManager.getInstance().informOfHit(currentHero, hitText, informOtherPlayers);
+		}
+	}
+    return result;
   }
 
-  private void doFumble(boolean weapon1) {
+  private int doFumble(boolean weapon1, boolean isAttack) {
     String mode = modeBox.getSelectedItem().toString();
     boolean withWeapon = !mode.equals("Waffenlos");
     int d = 0;
     do {
       d = Dice.roll(6) + Dice.roll(6);
     } while (!withWeapon && d < 6);
+    
+    String text = "";
+    String hitText = "";
+    int dialogResult = 0;
 
-    if (d == 2) {
+	if (d == 2) {
       int r = Dice.roll(20);
       if (r <= currentHero.getCurrentProperty(Property.KK) - 7) {
-        ProbeResultDialog
+    	  text = "Patzer! Beinahe hätte " + Strings.firstWord(currentHero.getName()) + " die Waffe verloren, aber der Rettungswurf ist geglückt."; 
+    	  dialogResult = ProbeResultDialog
             .showDialog(
                 this,
-                "Patzer! Beinahe die Waffe verloren, aber der Rettungswurf ist geglückt.",
-                "Patzer");
+                text,
+                "Patzer", true);
       }
       else {
-    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
-            + " verliert "
-            + (currentHero.getSex().startsWith("m") ? "seine" : "ihre")
-            + " Waffe!", "Patzer");
+    	  text = "Patzer! " + Strings.firstWord(currentHero.getName())
+    	            + " verliert "
+    	            + (currentHero.getSex().startsWith("m") ? "seine" : "ihre")
+    	            + " Waffe!";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Patzer", true);
         int bfRoll = Dice.roll(6) + Dice.roll(6);
         String weapon = weapon1 ? hand1Box.getSelectedItem().toString()
             : hand2Box.getSelectedItem().toString();
@@ -1324,13 +1453,13 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           bf = currentHero.getBF(weapon);
         }
         if (bfRoll <= bf) {
-          breakWeapon(weapon1);
+          text += " " + breakWeapon(weapon1);
         }
         else {
           if (bfRoll < 10) ++bf;
           bfRoll = Dice.roll(6) + Dice.roll(6);
           if (bfRoll <= bf) {
-            breakWeapon(weapon1);
+            text += " " + breakWeapon(weapon1);
           }
           else {
             if (bfRoll < 10) ++bf;
@@ -1345,7 +1474,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
             else
               bf2Label.setText("" + bf);
             ProbeResultDialog.showDialog(this, "Die Waffe bleibt ganz.",
-                "Patzer");
+                "Patzer", false);
+            text += " Die Waffe bleibt ganz.";
           }
         }
       }
@@ -1354,24 +1484,27 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       int r = Dice.roll(20);
       if (r <= currentHero.getCurrentProperty(Property.KK) - 7
           - Markers.getMarkers(currentHero)) {
-    	  ProbeResultDialog.showDialog(
+    	  text = "Patzer! Beinahe hätte " + Strings.firstWord(currentHero.getName()) + " die Waffe verloren, aber der Rettungswurf ist geglückt."; 
+    	  dialogResult = ProbeResultDialog.showDialog(
                 this,
-                "Patzer! Beinahe die Waffe verloren, aber der Rettungswurf ist geglückt.",
-                "Patzer");
+                text,
+                "Patzer", true);
       }
       else {
-    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
-            + " verliert "
-            + (currentHero.getSex().startsWith("m") ? "seine" : "ihre")
-            + " Waffe!", "Patzer");
+    	  text = "Patzer! " + Strings.firstWord(currentHero.getName())
+    	            + " verliert "
+    	            + (currentHero.getSex().startsWith("m") ? "seine" : "ihre")
+    	            + " Waffe!";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Patzer", true);
       }
     }
     else if (d <= 5) {
       int bfRoll = Dice.roll(6) + Dice.roll(6);
       String weapon = weapon1 ? hand1Box.getSelectedItem().toString()
           : hand2Box.getSelectedItem().toString();
-      ProbeResultDialog.showDialog(this, "Patzer! Die Waffe ist beschädigt.",
-          "Patzer");
+      text = "Patzer! Die Waffe von " + Strings.firstWord(currentHero.getName()) + " ist beschädigt.";
+      dialogResult = ProbeResultDialog.showDialog(this, text,
+          "Patzer", true);
       int bf = 0;
       if (weapon1 || !mode.equals("Waffe + Parade, separat")) {
         bf = currentHero.getBF(weapon, 1);
@@ -1380,7 +1513,7 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         bf = currentHero.getBF(weapon);
       }
       if (bfRoll <= bf) {
-        breakWeapon(weapon1);
+        text += " " + breakWeapon(weapon1);
       }
       else {
         if (bfRoll < 10) ++bf;
@@ -1394,7 +1527,8 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
           bf1Label.setText("" + bf);
         else
           bf2Label.setText("" + bf);
-        ProbeResultDialog.showDialog(this, "Die Waffe bleibt ganz.", "Patzer");
+        ProbeResultDialog.showDialog(this, "Die Waffe bleibt ganz.", "Patzer", false);
+        text += " Die Waffe bleibt ganz.";
       }
     }
     else if (d <= 8) {
@@ -1408,13 +1542,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe wäre "
-            + currentHero.getName() + " gestolpert.", "Parade");
+    	  text = "Patzer! Beinahe wäre "
+    	            + Strings.firstWord(currentHero.getName()) + " gestolpert.";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Parade", true);
       }
       else {
-    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
-            + " stolpert!", "Patzer");
+    	  text = "Patzer! " + Strings.firstWord(currentHero.getName())
+    	            + " stolpert!";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Patzer", true);
         currentHero.setHasStumbled(true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+        if (RemoteManager.getInstance().isConnected() && sendToServer)
+        	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.stumbled, informOtherPlayers);
       }
     }
     else if (d <= 10) {
@@ -1428,13 +1568,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe wäre "
-            + currentHero.getName() + " gestürzt.", "Patzer");
+    	  text = "Patzer! Beinahe wäre "
+    	            + Strings.firstWord(currentHero.getName()) + " gestürzt.";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Patzer", true);
       }
       else {
-    	  ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
-            + " stürzt!", "Patzer");
+    	  text = "Patzer! " + Strings.firstWord(currentHero.getName())
+    	            + " stürzt!";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Patzer", true);
         currentHero.setGrounded(true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+        if (RemoteManager.getInstance().isConnected() && sendToServer)
+        	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.grounded, informOtherPlayers);
         groundBox.setSelected(true);
       }
     }
@@ -1449,16 +1595,20 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe hätte "
-            + currentHero.getName() + " sich selbst verletzt.", "Patzer");
+    	  text = "Patzer! Beinahe hätte "
+    	            + Strings.firstWord(currentHero.getName()) + " sich selbst verletzt.";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text, "Patzer", true);
       }
       else {
         ImageIcon icon = ImageManager.getIcon("hit");
         int damage = Dice.roll(6);
-        ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
-            + " verletzt sich selbst!\n" + damage + " Schadenspunkte.",
-            "Patzer", icon);
-        doHit(damage + currentHero.getRS());
+        text = "Patzer! " + Strings.firstWord(currentHero.getName())
+                + " verletzt sich selbst!\n" + damage + " Schadenspunkte.";
+        dialogResult = ProbeResultDialog.showDialog(this, text,
+            "Patzer", icon, true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+        hitText = doHit(damage + currentHero.getRS(), sendToServer, informOtherPlayers);
       }
     }
     else {
@@ -1472,25 +1622,45 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
       }
       if (r <= currentHero.getCurrentProperty(Property.GE) - be
           - Markers.getMarkers(currentHero)) {
-    	  ProbeResultDialog.showDialog(this, "Patzer! Beinahe hätte "
-            + currentHero.getName() + " sich selbst schwer verletzt.",
-            "Patzer");
+    	  text = "Patzer! Beinahe hätte "
+    	            + Strings.firstWord(currentHero.getName()) + " sich selbst schwer verletzt.";
+    	  dialogResult = ProbeResultDialog.showDialog(this, text,
+            "Patzer", true);
       }
       else {
         ImageIcon icon = ImageManager.getIcon("hit");
         int damage = Dice.roll(6) + Dice.roll(6);
-        ProbeResultDialog.showDialog(this, "Patzer! " + currentHero.getName()
-            + " verletzt sich selbst schwer!\n" + damage + " Schadenspunkte.",
-            "Patzer", icon);
-        doHit(damage + currentHero.getRS());
+        text = "Patzer! " + Strings.firstWord(currentHero.getName())
+                + " verletzt sich selbst schwer!\n" + damage + " Schadenspunkte.";
+        dialogResult = ProbeResultDialog.showDialog(this, text,
+            "Patzer", icon, true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+        hitText = doHit(damage + currentHero.getRS(), sendToServer, informOtherPlayers);
       }
     }
+
+	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+	if (sendToServer) {
+		if (isAttack) {
+			RemoteManager.getInstance().informOfHeroAt(currentHero, text, 0, false, 0, false, informOtherPlayers);
+		}
+		else {
+			RemoteManager.getInstance().informOfHeroPA(currentHero, text, false, informOtherPlayers);
+		}
+		if (!hitText.isEmpty()) {
+			RemoteManager.getInstance().informOfHit(currentHero, hitText, informOtherPlayers);
+		}
+	}
+	return dialogResult;
   }
 
-  private void breakWeapon(boolean weapon1) {
+  private String breakWeapon(boolean weapon1) {
     String weapon = weapon1 ? hand1Box.getSelectedItem().toString() : hand2Box
         .getSelectedItem().toString();
-    ProbeResultDialog.showDialog(this, "Die Waffe zerbricht!", "Patzer");
+    String text2 = "Die Waffe zerbricht!";
+    ProbeResultDialog.showDialog(this, text2, "Patzer", false);
     String mode = modeBox.getSelectedItem().toString();
     if (!weapon1 && !mode.equals("Zwei Waffen")) {
       currentHero.removeShield(weapon);
@@ -1498,9 +1668,10 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     else {
       currentHero.removeWeapon(weapon);
     }
+    return text2;
   }
 
-  private void doHit(int tp) {
+  private String doHit(int tp, final boolean sendToGM, final boolean sendToOthers) {
 	boolean hasShield = false;
 	if (currentHero.getFightMode().startsWith("Waffe + Parade")) {
 		Shield shield = Shields.getInstance().getShield(currentHero.getSecondHandItem());
@@ -1508,10 +1679,15 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
 			hasShield = true;
 		}
 	}
-    Fighting.doHit(currentHero, tp, useAU, true, hasShield, this, new Fighting.UpdateCallbacks() {
+    return Fighting.doHit(currentHero, tp, useAU, true, hasShield, this, new Fighting.UpdateCallbacks() {
       public void updateData() {
         FightFrame.this.updateData();
       }
+		public void fightPropertyChanged(Fighter fighter, FightProperty fp) {
+			if (sendToGM) {
+				RemoteManager.getInstance().informOfFightPropertyChange(currentHero, fp, sendToOthers);
+			}
+		}
     });
   }
 
@@ -1696,10 +1872,14 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         }
         else {
           groundBox.setSelected(true);
+          listen = true;
+          return;
         }
       }
     }
     listen = true;
+    if (RemoteManager.getInstance().isConnected())
+    	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.grounded, true);
   }
 
   /**
@@ -1729,8 +1909,19 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     for (int i = -9; i < 13; ++i) {
       quals[i + 9] = i;
     }
+    int defaultQuality = 0;
+    int defaultTP = 1;
+    if (RemoteManager.getInstance().isConnectedAsPlayer()) {
+	  RemoteFight.Attack receivedAt = RemoteManager.getInstance().getLastAttackAgainstHero(currentHero);
+	  if (receivedAt != null && !receivedAt.isProjectile()) {
+		  defaultQuality = receivedAt.getQuality();
+		  defaultTP = receivedAt.getTP();
+		  RemoteManager.getInstance().removeLastAttackAgainstHero(currentHero);
+	  }
+	}
+    
     Integer q = (Integer) JOptionPane.showInputDialog(this, "AT-Qualität:",
-        "Parade", JOptionPane.PLAIN_MESSAGE, icon, quals, quals[9]);
+        "Parade", JOptionPane.PLAIN_MESSAGE, icon, quals, defaultQuality);
     if (q == null) return;
     if (currentHero.isGrounded()) q += 5;
     int maxBonus = currentHero.getCurrentDerivedValue(Hero.DerivedValue.AB);
@@ -1743,36 +1934,71 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
     if (b == null) return;
     int aw = currentHero.getCurrentDerivedValue(Hero.DerivedValue.PA);
     int be = Math.round((float) currentHero.getBE() / 2.0f);
+    int fsMalus = Fighting.Flammenschwert2.equals(currentHero.getFirstHandWeapon()) ? 5 : 0;
     int d = Dice.roll(20);
+    boolean hit = false;
+    int dialogResult = 0;
     if (d == 20) {
-      doFumble(true);
+      dialogResult = doFumble(true, false);
+      hit = true;
     }
     else if (d == 1) {
-      ProbeResultDialog.showDialog(this, "Mit einer 1 perfekt ausgewichen!",
-          "Ausweichen", icon);
+    	String text = "Mit einer 1 perfekt ausgewichen!";
+    	dialogResult = ProbeResultDialog.showDialog(this, text, "Ausweichen", icon, true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+    	if (sendToServer) {
+    		RemoteManager.getInstance().informOfHeroPA(currentHero, text, true, informOtherPlayers);
+    	}
     }
-    else if (d <= aw + b - q - be - Markers.getMarkers(currentHero)) {
-    	ProbeResultDialog.showDialog(this, "Mit einer " + d + " ausgewichen.",
-          "Ausweichen", icon);
+    else if (d <= aw + b - q - be - fsMalus - Markers.getMarkers(currentHero)) {
+    	String text = "Mit einer " + d + " ausgewichen.";
+    	dialogResult = ProbeResultDialog.showDialog(this, text, "Ausweichen", icon, true);
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+    	if (sendToServer) {
+    		RemoteManager.getInstance().informOfHeroPA(currentHero, text, true, informOtherPlayers);
+    	}
     }
     else {
-      ProbeResultDialog.showDialog(this, "Mit einer " + d + " nicht ausgewichen.",
-    		  "Ausweichen", icon);
+    	String text = "Mit einer " + d + " nicht ausgewichen.";
+    	dialogResult = ProbeResultDialog.showDialog(this, text, "Ausweichen", icon, true);
+    	hit = true;
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+        if (sendToServer) {
+      	  RemoteManager.getInstance().informOfHeroPA(currentHero, text, false, informOtherPlayers);
+        }
+    }
+    if (hit) {
+    	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+    	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+    	
       int tp = -1;
       while (tp < 0) {
         Object temp = JOptionPane.showInputDialog(this, "Trefferpunkte:", "Ausweichen",
-            JOptionPane.PLAIN_MESSAGE, icon, null, "");
+            JOptionPane.PLAIN_MESSAGE, icon, null, "" + defaultTP);
         if (temp == null) return;
-        String text = temp.toString();
+        String text2 = temp.toString();
         try {
-          tp = Integer.parseInt(text);
+          tp = Integer.parseInt(text2);
         }
         catch (NumberFormatException e) {
           JOptionPane.showMessageDialog(this, "Bitte eine Zahl >= 0 eingeben.",
               "Parade", JOptionPane.ERROR_MESSAGE);
         }
       }
-      doHit(tp);
+      try {
+    	  RemoteManager.getInstance().setListenForHeroChanges(false);
+          String hitText = doHit(tp, sendToServer, informOtherPlayers);
+          if (sendToServer) {
+        	  RemoteManager.getInstance().informOfHit(currentHero, hitText, informOtherPlayers);
+          }
+      }
+      finally {
+    	  RemoteManager.getInstance().setListenForHeroChanges(true);
+      }
+      
     }
     currentHero.setAT1Bonus(-2 * b);
     currentHero.setAT2Bonus(-2 * b);
@@ -1799,23 +2025,24 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   }
 
   protected void doHit() {
-    int tp = -1;
-    ImageIcon icon = ImageManager.getIcon("hit");
-    while (tp < 0) {
-      Object temp = JOptionPane.showInputDialog(this, "Trefferpunkte:",
-          "Treffer", JOptionPane.PLAIN_MESSAGE, icon, null, "");
-      if (temp == null) return;
-      String text = temp.toString();
-      try {
-        tp = Integer.parseInt(text);
-      }
-      catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Bitte eine Zahl >= 0 eingeben.",
-            "Parade", JOptionPane.ERROR_MESSAGE);
-        tp = -1;
-      }
-    }
-    doHit(tp);
+	  HitDialog dialog = new HitDialog(this);
+	  if (RemoteManager.getInstance().isConnectedAsPlayer()) {
+		  RemoteFight.Attack receivedAt = RemoteManager.getInstance().getLastAttackAgainstHero(currentHero);
+		  if (receivedAt != null) {
+			  dialog.setDefaultTP(receivedAt.getTP());
+			  RemoteManager.getInstance().removeLastAttackAgainstHero(currentHero);
+		  }
+	  }
+	  dialog.setVisible(true);
+	  if (dialog.wasConfirmed()) {
+		  int tp = dialog.getTP();
+		  if (tp > 0) {
+			  String result = doHit(tp, dialog.sendToGM(), dialog.sendToOthers());
+			  if (dialog.sendToGM()) {
+				  RemoteManager.getInstance().informOfHit(currentHero, result, dialog.sendToOthers());
+			  }
+		  }
+	  }
   }
   
   private void enableWVControls() {
@@ -1888,9 +2115,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
         }
         else {
           dazedBox.setSelected(true);
+          return;
         }
       }
     }
+    if (RemoteManager.getInstance().isConnected())
+    	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.dazed, true);
   }
 
   /**
@@ -1915,7 +2145,12 @@ public final class FightFrame extends SubFrame implements CharactersObserver,
   private void changeMarkers() {
     int leMarkers = currentHero.getMarkers() - currentHero.getExtraMarkers();
     int newMarkers = ((Number) markerSpinner.getValue()).intValue();
-    currentHero.setExtraMarkers(newMarkers - leMarkers);
+    if (currentHero.getExtraMarkers() != (newMarkers - leMarkers)) {
+	    currentHero.setExtraMarkers(newMarkers - leMarkers);
+	    if (RemoteManager.getInstance().isConnected()) {
+	    	RemoteManager.getInstance().informOfFightPropertyChange(currentHero, dsa.remote.IServer.FightProperty.markers, true);
+	    }
+    }
   }
 
   private SpinnerNumberModel markerSpinnerModel;

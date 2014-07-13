@@ -56,8 +56,8 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
         JOptionPane
             .showMessageDialog(
                 ShieldsFrame.this,
-                "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-                "Fehler", JOptionPane.WARNING_MESSAGE);
+                Localization.getString("Parade.ParadeNurEinmal"), //$NON-NLS-1$
+                Localization.getString("Parade.Fehler"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
         return;
       }
       itemAdded(item);
@@ -93,8 +93,8 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       JOptionPane
       .showMessageDialog(
           ShieldsFrame.this,
-          "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-          "Fehler", JOptionPane.WARNING_MESSAGE);
+          Localization.getString("Parade.ParadeNurEinmal"), //$NON-NLS-1$
+          Localization.getString("Parade.Fehler"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
       return false;
     }
     return true;
@@ -117,7 +117,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   private final MyObserver myObserver = new MyObserver();
 
   public ShieldsFrame() {
-    super(ThingTransfer.Flavors.Shield, "Parade");
+    super(ThingTransfer.Flavors.Shield, Localization.getString("Parade.Parade")); //$NON-NLS-1$
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) currentHero.addHeroObserver(myObserver);
     Group.getInstance().addObserver(this);
@@ -125,7 +125,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       boolean done = false;
 
       public void windowClosing(WindowEvent e) {
-        mTable.saveSortingState("Parade");
+        mTable.saveSortingState("Parade"); //$NON-NLS-1$
         Group.getInstance().removeObserver(ShieldsFrame.this);
         if (currentHero != null) currentHero.removeHeroObserver(myObserver);
         done = true;
@@ -133,7 +133,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
-          mTable.saveSortingState("Parade");
+          mTable.saveSortingState("Parade"); //$NON-NLS-1$
           Group.getInstance().removeObserver(ShieldsFrame.this);
           if (currentHero != null) currentHero.removeHeroObserver(myObserver);
           done = true;
@@ -162,12 +162,12 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     registerForDnD(mTable);
 
     updateData();
-    mTable.restoreSortingState("Parade");
+    mTable.restoreSortingState("Parade"); //$NON-NLS-1$
     mTable.setFirstSelectedRow();
   }
   
   public String getHelpPage() {
-    return "Parade";
+    return "Parade"; //$NON-NLS-1$
   }
 
   ShieldsTable mTable;
@@ -178,7 +178,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
 
   JLabel getSumLabel() {
     if (sumLabel == null) {
-      sumLabel = new JLabel("");
+      sumLabel = new JLabel(""); //$NON-NLS-1$
       sumLabel.setForeground(java.awt.Color.BLUE);
       sumLabel.setBounds(5, 5, 280, 25);
     }
@@ -193,10 +193,10 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
 
   JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(5, 5, 60, 25);
-      addButton.setToolTipText("Schild / Parierwaffe hinzufügen");
+      addButton.setToolTipText(Localization.getString("Parade.SchildHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectItem();
@@ -208,9 +208,9 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
 
   JButton getBuyButton() {
     if (buyButton == null) {
-      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton = new JButton(ImageManager.getIcon("money")); //$NON-NLS-1$
       buyButton.setBounds(5, 35, 60, 25);
-      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.setToolTipText(Localization.getString("Parade.GegenstandKaufen")); //$NON-NLS-1$
       buyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           buyItem();
@@ -249,10 +249,10 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
 
   JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(5, 65, 60, 25);
-      removeButton.setToolTipText("Paradewerkzeug entfernen");
+      removeButton.setToolTipText(Localization.getString("Parade.SchildEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
@@ -264,14 +264,14 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   }
 
   private void calcSums() {
-    int weight = 0;
-    Shields shields = Shields.getInstance();
-    for (String name : currentHero.getShields()) {
-      Shield shield = shields.getShield(name);
-      if (shield != null) {
-        weight += shield.getWeight();
-      }
-    }
+//    int weight = 0;
+//    Shields shields = Shields.getInstance();
+//    for (String name : currentHero.getShields()) {
+//      Shield shield = shields.getShield(name);
+//      if (shield != null) {
+//        weight += shield.getWeight();
+//      }
+//    }
     // float weightStones = weight / 40.0f;
     // sumLabel.setText("Gesamt: RS " + currentHero.GetRS() + " BE " +
     // currentHero.GetBE()
@@ -331,8 +331,8 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
       JOptionPane
           .showMessageDialog(
               ShieldsFrame.this,
-              "Ein Held kann jedes Paradewerkzeug nur einfach tragen.\nDu kannst es statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-              "Fehler", JOptionPane.WARNING_MESSAGE);
+              Localization.getString("Parade.ParadeNurEinmal"), //$NON-NLS-1$
+              Localization.getString("Parade.Fehler"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
       return false;
     }
     Shield shield = Shields.getInstance().getShield(item);
@@ -343,7 +343,7 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
     currentHero.addShield(item);
     if (extraData.getType() == ExtraThingData.Type.Shield) {
       try {
-        currentHero.setBF(item, ((ExtraThingData)extraData).getPropertyInt("BF"));
+        currentHero.setBF(item, ((ExtraThingData)extraData).getPropertyInt("BF")); //$NON-NLS-1$
       }
       catch (ExtraThingData.PropertyException e) {
         e.printStackTrace();
@@ -362,13 +362,13 @@ public final class ShieldsFrame extends AbstractDnDFrame implements CharactersOb
   @Override
   protected IExtraThingData getExtraDnDData(String item) {
     ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Shield);
-    data.setProperty("BF", currentHero.getBF(item));
+    data.setProperty("BF", currentHero.getBF(item)); //$NON-NLS-1$
     Shield shield = Shields.getInstance().getShield(item);
     if (shield != null) {
-      data.setProperty("Worth", shield.getWorth());
-      data.setProperty("Weight", shield.getWeight());
-      data.setProperty("Category", shield.getFkMod() > 0 ? "Rüstung" : "Waffe");
-      data.setProperty("Singular", shield.isSingular() ? 1 : 0);
+      data.setProperty("Worth", shield.getWorth()); //$NON-NLS-1$
+      data.setProperty("Weight", shield.getWeight()); //$NON-NLS-1$
+      data.setProperty("Category", shield.getFkMod() > 0 ? "Rüstung" : "Waffe"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      data.setProperty("Singular", shield.isSingular() ? 1 : 0); //$NON-NLS-1$
     }
     return data;
   }

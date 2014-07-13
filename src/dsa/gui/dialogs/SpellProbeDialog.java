@@ -49,6 +49,7 @@ import dsa.model.data.Talents;
 import dsa.model.talents.NormalTalent;
 import dsa.model.talents.Spell;
 import dsa.model.talents.Spell.Cost;
+import dsa.remote.RemoteManager;
 import dsa.util.Strings;
 
 /**
@@ -398,11 +399,21 @@ public final class SpellProbeDialog extends BGDialog {
     int difficulty = ((Integer) getDifficultySpinner().getModel().getValue()).intValue();
     java.awt.Container parent = getParent();
     dispose();
-    String result = "";
-    result = doProbe(hero, talentName, difficulty);
+    String result = talentName;
+	if (difficulty > 0)
+		result += " +" + difficulty;
+	else if (difficulty < 0)
+		result += " " + difficulty;
+	result += ": ";
+    result += doProbe(hero, talentName, difficulty);
     result += "\nNoch " + hero.getCurrentEnergy(Energy.AE) + " ASP übrig.";
-    ProbeResultDialog.showDialog(parent, result, "Probe für "
-        + Strings.cutTo(hero.getName(), ' '));
+    int dialogResult = ProbeResultDialog.showDialog(parent, result, "Probe für "
+        + Strings.cutTo(hero.getName(), ' '), true);
+	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+	if (sendToServer) {
+		RemoteManager.getInstance().informOfProbe(hero, result, informOtherPlayers);
+	}
   }
 
   private String doProbe(Hero character, String talentName, int mod) {

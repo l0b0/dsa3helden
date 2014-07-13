@@ -85,16 +85,16 @@ public class AnimalFrame extends AbstractThingsFrame {
     this.animal = a;
     JPanel contentPane = new JPanel(new BorderLayout());
     this.setContentPane(contentPane);
-    JLabel l1 = new JLabel("");
+    JLabel l1 = new JLabel(""); //$NON-NLS-1$
     l1.setPreferredSize(new java.awt.Dimension(GAP, GAP));
     contentPane.add(l1, BorderLayout.NORTH);
-    JLabel l2 = new JLabel("");
+    JLabel l2 = new JLabel(""); //$NON-NLS-1$
     l2.setPreferredSize(new java.awt.Dimension(GAP, GAP));
     contentPane.add(l2, BorderLayout.SOUTH);
-    JLabel l3 = new JLabel("");
+    JLabel l3 = new JLabel(""); //$NON-NLS-1$
     l3.setPreferredSize(new java.awt.Dimension(GAP, GAP));
     contentPane.add(l3, BorderLayout.WEST);
-    JLabel l4 = new JLabel("");
+    JLabel l4 = new JLabel(""); //$NON-NLS-1$
     l4.setPreferredSize(new java.awt.Dimension(GAP, GAP));
     contentPane.add(l4, BorderLayout.EAST);
     
@@ -107,7 +107,7 @@ public class AnimalFrame extends AbstractThingsFrame {
 
     thingsPanel.setBorder(BorderFactory.createTitledBorder(
         BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
-        "Gegenstände"));
+        Localization.getString("Tiere.Gegenstaende"))); //$NON-NLS-1$
     
     center.add(thingsPanel, BorderLayout.CENTER);
     
@@ -140,7 +140,7 @@ public class AnimalFrame extends AbstractThingsFrame {
   }
   
   public String getHelpPage() {
-    return "Tier";
+    return "Tier"; //$NON-NLS-1$
   }
   
   protected Rectangle getSumLabelPos() {
@@ -180,7 +180,7 @@ public class AnimalFrame extends AbstractThingsFrame {
     int tk = -1;
     for (int i = 0; i < animal.getNrOfAttributes(); ++i) {
       String attrName = animal.getAttributeTitle(i);
-      if ("TK".equals(attrName)) {
+      if ("TK".equals(attrName)) { //$NON-NLS-1$
         Object tkValue = animal.getAttributeValue(i);
         if (tkValue instanceof Number) {
           tk = ((Number)tkValue).intValue();
@@ -195,10 +195,10 @@ public class AnimalFrame extends AbstractThingsFrame {
     format.setMinimumFractionDigits(0);
     format.setMinimumIntegerDigits(1);
 
-    text += "(Gesamt: ";
-    text += format.format(weightStones) + " Stein); TK: ";
-    text += (tk == -1) ? "??" : tk;
-    text += " Stein";
+    text += Localization.getString("Tiere.Gesamt"); //$NON-NLS-1$
+    text += format.format(weightStones) + Localization.getString("Tiere.SteinTK"); //$NON-NLS-1$
+    text += (tk == -1) ? "??" : tk; //$NON-NLS-1$
+    text += Localization.getString("Tiere.Stein"); //$NON-NLS-1$
     if (weightStones <= tk) {
       sumLabel.setForeground(DARK_GREEN);
     }
@@ -221,7 +221,7 @@ public class AnimalFrame extends AbstractThingsFrame {
     c.gridy = 0;
     c.anchor = GridBagConstraints.WEST;
     c.fill = GridBagConstraints.HORIZONTAL;
-    JLabel nameLabel = new JLabel("Name: ");
+    JLabel nameLabel = new JLabel(Localization.getString("Tiere.Name")); //$NON-NLS-1$
     grid.add(nameLabel, c);
     nameField = new JTextField();
     nameField.setText(animal.getName());
@@ -241,16 +241,16 @@ public class AnimalFrame extends AbstractThingsFrame {
     c.gridx = 1;
     grid.add(nameField, c);
     c.gridx++;
-    JLabel ln = new JLabel("");
+    JLabel ln = new JLabel(""); //$NON-NLS-1$
     grid.add(ln, c);
     c.gridx++;
-    JLabel lf = new JLabel("");
+    JLabel lf = new JLabel(""); //$NON-NLS-1$
     lf.setPreferredSize(new Dimension(GAP, GAP));
     grid.add(lf, c);
     c.gridx--;
     c.gridx--;
     c.gridx = 4;
-    JLabel categoryLabel = new JLabel("Typ");
+    JLabel categoryLabel = new JLabel(Localization.getString("Tiere.Typ")); //$NON-NLS-1$
     grid.add(categoryLabel, c);
     categoryField = new JTextField();
     categoryField.setText(animal.getCategory());
@@ -270,7 +270,7 @@ public class AnimalFrame extends AbstractThingsFrame {
     c.gridx = 5;
     grid.add(categoryField, c);
     c.gridx++;
-    JLabel lc = new JLabel("");
+    JLabel lc = new JLabel(""); //$NON-NLS-1$
     grid.add(lc, c);
     c.gridx--;
     int column = 0;
@@ -281,20 +281,20 @@ public class AnimalFrame extends AbstractThingsFrame {
         row = 0;
       }
       ++row;
-      JLabel label = new JLabel(animal.getAttributeTitle(i) + ": ");
+      JLabel label = new JLabel(animal.getAttributeTitle(i) + ": "); //$NON-NLS-1$
       c.gridx = column;
       c.gridy = row;
       grid.add(label, c);
       c.gridx++;
       Animal.AttributeType type = animal.getAttributeType(i);
-      if (animal.getAttributeTitle(i).equals("AP")) {
+      if (animal.getAttributeTitle(i).equals("AP")) { //$NON-NLS-1$
         JTextField tf = new JTextField();
         tf.setText(animal.getAttributeValue(i).toString());
         textFields.put(i, tf);
         tf.setEditable(false);
         grid.add(tf, c);
         c.gridx++;
-        JButton button = new JButton(ImageManager.getIcon("increase"));
+        JButton button = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
         button.setPreferredSize(new java.awt.Dimension(40, 18));
         button.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
@@ -311,7 +311,7 @@ public class AnimalFrame extends AbstractThingsFrame {
         textFields.put(i, tf);
         grid.add(tf, c);
         c.gridx++;
-        JLabel l = new JLabel("");
+        JLabel l = new JLabel(""); //$NON-NLS-1$
         grid.add(l, c);
         c.gridx--;
       }
@@ -322,7 +322,7 @@ public class AnimalFrame extends AbstractThingsFrame {
         textFields.put(i, tf);
         grid.add(tf, c);
         c.gridx++;
-        JLabel l = new JLabel("");
+        JLabel l = new JLabel(""); //$NON-NLS-1$
         grid.add(l, c);
         c.gridx--;
       }
@@ -333,7 +333,7 @@ public class AnimalFrame extends AbstractThingsFrame {
         textFields.put(i, tf);
         grid.add(tf, c);
         c.gridx++;
-        JLabel l = new JLabel("");
+        JLabel l = new JLabel(""); //$NON-NLS-1$
         grid.add(l, c);
         c.gridx--;
       }
@@ -345,7 +345,7 @@ public class AnimalFrame extends AbstractThingsFrame {
         grid.add(sp, c);
         if (animal.isAttributeTestable(i)) {
           c.gridx++;
-          JButton button = new JButton(ImageManager.getIcon("probe"));
+          JButton button = new JButton(ImageManager.getIcon("probe")); //$NON-NLS-1$
           button.setPreferredSize(new java.awt.Dimension(40, 18));
           button.addActionListener(new ProbePerformer(i));
           grid.add(button, c);
@@ -353,29 +353,29 @@ public class AnimalFrame extends AbstractThingsFrame {
         }
         else {
           c.gridx++;
-          JLabel l = new JLabel("");
+          JLabel l = new JLabel(""); //$NON-NLS-1$
           grid.add(l, c);
           c.gridx--;
         }
       }
       c.gridx--;
-      if (animal.getAttributeTitle(i).equals("AP")) {
+      if (animal.getAttributeTitle(i).equals("AP")) { //$NON-NLS-1$
         if ((i > animal.getNrOfAttributes() / 2) && (column < 3)) {
           column = 4;
           row = 0;
         }
         ++row;
-        JLabel label2 = new JLabel("Stufe: ");
+        JLabel label2 = new JLabel(Localization.getString("Tiere.Stufe")); //$NON-NLS-1$
         c.gridx = column;
         c.gridy = row;
         grid.add(label2, c);
         c.gridx++;
         int ap = ((Integer)animal.getAttributeValue(i)).intValue();
         int step = calcStep(ap);
-        JLabel label3 = new JLabel("" + step);
+        JLabel label3 = new JLabel("" + step); //$NON-NLS-1$
         grid.add(label3, c);
         c.gridx++;
-        JLabel label4 = new JLabel("");
+        JLabel label4 = new JLabel(""); //$NON-NLS-1$
         grid.add(label4, c);
         c.gridx -= 2;
       }
@@ -384,7 +384,7 @@ public class AnimalFrame extends AbstractThingsFrame {
     c.gridy = row;
     grid.setBorder(BorderFactory.createTitledBorder(
         BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
-        "Eigenschaften"));
+        Localization.getString("Tiere.Eigenschaften"))); //$NON-NLS-1$
     return grid;
   }
   
@@ -394,50 +394,50 @@ public class AnimalFrame extends AbstractThingsFrame {
 
   private void increaseAP() {
     String apS = javax.swing.JOptionPane.showInputDialog(this,
-        "Im letzten Abenteuer verdiente AP:", "AP erhöhen",
+        Localization.getString("Tiere.VerdienteAP"), Localization.getString("Tiere.APErhoehen"), //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.PLAIN_MESSAGE);
     if (apS == null) return;
     int ap = 0;
     try {
       ap = Integer.parseInt(apS);
-      if (ap < 0) throw new NumberFormatException("");
+      if (ap < 0) throw new NumberFormatException(""); //$NON-NLS-1$
     }
     catch (NumberFormatException ex) {
       JOptionPane.showMessageDialog(this,
-          "Bitte eine positive ganze Zahl eingeben.", "Fehler",
+          Localization.getString("Tiere.PositiveGanzeZahl"), Localization.getString("Tiere.Fehler"), //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.ERROR_MESSAGE);
       return;
     }
-    int index = findAttributeIndex("AP");
+    int index = findAttributeIndex("AP"); //$NON-NLS-1$
     int oldAP = ((Integer)animal.getAttributeValue(index)).intValue();
     int oldStep = calcStep(oldAP);
     int newAP = oldAP + ap;
     animal.setAttributeValue(index, Integer.valueOf(newAP));
     int newStep = calcStep(newAP);
     if (newStep > oldStep) {
-      String message = animal.getName() + " ist um " + (newStep - oldStep) + ((newStep - oldStep > 1) ? " Stufen" : " Stufe")
-        + " gestiegen!";
-      JOptionPane.showMessageDialog(this, message, "Stufenanstieg", JOptionPane.INFORMATION_MESSAGE);
+      String message = animal.getName() + Localization.getString("Tiere.istum") + (newStep - oldStep) + ((newStep - oldStep > 1) ? Localization.getString("Tiere.Stufen") : Localization.getString("Tiere.Stufe2")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        + Localization.getString("Tiere.gestiegen"); //$NON-NLS-1$
+      JOptionPane.showMessageDialog(this, message, Localization.getString("Tiere.Stufenanstieg"), JOptionPane.INFORMATION_MESSAGE); //$NON-NLS-1$
       while (newStep > oldStep) {
-        Object[] options = new Object[] {"AT", "PA" };
-        int result = JOptionPane.showOptionDialog(this, "Soll die AT oder die PA erhöht werden?", "Stufenanstieg", JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "AT");
-        increaseAttribute(result == 0 ? "AT" : "PA");
+        Object[] options = new Object[] {Localization.getString("Tiere.AT"), Localization.getString("Tiere.PA") }; //$NON-NLS-1$ //$NON-NLS-2$
+        int result = JOptionPane.showOptionDialog(this, Localization.getString("Tiere.ATOderPAErhoehen"), Localization.getString("Tiere.Stufenanstieg"), JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, Localization.getString("Tiere.AT")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        increaseAttribute(result == 0 ? "AT" : "PA"); //$NON-NLS-1$ //$NON-NLS-2$
         ArrayList<String> attrs = new ArrayList<String>();
-        attrs.add("MU");
-        attrs.add("KL");
-        attrs.add("IN");
-        attrs.add("CH");
-        attrs.add("GE");
-        attrs.add("FF");
-        attrs.add("KK");
-        attrs.add("GS");
-        attrs.add("MR");
-        result = JOptionPane.showOptionDialog(this, "Welche Eigenschaft soll erhöht werden?", "Stufenanstieg", JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, attrs.toArray(), attrs.get(0));
+        attrs.add(Localization.getString("Tiere.MU")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.KL")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.IN")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.CH")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.GE")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.FF")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.KK")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.GS")); //$NON-NLS-1$
+        attrs.add(Localization.getString("Tiere.MR")); //$NON-NLS-1$
+        result = JOptionPane.showOptionDialog(this, Localization.getString("Tiere.WelcheEigenschaftErhoehen"), Localization.getString("Tiere.Stufenanstieg"), JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, attrs.toArray(), attrs.get(0)); //$NON-NLS-1$ //$NON-NLS-2$
         increaseAttribute(attrs.get(result));
         attrs.remove(attrs.get(result));
-        result = JOptionPane.showOptionDialog(this, "Welche Eigenschaft soll außerdem erhöht werden?", "Stufenanstieg", JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, attrs.toArray(), attrs.get(0));
+        result = JOptionPane.showOptionDialog(this, Localization.getString("Tiere.WelcheEigenschaftNochErhoehen"), Localization.getString("Tiere.Stufenanstieg"), JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, attrs.toArray(), attrs.get(0)); //$NON-NLS-1$ //$NON-NLS-2$
         increaseAttribute(attrs.get(result));
-        increaseAttribute("LE");
+        increaseAttribute("LE"); //$NON-NLS-1$
         ++oldStep;
       }
     }
@@ -461,10 +461,10 @@ public class AnimalFrame extends AbstractThingsFrame {
   
   private void increaseStringAttribute(int index) {
     String oldValue = animal.getAttributeValue(index).toString();
-    StringTokenizer toks = new StringTokenizer(oldValue, "/");
-    String newValue = "";
+    StringTokenizer toks = new StringTokenizer(oldValue, "/"); //$NON-NLS-1$
+    String newValue = ""; //$NON-NLS-1$
     while (toks.hasMoreTokens()) {
-      if (newValue.length() > 0) newValue = newValue + "/";
+      if (newValue.length() > 0) newValue = newValue + "/"; //$NON-NLS-1$
       String tok = toks.nextToken();
       try {
         int old = Integer.parseInt(tok);
@@ -585,11 +585,11 @@ public class AnimalFrame extends AbstractThingsFrame {
       }
       catch (NumberFormatException e) {
         JOptionPane.showMessageDialog(AnimalFrame.this,
-            "Format muss a/b sein!", "Fehler", JOptionPane.ERROR_MESSAGE);
+            Localization.getString("Tiere.FormatFehler"), Localization.getString("Tiere.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
       }
       catch (java.io.IOException e) {
         JOptionPane.showMessageDialog(AnimalFrame.this,
-            "Format muss a/b sein!", "Fehler", JOptionPane.ERROR_MESSAGE);        
+            Localization.getString("Tiere.FormatFehler"), Localization.getString("Tiere.Fehler"), JOptionPane.ERROR_MESSAGE);         //$NON-NLS-1$ //$NON-NLS-2$
       }
     }
   }
@@ -620,8 +620,8 @@ public class AnimalFrame extends AbstractThingsFrame {
         animal.setAttributeValue(nr, ds);
       }
       catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(AnimalFrame.this, "Falsches Format für den Wert!",
-            "Fehler", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(AnimalFrame.this, Localization.getString("Tiere.FormatFehler2"), //$NON-NLS-1$
+            Localization.getString("Tiere.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
       }
     }
   }

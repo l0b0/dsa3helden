@@ -70,7 +70,7 @@ public final class OptionsDialog extends BGDialog {
 
   private JTabbedPane jTabbedPane = null;
 
-  private JPanel jPanel1 = null;
+  private JPanel uiPanel = null;
 
   private JCheckBox fgBox = null;
 
@@ -144,7 +144,7 @@ public final class OptionsDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new Dimension(352, 257));
+    this.setSize(new Dimension(375, 257));
     this.setContentPane(getJContentPane());
     this.setTitle("Optionen");
     updateData();
@@ -253,6 +253,8 @@ public final class OptionsDialog extends BGDialog {
     prefs.putInt("CustomDataDirOption", dataOption);
     prefs.putBoolean("BringWindowsToTop", fgBox.isSelected());
     prefs.putBoolean("VersionCheckAtStart", versionCheckBox.isSelected());
+    prefs.putBoolean("PlayOnlineMessageSound", onlineSoundBox.isSelected());
+    prefs.put("OnlineConnectCommand", getOnlineConnectCommandField().getText());
 
     GroupOptions options = Group.getInstance().getOptions();
     boolean changed = false;
@@ -311,6 +313,8 @@ public final class OptionsDialog extends BGDialog {
     GroupOptions options = Group.getInstance().getOptions();
     Preferences prefs = Preferences.userNodeForPackage(PackageID.class);
     fgBox.setSelected(prefs.getBoolean("BringWindowsToTop", true));
+    onlineSoundBox.setSelected(prefs.getBoolean("PlayOnlineMessageSound", true));
+    getOnlineConnectCommandField().setText(prefs.get("OnlineConnectCommand", ""));
     leftHandBox.setSelected(options.isEarlyTwoHanded());
     aeBox.setSelected(options.hasFastAERegeneration());
     koBox.setSelected(options.hasQvatStunned());
@@ -375,7 +379,8 @@ public final class OptionsDialog extends BGDialog {
       jTabbedPane = new JTabbedPane();
       jTabbedPane.addTab("Hausregeln", null, getRulesPanel(), null);
       jTabbedPane.addTab("QVAT", null, getQvatPanel(), null);
-      jTabbedPane.addTab("Aussehen", null, getJPanel1(), null);
+      jTabbedPane.addTab("Aussehen", null, getUIPanel(), null);
+      jTabbedPane.addTab("Online", null, getOnlinePanel(), null);
       jTabbedPane.addTab("Programm", null, getProgramPanel(), null);
     }
     return jTabbedPane;
@@ -386,8 +391,8 @@ public final class OptionsDialog extends BGDialog {
    * 
    * @return javax.swing.JPanel
    */
-  private JPanel getJPanel1() {
-    if (jPanel1 == null) {
+  private JPanel getUIPanel() {
+    if (uiPanel == null) {
       jLabel2 = new JLabel();
       jLabel2.setBounds(new Rectangle(10, 40, 96, 21));
       jLabel2.setText("Skin:");
@@ -397,17 +402,52 @@ public final class OptionsDialog extends BGDialog {
       jLabel = new JLabel();
       jLabel.setBounds(new Rectangle(10, 10, 97, 21));
       jLabel.setText("Look & Feel:");
-      jPanel1 = new JPanel();
-      jPanel1.setLayout(null);
-      jPanel1.add(getFGBox(), null);
-      jPanel1.add(jLabel, null);
-      jPanel1.add(getLFCombo(), null);
-      jPanel1.add(jLabel1, null);
-      jPanel1.add(jLabel2, null);
-      jPanel1.add(getSkinField(), null);
-      jPanel1.add(getSkinButton(), null);
+      uiPanel = new JPanel();
+      uiPanel.setLayout(null);
+      uiPanel.add(getFGBox(), null);
+      uiPanel.add(jLabel, null);
+      uiPanel.add(getLFCombo(), null);
+      uiPanel.add(jLabel1, null);
+      uiPanel.add(jLabel2, null);
+      uiPanel.add(getSkinField(), null);
+      uiPanel.add(getSkinButton(), null);
     }
-    return jPanel1;
+    return uiPanel;
+  }
+  
+  private JPanel getOnlinePanel() {
+	  JPanel onlinePanel = new JPanel();
+	  onlinePanel.setLayout(null);
+	  onlinePanel.add(getOnlineSoundBox(), null);
+	  onlinePanel.add(getOnlineConnectCommandField(), null);
+	  JLabel label1 = new JLabel("Beim Verbinden ausführen:");
+	  label1.setBounds(10, 40, 268, 21);
+	  onlinePanel.add(label1);
+	  JLabel label2 = new JLabel("(Verwende %HOST% als Platzhalter)");
+	  label2.setBounds(10, 80, 268, 21);
+	  onlinePanel.add(label2);
+	  return onlinePanel;
+  }
+  
+  private JCheckBox onlineSoundBox;
+  
+  private JCheckBox getOnlineSoundBox() {
+	  if (onlineSoundBox == null) {
+		  onlineSoundBox = new JCheckBox();
+		  onlineSoundBox.setBounds(new Rectangle(10, 10, 268, 21));
+		  onlineSoundBox.setText("Sound bei Nachrichten");
+	  }
+	  return onlineSoundBox;
+  }
+  
+  private JTextField onlineConnectCommandField;
+  
+  private JTextField getOnlineConnectCommandField() {
+	  if (onlineConnectCommandField == null) {
+		  onlineConnectCommandField = new JTextField();
+		  onlineConnectCommandField.setBounds(new Rectangle(10, 60, 268, 21));
+	  }
+	  return onlineConnectCommandField;
   }
 
   /**
@@ -418,7 +458,7 @@ public final class OptionsDialog extends BGDialog {
   private JCheckBox getFGBox() {
     if (fgBox == null) {
       fgBox = new JCheckBox();
-      fgBox.setBounds(new Rectangle(10, 100, 268, 21));
+      fgBox.setBounds(new Rectangle(10, 90, 268, 21));
       fgBox.setText("Fenster in den Vordergrund bringen");
     }
     return fgBox;

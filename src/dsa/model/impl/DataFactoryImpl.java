@@ -107,6 +107,17 @@ public class DataFactoryImpl extends DataFactory {
     return hero;
   }
   
+  public Hero createHeroFromString(String serializedForm) {
+	  HeroImpl hero = new HeroImpl();
+	  try {
+		  hero.readFromString(serializedForm);
+		  return hero;
+	  }
+	  catch (IOException e) {
+		  return null;
+	  }
+  }
+  
   public Hero createHeroFromPrototypeFile(File file) throws java.io.IOException {
 	HeroImpl hero = new HeroImpl();
 	hero.readFromFile(file, true);

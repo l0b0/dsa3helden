@@ -94,7 +94,7 @@ public final class GroupFrame extends SubFrame
    * This is the default constructor
    */
   public GroupFrame() {
-    super("Gruppe");
+    super(Localization.getString("Gruppe.Gruppe")); //$NON-NLS-1$
     initialize();
     Group.getInstance().addObserver(this);
     this.addWindowListener(new WindowAdapter() {
@@ -126,7 +126,7 @@ public final class GroupFrame extends SubFrame
   private void initialize() {
     // this.setSize(405, 275);
     this.setContentPane(getJContentPane());
-    this.setTitle("Gruppe");
+    this.setTitle(Localization.getString("Gruppe.Gruppe")); //$NON-NLS-1$
     updateData();
     if (dropTarget == null) {
       dropTarget = new DropTarget(this, this);
@@ -168,13 +168,13 @@ public final class GroupFrame extends SubFrame
   private JPanel getJContentPane() {
     if (jContentPane == null) {
       jLabel2 = new JLabel();
-      jLabel2.setText("");
+      jLabel2.setText(""); //$NON-NLS-1$
       jLabel2.setPreferredSize(new Dimension(38, 2));
       jLabel1 = new JLabel();
-      jLabel1.setText("");
+      jLabel1.setText(""); //$NON-NLS-1$
       jLabel1.setPreferredSize(new Dimension(10, 15));
       jLabel = new JLabel();
-      jLabel.setText("");
+      jLabel.setText(""); //$NON-NLS-1$
       jLabel.setPreferredSize(new Dimension(38, 10));
       BorderLayout borderLayout = new BorderLayout();
       borderLayout.setHgap(10);
@@ -219,8 +219,8 @@ public final class GroupFrame extends SubFrame
     if (createButton == null) {
       createButton = new JButton();
       createButton.setBounds(new Rectangle(10, 45, 51, 21));
-      createButton.setToolTipText("Neuen Helden erstellen ...");
-      createButton.setIcon(ImageManager.getIcon("tsa"));
+      createButton.setToolTipText(Localization.getString("Gruppe.NeuenHeldenErstellen")); //$NON-NLS-1$
+      createButton.setIcon(ImageManager.getIcon("tsa")); //$NON-NLS-1$
       createButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           GroupOperations.newHero(GroupFrame.this);
@@ -239,8 +239,8 @@ public final class GroupFrame extends SubFrame
     if (addButton == null) {
       addButton = new JButton();
       addButton.setBounds(new Rectangle(10, 75, 51, 21));
-      addButton.setToolTipText("Helden hinzufügen ...");
-      addButton.setIcon(ImageManager.getIcon("increase"));
+      addButton.setToolTipText(Localization.getString("Gruppe.HeldenHinzufuegen")); //$NON-NLS-1$
+      addButton.setIcon(ImageManager.getIcon("increase")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           GroupOperations.openHeroes(GroupFrame.this);
@@ -259,9 +259,9 @@ public final class GroupFrame extends SubFrame
     if (removeButton == null) {
       removeButton = new JButton();
       removeButton.setBounds(new Rectangle(10, 105, 51, 21));
-      removeButton.setToolTipText("Helden entfernen");
-      removeButton.setIcon(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton.setToolTipText(Localization.getString("Gruppe.HeldenEntfernen")); //$NON-NLS-1$
+      removeButton.setIcon(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setEnabled(false);
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -276,8 +276,8 @@ public final class GroupFrame extends SubFrame
     if (upButton == null) {
       upButton = new JButton();
       upButton.setBounds(new Rectangle(10, 135, 51, 21));
-      upButton.setToolTipText("Nach oben verschieben");
-      upButton.setIcon(ImageManager.getIcon("up"));
+      upButton.setToolTipText(Localization.getString("Gruppe.NachObenVerschieben")); //$NON-NLS-1$
+      upButton.setIcon(ImageManager.getIcon("up")); //$NON-NLS-1$
       upButton.setEnabled(false);
       upButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -292,8 +292,8 @@ public final class GroupFrame extends SubFrame
     if (downButton == null) {
       downButton = new JButton();
       downButton.setBounds(new Rectangle(10, 165, 51, 21));
-      downButton.setToolTipText("Nach unten verschieben");
-      downButton.setIcon(ImageManager.getIcon("down"));
+      downButton.setToolTipText(Localization.getString("Gruppe.NachUntenVerschieben")); //$NON-NLS-1$
+      downButton.setIcon(ImageManager.getIcon("down")); //$NON-NLS-1$
       downButton.setEnabled(false);
       downButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -317,8 +317,8 @@ public final class GroupFrame extends SubFrame
     if (printButton == null) {
       printButton = new JButton();
       printButton.setBounds(new Rectangle(10, 10, 51, 21));
-      printButton.setToolTipText("Gruppenübersicht drucken ...");
-      printButton.setIcon(ImageManager.getIcon("print"));
+      printButton.setToolTipText(Localization.getString("Gruppe.UebersichtDrucken")); //$NON-NLS-1$
+      printButton.setIcon(ImageManager.getIcon("print")); //$NON-NLS-1$
       printButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           PrintingDialog dialog = new PrintingDialog(Group.getInstance(), GroupFrame.this);
@@ -354,7 +354,7 @@ public final class GroupFrame extends SubFrame
     if (jPanel2 == null) {
       jLabel3 = new JLabel();
       jLabel3.setBounds(new Rectangle(0, 10, 51, 21));
-      jLabel3.setText("Name:");
+      jLabel3.setText(Localization.getString("Gruppe.Name")); //$NON-NLS-1$
       jPanel2 = new JPanel();
       jPanel2.setLayout(null);
       jPanel2.setPreferredSize(new Dimension(100, 40));
@@ -421,7 +421,7 @@ public final class GroupFrame extends SubFrame
   }
 
   public String getHelpPage() {
-    return "Gruppe";
+    return "Gruppe"; //$NON-NLS-1$
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {

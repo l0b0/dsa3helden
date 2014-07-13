@@ -40,8 +40,10 @@ import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
 import dsa.model.data.Talents;
 import dsa.model.talents.NormalTalent;
+import dsa.remote.RemoteManager;
 import dsa.util.Strings;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 
 /**
  * 
@@ -225,19 +227,26 @@ private JCheckBox resultBox = null;
     dispose();
     String result = "";
     String intro = "";
+    ArrayList<String> results = new ArrayList<String>();
     if (all) {
       for (Hero aHero : Group.getInstance().getAllCharacters()) {
         result += Strings.firstWord(aHero.getName()) + ": ";
         if (isTalentProbe) {
-          result += doProbe(aHero, talentName, difficulty) + "\n";
+          String temp = doProbe(aHero, talentName, difficulty);
+          results.add(temp);
+          result += temp + "\n";
           intro = talentName;
         }
         else if (isKOProbe) {
-          result += doProbe(aHero, difficulty) + "\n";
+          String temp = doProbe(aHero, difficulty);
+          results.add(temp);
+          result += temp + "\n";
           intro = "KO";
         }
         else {
-          result += doProbe(aHero, property, difficulty) + "\n";
+          String temp = doProbe(aHero, property, difficulty);
+          results.add(temp);
+          result += temp + "\n";
           intro = property.toString();
         }
       }
@@ -262,8 +271,22 @@ private JCheckBox resultBox = null;
     		intro += " " + difficulty;
     	result = intro + ":" + (all ? "\n" : " ") + result;
     }
-    ProbeResultDialog.showDialog(parent, result, all ? "Proben" : "Probe für "
-        + Strings.firstWord(hero.getName()));
+    int dialogResult = ProbeResultDialog.showDialog(parent, result, all ? "Proben" : "Probe für "
+        + Strings.firstWord(hero.getName()), true);
+	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+	if (sendToServer) {
+	    if (!all) {
+			RemoteManager.getInstance().informOfProbe(hero, result, informOtherPlayers);
+	    }
+	    else {
+	    	int i = 0;
+	    	for (Hero aHero : Group.getInstance().getAllCharacters()) {
+	    		RemoteManager.getInstance().informOfProbe(aHero, intro + ": " + results.get(i), informOtherPlayers);
+	    		++i;
+	    	}
+	    }
+	}
   }
 
   private static String doProbe(Hero character, String talentName, int mod) {

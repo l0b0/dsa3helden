@@ -27,6 +27,7 @@ import dsa.model.FarRangedFightParams;
 import dsa.model.Fighter;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.remote.RemoteManager;
 import dsa.util.Optional;
 import dsa.util.Strings;
 
@@ -70,6 +71,9 @@ public class AttackDialog extends BGDialog {
   private JButton cancelButton = null;
   private JButton okButton = null;
   private JButton modButton = null;
+  private JCheckBox sendToPlayerBox = null;
+  private JCheckBox sendToAllBox = null;
+  private JCheckBox copyBox = null;
   private int extraMod = 0;
   private int farRangedMod = 0;
   
@@ -95,11 +99,22 @@ public class AttackDialog extends BGDialog {
     public int getFumbleType() { return fumbleType; }
     public int getParadeIndex() { return paradeIndex; }
     
+    public boolean sendToPlayer() { return sendToPlayer; }
+    public boolean sendToAll() { return sendToAll; }
+    public boolean copy() { return copy; }
+    
+    public void setSendToPlayer(boolean send) { sendToPlayer = send; }
+    public void setSendToAll(boolean send) { sendToAll = send; }
+    public void setCopy(boolean copy) { this.copy = copy; }
+    
     private boolean fumble;
     private int quality;
     private int tp;
     private int fumbleType;
     private int paradeIndex;
+    private boolean sendToPlayer;
+    private boolean sendToAll;
+    private boolean copy;
   }
 
   /**
@@ -155,7 +170,8 @@ public class AttackDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new Dimension(242, 288));
+	boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+    this.setSize(new Dimension(242, !isConnected ? 308 : 348));
     this.setTitle("Attacke von " + Strings.cutTo(attacker.getName(), ' '));
     this.setContentPane(getJContentPane());
     atThrowField.requestFocus();
@@ -307,6 +323,9 @@ public class AttackDialog extends BGDialog {
             result = new AttackResult(false, quality, tp, paWeapon);
           }
         }
+        result.setCopy(copyBox.isSelected());
+        result.setSendToPlayer(sendToPlayerBox.isSelected());
+        result.setSendToAll(sendToAllBox.isSelected());
         dispose();
       }
     });
@@ -370,6 +389,25 @@ public class AttackDialog extends BGDialog {
       jLabel = new JLabel();
       jLabel.setBounds(new Rectangle(10, 10, 91, 21));
       jLabel.setText("Attacke-Wurf:");
+      boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+      copyBox = new JCheckBox("Kopieren");
+      copyBox.setBounds(new Rectangle(10, 220, 161, 21));
+      copyBox.setSelected(!isConnected);
+      sendToPlayerBox = new JCheckBox("An Spieler senden");
+      sendToPlayerBox.setBounds(new Rectangle(10, 240, 161, 21));
+      sendToPlayerBox.setEnabled(isConnected);
+      sendToPlayerBox.setSelected(isConnected);
+      sendToPlayerBox.addItemListener(new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent arg0) {
+			sendToAllBox.setSelected(sendToPlayerBox.isSelected());
+			sendToAllBox.setEnabled(sendToPlayerBox.isSelected());
+		}
+      });
+      sendToAllBox = new JCheckBox("An alle senden");
+      sendToAllBox.setBounds(new Rectangle(10, 260, 161, 21));
+      sendToAllBox.setEnabled(isConnected);
+      sendToAllBox.setSelected(isConnected);
       jContentPane = new JPanel();
       jContentPane.setLayout(null);
       jContentPane.add(jLabel, null);
@@ -388,6 +426,11 @@ public class AttackDialog extends BGDialog {
       jContentPane.add(getTpRollButton(), null);
       jContentPane.add(getFumbleButton(), null);
       jContentPane.add(getFumbleButton2(), null);
+      jContentPane.add(copyBox, null);
+      if (isConnected) {
+    	  jContentPane.add(sendToPlayerBox, null);
+    	  jContentPane.add(sendToAllBox, null);
+      }
       jContentPane.add(getCancelButton(), null);
       jContentPane.add(getOkButton(), null);
       jContentPane.add(paradeLabel, null);
@@ -556,7 +599,8 @@ public class AttackDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new Rectangle(120, 230, 101, 21));
+      boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+      cancelButton.setBounds(new Rectangle(120, !isConnected ? 250 : 290, 101, 21));
       cancelButton.setText("Abbrechen");
     }
     return cancelButton;
@@ -570,7 +614,8 @@ public class AttackDialog extends BGDialog {
   private JButton getOkButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new Rectangle(10, 230, 101, 21));
+      boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+      okButton.setBounds(new Rectangle(10, !isConnected ? 250 : 290, 101, 21));
       okButton.setText("OK");
       okButton.setDefaultCapable(true);
     }

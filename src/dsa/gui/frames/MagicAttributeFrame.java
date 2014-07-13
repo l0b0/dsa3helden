@@ -101,7 +101,7 @@ public class MagicAttributeFrame extends SubFrame implements CharactersObserver 
   }
   
   public String getHelpPage() {
-    return "Magie";
+    return "Magie"; //$NON-NLS-1$
   }
 
   private boolean disableChange = false;
@@ -115,10 +115,10 @@ public class MagicAttributeFrame extends SubFrame implements CharactersObserver 
       academyField.setText(currentHero.getAcademy());
     }
     else {
-      soulAnimalField.setText("");
+      soulAnimalField.setText(""); //$NON-NLS-1$
       specialCombo.setSelectedIndex(0);
       elementCombo.setSelectedIndex(0);
-      academyField.setText("");
+      academyField.setText(""); //$NON-NLS-1$
     }
     boolean editable = currentHero != null && !currentHero.isDifference();
     soulAnimalField.setEditable(editable);
@@ -139,16 +139,16 @@ public class MagicAttributeFrame extends SubFrame implements CharactersObserver 
   private JPanel getJContentPane() {
     if (jContentPane == null) {
       jLabel = new JLabel();
-      jLabel.setText("");
+      jLabel.setText(""); //$NON-NLS-1$
       jLabel.setPreferredSize(new Dimension(5, 5));
       jLabel2 = new JLabel();
-      jLabel2.setText("");
+      jLabel2.setText(""); //$NON-NLS-1$
       jLabel2.setPreferredSize(new Dimension(5, 5));
       jLabel3 = new JLabel();
-      jLabel3.setText("");
+      jLabel3.setText(""); //$NON-NLS-1$
       jLabel3.setPreferredSize(new Dimension(5, 5));
       jLabel4 = new JLabel();
-      jLabel4.setText("");
+      jLabel4.setText(""); //$NON-NLS-1$
       jLabel4.setPreferredSize(new Dimension(5, 5));
       jContentPane = new JPanel();
       jContentPane.setLayout(new BorderLayout());
@@ -160,23 +160,23 @@ public class MagicAttributeFrame extends SubFrame implements CharactersObserver 
       innerPanel2 = new JPanel(new BorderLayout());
       leftPanel = new JPanel(new GridLayout(4, 1, 5, 8));
       rightPanel = new JPanel(new GridLayout(4, 1, 5, 8));
-      elementLabel = new JLabel("Element:");
-      academyLabel = new JLabel("Akademie:");
-      specialLabel = new JLabel("Spezialgebiet:");
-      soulAnimalLabel = new JLabel("Seelentier:");
+      elementLabel = new JLabel(Localization.getString("Magie.Element")); //$NON-NLS-1$
+      academyLabel = new JLabel(Localization.getString("Magie.Akademie")); //$NON-NLS-1$
+      specialLabel = new JLabel(Localization.getString("Magie.Spezialgebiet")); //$NON-NLS-1$
+      soulAnimalLabel = new JLabel(Localization.getString("Magie.Seelentier")); //$NON-NLS-1$
       leftPanel.add(specialLabel);
       leftPanel.add(academyLabel);
       leftPanel.add(elementLabel);
       leftPanel.add(soulAnimalLabel);
       innerPanel.add(leftPanel, BorderLayout.WEST);
       elementCombo = new JComboBox();
-      elementCombo.addItem("Keines");
-      elementCombo.addItem("Feuer");
-      elementCombo.addItem("Wasser");
-      elementCombo.addItem("Luft");
-      elementCombo.addItem("Erz");
-      elementCombo.addItem("Humus");
-      elementCombo.addItem("Eis");
+      elementCombo.addItem(Localization.getString("Magie.Keines")); //$NON-NLS-1$
+      elementCombo.addItem(Localization.getString("Magie.Feuer")); //$NON-NLS-1$
+      elementCombo.addItem(Localization.getString("Magie.Wasser")); //$NON-NLS-1$
+      elementCombo.addItem(Localization.getString("Magie.Luft")); //$NON-NLS-1$
+      elementCombo.addItem(Localization.getString("Magie.Erz")); //$NON-NLS-1$
+      elementCombo.addItem(Localization.getString("Magie.Humus")); //$NON-NLS-1$
+      elementCombo.addItem(Localization.getString("Magie.Eis")); //$NON-NLS-1$
       elementCombo.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (!disableChange) {
@@ -205,19 +205,19 @@ public class MagicAttributeFrame extends SubFrame implements CharactersObserver 
       });
       specialCombo = new JComboBox();
       specialCombo.setEditable(true);
-      specialCombo.addItem("Keines");
-      specialCombo.addItem("Clarobservantia");
-      specialCombo.addItem("Combattiva");
-      specialCombo.addItem("Communicativa");
-      specialCombo.addItem("Conjuratio");
-      specialCombo.addItem("Contraria");
-      specialCombo.addItem("Controllaria");
-      specialCombo.addItem("Curativa");
-      specialCombo.addItem("Invocatio");
-      specialCombo.addItem("Moventia");
-      specialCombo.addItem("Mutanda");
-      specialCombo.addItem("Phantasmagorica");
-      specialCombo.addItem("Transformatorica");
+      specialCombo.addItem(Localization.getString("Magie.Keines")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Clarobservantia")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Combattiva")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Communicativa")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Conjuratio")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Contraria")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Controllaria")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Curativa")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Invocatio")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Moventia")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Mutanda")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Phantasmagorica")); //$NON-NLS-1$
+      specialCombo.addItem(Localization.getString("Magie.Transformatorica")); //$NON-NLS-1$
       specialCombo.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (disableChange) return;

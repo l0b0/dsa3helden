@@ -71,7 +71,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   private final MyHeroObserver myHeroObserver = new MyHeroObserver();
 
   public WeaponsFrame() {
-    super(ThingTransfer.Flavors.Weapon, "Waffen");
+    super(ThingTransfer.Flavors.Weapon, Localization.getString("Waffen.Waffen")); //$NON-NLS-1$
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     OptionsChange.addListener(this);
@@ -80,7 +80,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
       boolean done = false;
 
       public void windowClosing(WindowEvent e) {
-        mTable.saveSortingState("Waffen");
+        mTable.saveSortingState("Waffen"); //$NON-NLS-1$
         Group.getInstance().removeObserver(WeaponsFrame.this);
         if (currentHero != null)
           currentHero.removeHeroObserver(myHeroObserver);
@@ -90,7 +90,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
-          mTable.saveSortingState("Waffen");
+          mTable.saveSortingState("Waffen"); //$NON-NLS-1$
           Group.getInstance().removeObserver(WeaponsFrame.this);
           if (currentHero != null)
             currentHero.removeHeroObserver(myHeroObserver);
@@ -125,12 +125,12 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     registerForDnD(mTable);
 
     updateData();
-    mTable.restoreSortingState("Waffen");
+    mTable.restoreSortingState("Waffen"); //$NON-NLS-1$
     mTable.setFirstSelectedRow();    
   }
 
   public String getHelpPage() {
-    return "Waffen";
+    return "Waffen"; //$NON-NLS-1$
   }
 
   WeaponsTable mTable;
@@ -147,7 +147,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
 
   JLabel getSumLabel() {
     if (sumLabel == null) {
-      sumLabel = new JLabel("");
+      sumLabel = new JLabel(""); //$NON-NLS-1$
       sumLabel.setForeground(java.awt.Color.BLUE);
       sumLabel.setBounds(5, 5, 440, 25);
     }
@@ -156,7 +156,7 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   
   private void calcSums() {
     if (currentHero == null) {
-      sumLabel.setText("Gesamt: Gewicht 0 Stein, Wert 0 S");
+      sumLabel.setText(Localization.getString("Waffen.GewichtNull")); //$NON-NLS-1$
       return;
     }
     int weaponWeight = 0;
@@ -187,17 +187,17 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     format.setMinimumIntegerDigits(1);
     double overallWeight = (weaponWeight + projectileWeight) / 40.0;
     double overallWorth = (weaponWorth + projectileWorth / 100) / 10.0;
-    String text = "Gesamt: Gewicht ca. " + format.format(overallWeight)
-      + " Stein, Wert ca. " + format.format(overallWorth) + " Dukaten";
+    String text = Localization.getString("Waffen.GesamtGewicht") + format.format(overallWeight) //$NON-NLS-1$
+      + Localization.getString("Waffen.SteinWert") + format.format(overallWorth) + Localization.getString("Waffen.Dukaten"); //$NON-NLS-1$ //$NON-NLS-2$
     sumLabel.setText(text);
   }
  
   JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(5, 5, 60, 25);
-      addButton.setToolTipText("Waffe hinzufügen");
+      addButton.setToolTipText(Localization.getString("Waffen.WaffeHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectItem();
@@ -209,9 +209,9 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
 
   JButton getBuyButton() {
     if (buyButton == null) {
-      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton = new JButton(ImageManager.getIcon("money")); //$NON-NLS-1$
       buyButton.setBounds(5, 35, 60, 25);
-      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.setToolTipText(Localization.getString("Waffen.GegenstandKaufen")); //$NON-NLS-1$
       buyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           buyItem();
@@ -248,10 +248,10 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
 
   JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(5, 65, 60, 25);
-      removeButton.setToolTipText("Waffe entfernen");
+      removeButton.setToolTipText(Localization.getString("Waffen.WaffeEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
@@ -323,12 +323,12 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   private void weaponSelected(String item, int count) {
     Weapon weapon = Weapons.getInstance().getWeapon(item);
     if (weapon != null
-        && Weapons.getCategoryName(weapon.getType()).equals("Schußwaffen")
+        && Weapons.getCategoryName(weapon.getType()).equals(Localization.getString("Waffen.SchusswaffenWaffenTyp")) //$NON-NLS-1$
         && weapon.getKKBonus().hasValue()
         && weapon.getKKBonus().getValue() > currentHero
             .getCurrentProperty(Property.KK)) {
       JOptionPane.showMessageDialog(WeaponsFrame.this, currentHero.getName()
-          + " ist zu schwach, um diese Waffe zu benutzen!", "Fehler",
+          + Localization.getString("Waffen.ZuSchwach"), Localization.getString("Waffen.Fehler"), //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.INFORMATION_MESSAGE);
       return;
     }
@@ -369,8 +369,8 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
     int bf = 0;
     if (extraData.getType() == ExtraThingData.Type.Weapon) {
       try {
-        bf = ((ExtraThingData)extraData).getPropertyInt("BF");
-        projNr = ((ExtraThingData)extraData).getPropertyInt("Projectiles");
+        bf = ((ExtraThingData)extraData).getPropertyInt("BF"); //$NON-NLS-1$
+        projNr = ((ExtraThingData)extraData).getPropertyInt("Projectiles"); //$NON-NLS-1$
       }
       catch (ExtraThingData.PropertyException e) {
         e.printStackTrace();
@@ -407,15 +407,15 @@ public final class WeaponsFrame extends AbstractDnDFrame implements
   @Override
   protected IExtraThingData getExtraDnDData(String item) {
     ExtraThingData data = new ExtraThingData(ExtraThingData.Type.Weapon);
-    data.setProperty("BF", currentHero.getBF(item, 1));
-    data.setProperty("Projectiles", currentHero.getNrOfProjectiles(item));
+    data.setProperty("BF", currentHero.getBF(item, 1)); //$NON-NLS-1$
+    data.setProperty("Projectiles", currentHero.getNrOfProjectiles(item)); //$NON-NLS-1$
     Weapon weapon = Weapons.getInstance().getWeapon(item);
     if (weapon != null) {
-      data.setProperty("Worth", weapon.getWorth().hasValue() ? weapon
+      data.setProperty("Worth", weapon.getWorth().hasValue() ? weapon //$NON-NLS-1$
           .getWorth().getValue() : 0);
-      data.setProperty("Weight", weapon.getWeight());
-      data.setProperty("Category", "Waffe");
-      data.setProperty("Singular", weapon.isSingular() ? 1 : 0);
+      data.setProperty("Weight", weapon.getWeight()); //$NON-NLS-1$
+      data.setProperty("Category", Localization.getString("Waffen.WaffeKategorie")); //$NON-NLS-1$ //$NON-NLS-2$
+      data.setProperty("Singular", weapon.isSingular() ? 1 : 0); //$NON-NLS-1$
     }
     return data;
   }

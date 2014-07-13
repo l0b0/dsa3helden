@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -1091,6 +1093,30 @@ public final class HeroImpl extends AbstractThingCarrier
    */
   public void storeToFile(File f, File realFile) throws IOException {
     PrintWriter file = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "ISO-8859-1")));
+	try {
+		doStoreToWriter(file, realFile);
+	}
+	finally {
+		file.close();
+	}
+  }
+  
+  public String storeToString() {
+	  StringWriter sw = new StringWriter();
+	  PrintWriter file = new PrintWriter(sw);
+	  try {
+		  doStoreToWriter(file, null);
+		  return sw.toString();
+	  }
+	  catch (IOException ex) {
+		  return null;
+	  }
+	  finally {
+		  file.close();
+	  }
+  }
+  
+  private void doStoreToWriter(PrintWriter file, File realFile) throws IOException {
     try {
       file.println(FILE_VERSION); // version
       file.println(name);
@@ -1123,7 +1149,7 @@ public final class HeroImpl extends AbstractThingCarrier
       }
       file.println("--");
       // version 2
-      file.println(Directories.getAbsolutePath(printingTemplateFile, f));
+      file.println(Directories.getAbsolutePath(printingTemplateFile, realFile));
       // version 3
       file.println(birthPlace);
       file.println(eyeColor);
@@ -1562,6 +1588,25 @@ public final class HeroImpl extends AbstractThingCarrier
     	testEmpty(line);
     	version = parseInt(line, lineNr);
     }
+    readFromStream(file, lineNr, version, f);
+  }
+  
+  public void readFromString(String serializedForm) throws IOException {
+	  BufferedReader file = new BufferedReader(new StringReader(serializedForm));
+	  try {
+		  int lineNr = 0;
+		  String line = file.readLine();
+		  testEmpty(line);
+		  int version = parseInt(line, lineNr);
+		  readFromStream(file, lineNr, version, null);
+	  }
+	  finally {
+		  file.close();
+	  }
+  }
+  
+  private void readFromStream(BufferedReader file, int lineNr, int version, File physicalFile) throws IOException {
+	String line= null;
     loadedNewerVersion =  (version > FILE_VERSION);
     lineNr++;
     line = file.readLine();
@@ -1582,7 +1627,7 @@ public final class HeroImpl extends AbstractThingCarrier
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      printingTemplateFile = Directories.getAbsolutePath(line, f);
+      printingTemplateFile = Directories.getAbsolutePath(line, physicalFile);
     }
     if (version > 2) {
       lineNr = readVersion3Data(file, lineNr);
@@ -1616,13 +1661,13 @@ public final class HeroImpl extends AbstractThingCarrier
       lineNr = readThings(file, lineNr);
     }
     if (version > 12) {
-      lineNr = readVersion13Data(f, file, lineNr);
+      lineNr = readVersion13Data(physicalFile, file, lineNr);
     }
     if (version > 13) {
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      picture = Directories.getAbsolutePath(line, f);
+      picture = Directories.getAbsolutePath(line, physicalFile);
     }
     atParts.clear();
     if (version > 14) {
@@ -1643,7 +1688,7 @@ public final class HeroImpl extends AbstractThingCarrier
       lineNr++;
       line = file.readLine();
       testEmpty(line);
-      printFile = Directories.getAbsolutePath(line, f);
+      printFile = Directories.getAbsolutePath(line, physicalFile);
     }
     else
       printFile = "";
@@ -2224,13 +2269,13 @@ public final class HeroImpl extends AbstractThingCarrier
     return lineNr;
   }
 
-  private int readVersion13Data(File f, BufferedReader file, int lineNr)
+  private int readVersion13Data(File physicalFile, BufferedReader file, int lineNr)
       throws IOException {
     String line;
     lineNr++;
     line = file.readLine();
     testEmpty(line);
-    bgFile = Directories.getAbsolutePath(line, f);
+    bgFile = Directories.getAbsolutePath(line, physicalFile);
     lineNr++;
     line = file.readLine();
     testEmpty(line);
@@ -4065,13 +4110,18 @@ public final class HeroImpl extends AbstractThingCarrier
   }
   
   public void setUsedWeapon(int attack, String weapon) {
+	if (weapon == null) weapon = "";
     if (attack == 0) {
-      setFirstHandWeapon(weapon);
-      fireActiveWeaponsChanged();
+      if (!weapon.equals(getFirstHandWeapon())) {
+    	  setFirstHandWeapon(weapon);
+    	  fireActiveWeaponsChanged();
+      }
     }
     else if (attack == 1) {
-      setSecondHandItem(weapon);
-      fireActiveWeaponsChanged();
+      if (!weapon.equals(getSecondHandItem())) {
+    	  setSecondHandItem(weapon);
+    	  fireActiveWeaponsChanged();
+      }
     }
   }
   

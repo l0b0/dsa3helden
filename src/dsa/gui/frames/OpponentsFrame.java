@@ -57,7 +57,7 @@ public final class OpponentsFrame extends SubFrame
   }
 
   public String getHelpPage() {
-    return "Gegner";
+    return "Gegner"; //$NON-NLS-1$
   }
 
   public void groupLoaded() {
@@ -77,13 +77,13 @@ public final class OpponentsFrame extends SubFrame
   }
   
   public OpponentsFrame() {
-    super("Gegner");
+    super(Localization.getString("Gegner.Gegner")); //$NON-NLS-1$
     Group.getInstance().addObserver(this);
     addWindowListener(new WindowAdapter() {
       boolean done = false;
       
       private void cleanup() {
-        mTable.saveSortingState("Gegner");
+        mTable.saveSortingState("Gegner"); //$NON-NLS-1$
         Group.getInstance().removeObserver(OpponentsFrame.this);
         done = true;        
       }
@@ -113,7 +113,7 @@ public final class OpponentsFrame extends SubFrame
 
     this.setContentPane(panel);
     updateData();
-    mTable.restoreSortingState("Gegner");
+    mTable.restoreSortingState("Gegner"); //$NON-NLS-1$
     mTable.setFirstSelectedRow();
   }
   
@@ -129,10 +129,10 @@ public final class OpponentsFrame extends SubFrame
 
   JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(5, 5, 60, 25);
-      addButton.setToolTipText("Gegner hinzufügen");
+      addButton.setToolTipText(Localization.getString("Gegner.GegnerHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectItem();
@@ -144,9 +144,9 @@ public final class OpponentsFrame extends SubFrame
   
   JButton getCreateButton() {
     if (createButton == null) {
-      createButton = new JButton(ImageManager.getIcon("tsa"));
+      createButton = new JButton(ImageManager.getIcon("tsa")); //$NON-NLS-1$
       createButton.setBounds(5, 35, 60, 25);
-      createButton.setToolTipText("Gegner erstellen");
+      createButton.setToolTipText(Localization.getString("Gegner.GegnerErstellen")); //$NON-NLS-1$
       createButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           OpponentDialog dialog = new OpponentDialog(OpponentsFrame.this, 
@@ -173,10 +173,10 @@ public final class OpponentsFrame extends SubFrame
 
   JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(5, 95, 60, 25);
-      removeButton.setToolTipText("Gegner entfernen");
+      removeButton.setToolTipText(Localization.getString("Gegner.GegnerEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
@@ -192,9 +192,9 @@ public final class OpponentsFrame extends SubFrame
   
   JButton getEditButton() {
     if (editButton == null) {
-      editButton = new JButton(ImageManager.getIcon("edit"));
+      editButton = new JButton(ImageManager.getIcon("edit")); //$NON-NLS-1$
       editButton.setBounds(5, 65, 60, 25);
-      editButton.setToolTipText("Gegner bearbeiten");
+      editButton.setToolTipText(Localization.getString("Gegner.GegnerBearbeiten")); //$NON-NLS-1$
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
@@ -242,7 +242,7 @@ public final class OpponentsFrame extends SubFrame
   public boolean canUseName(String newName) {
     Opponent o = Group.getInstance().getOpponent(newName);
     if (o != null) {
-      javax.swing.JOptionPane.showMessageDialog(this, "Einen Gegner mit diesem Namen gibt es bereits.", "Heldenverwaltung", 
+      javax.swing.JOptionPane.showMessageDialog(this, Localization.getString("Gegner.GegnerNameGibtEsBereits"), Localization.getString("Gegner.Heldenverwaltung"),  //$NON-NLS-1$ //$NON-NLS-2$
           javax.swing.JOptionPane.PLAIN_MESSAGE);
       return false;
     }

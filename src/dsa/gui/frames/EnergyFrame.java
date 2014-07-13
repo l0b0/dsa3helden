@@ -62,6 +62,7 @@ import dsa.model.characters.CharactersObserver;
 import dsa.model.characters.Energy;
 import dsa.model.characters.Hero;
 import dsa.model.characters.Property;
+import dsa.remote.RemoteManager;
 
 public final class EnergyFrame extends SubFrame implements CharactersObserver {
 
@@ -107,7 +108,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
   }
   
   public String getHelpPage() {
-    return "Energien";
+    return "Energien"; //$NON-NLS-1$
   }
 
   private boolean disableChange = false;
@@ -151,11 +152,11 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
         currentValues.get(i).setEditable(!isDiff);
       }
       else {
-        defaultValues.get(i).setText("-");
+        defaultValues.get(i).setText("-"); //$NON-NLS-1$
         defaultValues.get(i).setEditable(false);
         defaultValues.get(i).setEnabled(false);
         currentValues.get(i).setEditable(false);
-        currentValues.get(i).setText("-");
+        currentValues.get(i).setText("-"); //$NON-NLS-1$
         currentValues.get(i).setEnabled(false);
         locks.get(i).setEnabled(false);
         if (i != energies.size() - 2) {
@@ -177,12 +178,12 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       setColor(currentValues.get(Energy.KO.ordinal()), currentHero.getCurrentEnergy(Energy.KO), currentHero.isDifference());
     }
     else {
-      defaultValues.get(Energy.AU.ordinal()).setText("-");
-      currentValues.get(Energy.AU.ordinal()).setText("-");
+      defaultValues.get(Energy.AU.ordinal()).setText("-"); //$NON-NLS-1$
+      currentValues.get(Energy.AU.ordinal()).setText("-"); //$NON-NLS-1$
       currentValues.get(Energy.AU.ordinal()).setEditable(false);
       currentValues.get(Energy.AU.ordinal()).setForeground(java.awt.Color.BLACK);
-      defaultValues.get(Energy.KO.ordinal()).setText("-");
-      currentValues.get(Energy.KO.ordinal()).setText("-");
+      defaultValues.get(Energy.KO.ordinal()).setText("-"); //$NON-NLS-1$
+      currentValues.get(Energy.KO.ordinal()).setText("-"); //$NON-NLS-1$
       currentValues.get(Energy.KO.ordinal()).setForeground(java.awt.Color.BLACK);
     }
 
@@ -210,12 +211,15 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
               .getDefaultEnergy(Energy.AE)
           && currentHero.getCurrentEnergy(Energy.LE) > 4
           && currentHero.getCurrentEnergy(Energy.AE) > 0);
-      regenButton
-          .setEnabled(currentHero.getCurrentEnergy(Energy.LE) < currentHero
-              .getDefaultEnergy(Energy.LE)
-              || (currentHero.hasEnergy(Energy.AE) && currentHero
-                  .getCurrentEnergy(Energy.AE) < currentHero
-                  .getDefaultEnergy(Energy.AE)));
+      boolean enableRegen = false;
+      for (Hero hero : Group.getInstance().getAllCharacters()) {
+    	  if (hero.getCurrentEnergy(Energy.LE) < hero.getDefaultEnergy(Energy.LE)
+              || (hero.hasEnergy(Energy.AE) && hero.getCurrentEnergy(Energy.AE) < hero.getDefaultEnergy(Energy.AE))) {
+    		  enableRegen = true;
+    		  break;
+          }
+      }
+      regenButton.setEnabled(enableRegen);
     }
     else {
       meditationButton.setEnabled(false);
@@ -262,7 +266,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     c.weighty = 1.0;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.WEST;
-    JLabel headerDesc = new JLabel("Energie");
+    JLabel headerDesc = new JLabel(Localization.getString("Energien.Energie")); //$NON-NLS-1$
     headerDesc.setPreferredSize(new Dimension(20, lineHeight));
     layout.setConstraints(headerDesc, c);
     energiesPanel.add(headerDesc);
@@ -270,31 +274,28 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     c.gridx = 1;
     c.anchor = GridBagConstraints.CENTER;
     c.fill = GridBagConstraints.NONE;
-    JLabel headerDefault = new JLabel("Std");
+    JLabel headerDefault = new JLabel(Localization.getString("Energien.Std")); //$NON-NLS-1$
     headerDefault.setPreferredSize(new Dimension(25, lineHeight));
     layout.setConstraints(headerDefault, c);
     energiesPanel.add(headerDefault);
     c.gridx = 2;
-    JLabel headerCurrent = new JLabel("Akt");
+    JLabel headerCurrent = new JLabel(Localization.getString("Energien.Akt")); //$NON-NLS-1$
     headerCurrent.setPreferredSize(new Dimension(25, lineHeight));
     layout.setConstraints(headerCurrent, c);
     energiesPanel.add(headerCurrent);
     c.gridx = 3;
-    JLabel headerLock = new JLabel("");
+    JLabel headerLock = new JLabel(""); //$NON-NLS-1$
     layout.setConstraints(headerLock, c);
     headerLock.setPreferredSize(new Dimension(btnWidth, lineHeight));
     energiesPanel.add(headerLock);
     c.gridx = 4;
-    JLabel headerIncr = new JLabel("");
+    JLabel headerIncr = new JLabel(""); //$NON-NLS-1$
     headerIncr.setPreferredSize(new Dimension(btnWidth, lineHeight));
     layout.setConstraints(headerIncr, c);
     energiesPanel.add(headerIncr);
 
-    int nrOfEnergies = 0;
-
     for (int i = 0; i < energies.size() - 2; ++i) {
-      ++nrOfEnergies;
-      String descr = "" + energies.get(i);
+      String descr = "" + energies.get(i); //$NON-NLS-1$
       JLabel descrLabel = new JLabel(descr);
       energyDescriptions.add(descrLabel);
       c.gridx = 0;
@@ -328,19 +329,19 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       layout.setConstraints(currentValue, c);
       energiesPanel.add(currentValue);
       c.gridx = 3;
-      JToggleButton lock = new JToggleButton(ImageManager.getIcon("locked"));
-      lock.setPressedIcon(ImageManager.getIcon("unlocked"));
+      JToggleButton lock = new JToggleButton(ImageManager.getIcon("locked")); //$NON-NLS-1$
+      lock.setPressedIcon(ImageManager.getIcon("unlocked")); //$NON-NLS-1$
       lock.setPreferredSize(new Dimension(btnWidth, lineHeight));
-      lock.setToolTipText("Schützen / Freigeben");
+      lock.setToolTipText(Localization.getString("Energien.SchuetzenFreigeben")); //$NON-NLS-1$
       locks.add(lock);
       layout.setConstraints(lock, c);
       energiesPanel.add(lock);
       c.gridx = 4;
       if (i != energies.size() - 2) {
-        JButton increase = new JButton(ImageManager.getIcon("increase"));
-        increase.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+        JButton increase = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+        increase.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
         increase.setPreferredSize(new Dimension(btnWidth, lineHeight));
-        increase.setToolTipText("Erhöhen");
+        increase.setToolTipText(Localization.getString("Energien.Erhoehen")); //$NON-NLS-1$
         increases.add(increase);
         layout.setConstraints(increase, c);
         energiesPanel.add(increase);
@@ -357,8 +358,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       currentValue.addPropertyChangeListener(new EnergyChanger(energies.get(i),
           true));
     }
-    ++nrOfEnergies;
-    JLabel descrLabel = new JLabel("" + Energy.AU);
+    JLabel descrLabel = new JLabel("" + Energy.AU); //$NON-NLS-1$
     energyDescriptions.add(descrLabel);
     c.gridx = 0;
     c.gridy = energies.size() - 1;
@@ -395,8 +395,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     layout.setConstraints(currentValue, c);
     energiesPanel.add(currentValue);
 
-    ++nrOfEnergies;
-    JLabel descrLabel2 = new JLabel("" + Energy.KO);
+    JLabel descrLabel2 = new JLabel("" + Energy.KO); //$NON-NLS-1$
     energyDescriptions.add(descrLabel);
     c.gridx = 0;
     c.gridy = energies.size();
@@ -431,7 +430,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     layout.setConstraints(currentValue2, c);
     energiesPanel.add(currentValue2);
     c.gridx = 3;
-    koProbeButton = new JButton(ImageManager.getIcon("probe"));
+    koProbeButton = new JButton(ImageManager.getIcon("probe")); //$NON-NLS-1$
     koProbeButton
         .setPreferredSize(new java.awt.Dimension(btnWidth, lineHeight));
     koProbeButton.addActionListener(new ActionListener() {
@@ -439,7 +438,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
         doKOProbe();
       }
     });
-    koProbeButton.setToolTipText("Probe");
+    koProbeButton.setToolTipText(Localization.getString("Energien.Probe")); //$NON-NLS-1$
     layout.setConstraints(koProbeButton, c);
     energiesPanel.add(koProbeButton);
 
@@ -498,10 +497,10 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       c1.setEditable(button.isSelected()
           || Group.getInstance().getGlobalUnlock());
       if (button.isSelected()) {
-        button.setIcon(ImageManager.getIcon("unlocked"));
+        button.setIcon(ImageManager.getIcon("unlocked")); //$NON-NLS-1$
       }
       else {
-        button.setIcon(ImageManager.getIcon("locked"));
+        button.setIcon(ImageManager.getIcon("locked")); //$NON-NLS-1$
       }
       if (energy == Energy.KE) {
         c2.setEnabled(button.isSelected()
@@ -524,7 +523,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
 
     public void propertyChange(PropertyChangeEvent evt) {
       if (EnergyFrame.this.disableChange) return;
-      if (!evt.getPropertyName().equals("value")) return;
+      if (!evt.getPropertyName().equals("value")) return; //$NON-NLS-1$
       if (currentHero != null) {
         if (current) {
           int value = ((Number) ((JFormattedTextField) evt.getSource())
@@ -562,17 +561,17 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       if (hero == null) return;
       if (energy == Energy.KE) {
         String pointsS = javax.swing.JOptionPane.showInputDialog(
-            EnergyFrame.this, "Neu erworbene Karmaenergie:", "KE erhöhen",
+            EnergyFrame.this, Localization.getString("Energien.NeueKE"), Localization.getString("Energien.KEErhoehen"), //$NON-NLS-1$ //$NON-NLS-2$
             JOptionPane.PLAIN_MESSAGE);
         if (pointsS == null) return;
         int points = 0;
         try {
           points = Integer.parseInt(pointsS);
-          if (points < 0) throw new NumberFormatException("");
+          if (points < 0) throw new NumberFormatException(""); //$NON-NLS-1$
         }
         catch (NumberFormatException ex) {
           JOptionPane.showMessageDialog(EnergyFrame.this,
-              "Bitte eine positive ganze Zahl eingeben.", "Fehler",
+              Localization.getString("Energien.GanzePositiveZahl"), Localization.getString("Energien.Fehler"), //$NON-NLS-1$ //$NON-NLS-2$
               JOptionPane.ERROR_MESSAGE);
           return;
         }
@@ -591,12 +590,12 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
       else if (hero.hasEnergy(Energy.AE)) {
         int increase = Dice.roll(6) + hero.getFixedLEIncrease();
         RedistributionDialog dialog = new RedistributionDialog();
-        dialog.setTitle("LE-AE-Verteilung");
-        dialog.setDescription("Du hast " + increase
-            + " Punkte zur Verfügung,\n"
-            + "die du auf LE und AE verteilen kannst.\n"
-            + "Wieviele Punkte sollen auf die AE gelegt werden?");
-        dialog.setQuestion("Punkte auf AE:");
+        dialog.setTitle(Localization.getString("Energien.LEAEVerteilung")); //$NON-NLS-1$
+        dialog.setDescription(Localization.getString("Energien.DuHast") + increase //$NON-NLS-1$
+            + Localization.getString("Energien.PunktezurVerfuegung") //$NON-NLS-1$
+            + Localization.getString("Energien.verteilenkannst") //$NON-NLS-1$
+            + Localization.getString("Energien.WievielePunkteAE")); //$NON-NLS-1$
+        dialog.setQuestion(Localization.getString("Energien.PunkteAE")); //$NON-NLS-1$
         dialog.setMinimum(0);
         int max = increase;
         if (currentHero.isMagicDilletant()) {
@@ -621,7 +620,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
           }
           catch (dsa.model.characters.LEAEIncreaseException ex) {
             javax.swing.JOptionPane.showMessageDialog(EnergyFrame.this, ex
-                .getMessage(), "Fehler", javax.swing.JOptionPane.ERROR_MESSAGE);
+                .getMessage(), Localization.getString("Energien.Fehler"), javax.swing.JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             goOn = true;
           }
         } while (goOn);
@@ -721,21 +720,21 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     if (meditationButton == null) {
       meditationButton = new JButton();
       meditationButton.setBounds(new java.awt.Rectangle(257, 167, 50, 22));
-      meditationButton.setText("M");
-      meditationButton.setToolTipText("Große Meditation");
+      meditationButton.setText(Localization.getString("Energien.M")); //$NON-NLS-1$
+      meditationButton.setToolTipText(Localization.getString("Energien.GrosseMeditation")); //$NON-NLS-1$
       meditationButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           int choice = JOptionPane
               .showConfirmDialog(
                   EnergyFrame.this,
-                  "Möchtest du eine Große Meditation durchführen?\n(10 Zauber-Steigerungen -> 1W6+2 ASP)",
-                  "Große Meditation", JOptionPane.YES_NO_OPTION);
+                  Localization.getString("Energien.GrosseMeditationDurchfuehren"), //$NON-NLS-1$
+                  Localization.getString("Energien.GrosseMeditation"), JOptionPane.YES_NO_OPTION); //$NON-NLS-1$
           if (choice == JOptionPane.YES_OPTION) {
             int newASP = currentHero.doGreatMeditation();
             updateData();
             JOptionPane.showMessageDialog(EnergyFrame.this, currentHero
                 .getName()
-                + " hat " + newASP + " ASP erhalten.");
+                + Localization.getString("Energien.hat") + newASP + Localization.getString("Energien.ASPErhalten")); //$NON-NLS-1$ //$NON-NLS-2$
           }
         }
       });
@@ -751,8 +750,8 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     if (smallMedButton == null) {
       smallMedButton = new JButton();
       smallMedButton.setBounds(new Rectangle(257, 167, 50, 22));
-      smallMedButton.setText("m");
-      smallMedButton.setToolTipText("Meditieren");
+      smallMedButton.setText(Localization.getString("Energien.m")); //$NON-NLS-1$
+      smallMedButton.setToolTipText(Localization.getString("Energien.Meditieren")); //$NON-NLS-1$
       smallMedButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           doSmallMeditation();
@@ -764,10 +763,10 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
 
   void doSmallMeditation() {
     RedistributionDialog dialog = new RedistributionDialog(this);
-    dialog.setTitle("Meditation");
+    dialog.setTitle(Localization.getString("Energien.Meditation")); //$NON-NLS-1$
     dialog
-        .setDescription("Unter fixen Kosten von 1 ASP und 3 LeP kann\nLE in AE gewandelt werden.");
-    dialog.setQuestion("Wieviel LE umwandeln?");
+        .setDescription(Localization.getString("Energien.MeditationEinleitung")); //$NON-NLS-1$
+    dialog.setQuestion(Localization.getString("Energien.WievielLEUmwandeln")); //$NON-NLS-1$
     dialog.setMinimum(0);
     dialog.setLocationRelativeTo(this);
     int maxLE = currentHero.getCurrentEnergy(Energy.LE) - 4;
@@ -790,7 +789,7 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     }
     else {
       JOptionPane.showMessageDialog(this,
-          "Leider hat die Probe nicht geklappt.", "Meditation",
+          Localization.getString("Energien.ProbeNichtGelungen"), Localization.getString("Energien.Meditation"), //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.INFORMATION_MESSAGE);
     }
   }
@@ -799,8 +798,8 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
     if (regenButton == null) {
       regenButton = new JButton();
       regenButton.setBounds(new Rectangle(257, 167, 50, 22));
-      regenButton.setText("R");
-      regenButton.setToolTipText("Regenerieren");
+      regenButton.setText(Localization.getString("Energien.R")); //$NON-NLS-1$
+      regenButton.setToolTipText(Localization.getString("Energien.Regenerieren")); //$NON-NLS-1$
       regenButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           doRegeneration();
@@ -815,24 +814,49 @@ public final class EnergyFrame extends SubFrame implements CharactersObserver {
 	dialog.setVisible(true);
 	if (dialog.wasClosedByOK())
 	{
-		Regeneration.RegenerationOptions options = dialog.getOptions();
-		String overallResult = "";
-		if (options.regenerateWholeGroup())
-		{
-			for (Hero hero : Group.getInstance().getAllCharacters())
+		try {
+			RemoteManager.getInstance().setListenForHeroChanges(false);
+			Regeneration.RegenerationOptions options = dialog.getOptions();
+			String overallResult = ""; //$NON-NLS-1$
+			ArrayList<String> results = new ArrayList<String>();
+			if (options.regenerateWholeGroup())
 			{
-				String subResult = dsa.util.Strings.firstWord(hero.getName()) + ":\n";
-				subResult += Regeneration.regenerate(hero, options);
-				if (!overallResult.isEmpty())
-					overallResult += "\n";
-				overallResult += subResult;
+				for (Hero hero : Group.getInstance().getAllCharacters())
+				{
+					String subResult = dsa.util.Strings.firstWord(hero.getName()) + ":\n"; //$NON-NLS-1$
+					String temp = Regeneration.regenerate(hero, options);
+					results.add(temp);
+					subResult += temp;
+					if (!overallResult.isEmpty())
+						overallResult += "\n"; //$NON-NLS-1$
+					overallResult += subResult;
+				}
+			}
+			else
+			{
+				overallResult = Regeneration.regenerate(Group.getInstance().getActiveHero(), options);
+			}
+			boolean isPlayerConnected = RemoteManager.getInstance().isConnectedAsPlayer();
+			boolean isGMConnected = RemoteManager.getInstance().isConnectedAsGM();
+			int dialogResult = ProbeResultDialog.showDialog(this, overallResult, Localization.getString("Energien.Regeneration"), isPlayerConnected | isGMConnected); //$NON-NLS-1$
+			boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+			boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+			if (sendToServer) {
+				if (!options.regenerateWholeGroup()) {
+					RemoteManager.getInstance().informOfRegeneration(Group.getInstance().getActiveHero(), overallResult, informOtherPlayers);
+				}
+				else {
+					int i = 0;
+					for (Hero hero : Group.getInstance().getAllCharacters()) {
+						RemoteManager.getInstance().informOfRegeneration(hero, results.get(i), informOtherPlayers);
+						++i;
+					}
+				}
 			}
 		}
-		else
-		{
-			overallResult = Regeneration.regenerate(Group.getInstance().getActiveHero(), options);
+		finally {
+			RemoteManager.getInstance().setListenForHeroChanges(true);
 		}
-		ProbeResultDialog.showDialog(this, overallResult, "Regeneration");
 	}
   }
 

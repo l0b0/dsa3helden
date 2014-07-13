@@ -177,7 +177,7 @@ public class FrameLayouts {
   
   private FrameLayout lastLayout = null;
   
-  private String currentLayout = "";
+  private String currentLayout = ""; //$NON-NLS-1$
   
   public String getCurrentLayout() {
     return currentLayout;
@@ -224,7 +224,7 @@ public class FrameLayouts {
   public void deleteLayout(int index) {
     if (index >= 0 && index < layouts.size()) {
       if (currentLayout.equals(layouts.get(index).getTitle())) {
-        currentLayout = "";
+        currentLayout = ""; //$NON-NLS-1$
       }
       layouts.remove(index);
     }
@@ -232,23 +232,23 @@ public class FrameLayouts {
   
   private void openFrameForBackwardsCompatibility(String title) {
     Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-    int x = prefs.getInt(title + "x", 50);
-    int y = prefs.getInt(title + "y", 50);
-    int w = prefs.getInt(title + "w", 420);
-    int h = prefs.getInt(title + "h", 100);
+    int x = prefs.getInt(title + "x", 50); //$NON-NLS-1$
+    int y = prefs.getInt(title + "y", 50); //$NON-NLS-1$
+    int w = prefs.getInt(title + "w", 420); //$NON-NLS-1$
+    int h = prefs.getInt(title + "h", 100); //$NON-NLS-1$
     Rectangle bounds = new Rectangle(x, y, w, h);
     FrameManagement.getInstance().openFrame(title, bounds);
   }
   
   public void findCurrentLayout() {
-    FrameLayout current = FrameLayout.createFromCurrentLayout("Temp");
+    FrameLayout current = FrameLayout.createFromCurrentLayout("Temp"); //$NON-NLS-1$
     for (int i = 0; i < layouts.size(); ++i) {
       if (layouts.get(i).isEqualTo(current)) {
         currentLayout = layouts.get(i).getTitle();
         return;
       }
     }
-    currentLayout = "";
+    currentLayout = ""; //$NON-NLS-1$
   }
   
   public void restoreLastLayout() {
@@ -258,12 +258,12 @@ public class FrameLayouts {
     else {
       // compatibility
       Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-      int frameCount = prefs.getInt("OpenFramesCount", 0);
+      int frameCount = prefs.getInt("OpenFramesCount", 0); //$NON-NLS-1$
       for (int i = 0; i < frameCount; ++i) {
-        String title = prefs.get("OpenFrames" + i, "");
+        String title = prefs.get("OpenFrames" + i, ""); //$NON-NLS-1$ //$NON-NLS-2$
         openFrameForBackwardsCompatibility(title);
       }      
-      openFrameForBackwardsCompatibility("Heldenverwaltung");
+      openFrameForBackwardsCompatibility("Heldenverwaltung"); //$NON-NLS-1$
     }
     findCurrentLayout();
   }
@@ -274,19 +274,19 @@ public class FrameLayouts {
       return java.net.InetAddress.getLocalHost().getHostName();
     }
     catch (UnknownHostException e) {
-      return "Unknown";
+      return "Unknown"; //$NON-NLS-1$
     }
   }
   
   public static String getDefaultLayoutsFilename()
   {
-    return dsa.util.Directories.getUserDataPath() + "Fensterlayout_" 
-      + getLocalHostName() + ".dat";
+    return dsa.util.Directories.getUserDataPath() + "Fensterlayout_"  //$NON-NLS-1$
+      + getLocalHostName() + ".dat"; //$NON-NLS-1$
   }
   
   public static String getOldLayoutsFilename()
   {
-    return dsa.util.Directories.getUserHomePath() + "Fensterlayout.dat";
+    return dsa.util.Directories.getUserHomePath() + "Fensterlayout.dat"; //$NON-NLS-1$
   }
 
   public void storeToFile(String filename) throws IOException {
@@ -298,7 +298,7 @@ public class FrameLayouts {
       for (int i = 0; i < layouts.size(); ++i) {
         layouts.get(i).storeToPersistency(out);
       }
-      lastLayout = FrameLayout.createFromCurrentLayout("lastLayout");
+      lastLayout = FrameLayout.createFromCurrentLayout("lastLayout"); //$NON-NLS-1$
       lastLayout.storeToPersistency(out);
       out.flush();
     }
@@ -313,13 +313,13 @@ public class FrameLayouts {
     File file = new File(fileName);
     if (!file.exists()) return;
     
-    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
+    BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1")); //$NON-NLS-1$
     try {
       String title = in.readLine();
-      while (title != null && !"".equals(title)) {
+      while (title != null && !"".equals(title)) { //$NON-NLS-1$
         ArrayList<String> frames = new ArrayList<String>();
         String line = in.readLine();
-        while (line != null && !"".equals(line)) {
+        while (line != null && !"".equals(line)) { //$NON-NLS-1$
           frames.add(line);
           line = in.readLine();
         }
@@ -341,7 +341,7 @@ public class FrameLayouts {
     if (useNativeEncoding)
     	in = new BufferedReader(new FileReader(file));
     else
-    	in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1"));
+    	in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "ISO-8859-1")); //$NON-NLS-1$
     try {
       String line = in.readLine();
       testEmpty(line);

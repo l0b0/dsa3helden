@@ -87,7 +87,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   private JSpinner aeIncreaseSpinner = null;
 
   public TypeMetaFrame() {
-    super("Metadaten");
+    super(Localization.getString("Metadaten.Metadaten")); //$NON-NLS-1$
     this.setContentPane(getJContentPane());
     currentHero = dsa.model.characters.Group.getInstance().getActiveHero();
     dsa.model.characters.Group.getInstance().addObserver(this);
@@ -110,7 +110,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
   }
   
   public String getHelpPage() {
-    return "Metadaten";
+    return "Metadaten"; //$NON-NLS-1$
   }
 
   private Hero currentHero;
@@ -172,7 +172,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
       increaseMovesSpinner.setValue(0);
       leIncreaseSpinner.setValue(0);
       aeIncreaseSpinner.setValue(0);
-      typeField.setText("");
+      typeField.setText(""); //$NON-NLS-1$
     }
     listenForChanges = true;
   }
@@ -201,23 +201,23 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     if (jPanel == null) {
       jLabel2 = new JLabel();
       jLabel2.setBounds(new Rectangle(10, 30, 71, 21));
-      jLabel2.setText("Name:");
+      jLabel2.setText(Localization.getString("Metadaten.Name")); //$NON-NLS-1$
       magicTypeLabel = new JLabel();
       magicTypeLabel.setBounds(new Rectangle(10, 150, 71, 21));
-      magicTypeLabel.setText("Magietyp:");
+      magicTypeLabel.setText(Localization.getString("Metadaten.Magietyp")); //$NON-NLS-1$
       jLabel1 = new JLabel();
       jLabel1.setBounds(new Rectangle(10, 90, 71, 21));
-      jLabel1.setText("BE-Bonus:");
+      jLabel1.setText(Localization.getString("Metadaten.BEBonus")); //$NON-NLS-1$
       jLabel = new JLabel();
       jLabel.setBounds(new Rectangle(10, 60, 71, 21));
-      jLabel.setText("MR-Bonus:");
+      jLabel.setText(Localization.getString("Metadaten.MRBonus")); //$NON-NLS-1$
       jPanel = new JPanel();
       jPanel.setLayout(null);
       jPanel.setBounds(new java.awt.Rectangle(20, 20, 211, 191));
       jPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(
           javax.swing.BorderFactory
               .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
-          "Typeigenschaften",
+          Localization.getString("Metadaten.Typeigenschaften"), //$NON-NLS-1$
           javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
           javax.swing.border.TitledBorder.DEFAULT_POSITION, null, null));
       jPanel.add(jLabel, null);
@@ -243,7 +243,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     if (aeBox == null) {
       aeBox = new JCheckBox();
       aeBox.setBounds(new Rectangle(10, 120, 81, 21));
-      aeBox.setText("Hat AE");
+      aeBox.setText(Localization.getString("Metadaten.HatAE")); //$NON-NLS-1$
       aeBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (!listenForChanges) return;
@@ -272,7 +272,7 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     if (keBox == null) {
       keBox = new JCheckBox();
       keBox.setBounds(new Rectangle(90, 120, 91, 21));
-      keBox.setText("Hat KE");
+      keBox.setText(Localization.getString("Metadaten.HatKE")); //$NON-NLS-1$
       keBox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (!listenForChanges) return;
@@ -292,27 +292,27 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     if (jPanel1 == null) {
       fixedAELabel = new JLabel();
       fixedAELabel.setBounds(new java.awt.Rectangle(10, 150, 131, 21));
-      fixedAELabel.setText("AE-Anstieg:  1W +");
+      fixedAELabel.setText(Localization.getString("Metadaten.AEAnstieg")); //$NON-NLS-1$
       fixedLELabel = new JLabel();
       fixedLELabel.setBounds(new java.awt.Rectangle(10, 120, 131, 21));
-      fixedLELabel.setText("LE-Anstieg:   1W +");
+      fixedLELabel.setText(Localization.getString("Metadaten.LEAnstieg")); //$NON-NLS-1$
       incrMovesLabel = new JLabel();
       incrMovesLabel.setBounds(new java.awt.Rectangle(10, 90, 131, 21));
-      incrMovesLabel.setText("Verschiebung:");
-      incrMovesLabel.setToolTipText("Von Zauber- zu Talentsteigerungen");
+      incrMovesLabel.setText(Localization.getString("Metadaten.Verschiebung")); //$NON-NLS-1$
+      incrMovesLabel.setToolTipText(Localization.getString("Metadaten.VonZauberZuTalent")); //$NON-NLS-1$
       spellIncreaseLabel = new JLabel();
       spellIncreaseLabel.setBounds(new java.awt.Rectangle(10, 60, 131, 21));
-      spellIncreaseLabel.setText("Zaubersteigerungen:");
+      spellIncreaseLabel.setText(Localization.getString("Metadaten.Zaubersteigerungen")); //$NON-NLS-1$
       jLabel3 = new JLabel();
       jLabel3.setBounds(new java.awt.Rectangle(10, 30, 131, 21));
-      jLabel3.setText("Talentsteigerungen:");
+      jLabel3.setText(Localization.getString("Metadaten.Talentsteigerungen")); //$NON-NLS-1$
       jPanel1 = new JPanel();
       jPanel1.setLayout(null);
       jPanel1.setBounds(new java.awt.Rectangle(250, 20, 231, 191));
       jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(
           javax.swing.BorderFactory
               .createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED),
-          "Stufenanstieg",
+          Localization.getString("Metadaten.Stufenanstieg"), //$NON-NLS-1$
           javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
           javax.swing.border.TitledBorder.DEFAULT_POSITION, null, null));
       jPanel1.add(jLabel3, null);
@@ -338,12 +338,12 @@ public final class TypeMetaFrame extends SubFrame implements CharactersObserver 
     if (magicTypeCombo == null) {
       magicTypeCombo = new JComboBox();
       magicTypeCombo.setBounds(new Rectangle(90, 150, 111, 21));
-      magicTypeCombo.addItem("Normal");
-      magicTypeCombo.addItem("Magier");
-      magicTypeCombo.addItem("Geode");
-      magicTypeCombo.addItem("Magiedilettant");
+      magicTypeCombo.addItem(Localization.getString("Metadaten.Normal")); //$NON-NLS-1$
+      magicTypeCombo.addItem(Localization.getString("Metadaten.Magier")); //$NON-NLS-1$
+      magicTypeCombo.addItem(Localization.getString("Metadaten.Geode")); //$NON-NLS-1$
+      magicTypeCombo.addItem(Localization.getString("Metadaten.Magiedilletant")); //$NON-NLS-1$
       magicTypeLabel
-          .setToolTipText("Magier: mit großer Meditation; Geode: mit seperater AE-Steigerung");
+          .setToolTipText(Localization.getString("Metadaten.MagieTypToolTip")); //$NON-NLS-1$
       magicTypeCombo.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (!listenForChanges) return;

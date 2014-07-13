@@ -1,6 +1,7 @@
 Main-Class: dsa.control.Main
 Class-Path: 
   images.jar 
+  translations/
   libraries/synthetica.jar 
   libraries/syntheticaBlueIce.jar 
   libraries/syntheticaBlueSteel.jar 

@@ -122,7 +122,7 @@ public final class StepFrame extends SubFrame
   }
   
   public String getHelpPage() {
-    return "Erfahrung";
+    return "Erfahrung"; //$NON-NLS-1$
   }
 
   private Hero currentHero;
@@ -134,7 +134,7 @@ public final class StepFrame extends SubFrame
   private void initialize() {
     // this.setSize(new java.awt.Dimension(319,227));
     this.setContentPane(getJContentPane());
-    this.setTitle("Erfahrung");
+    this.setTitle(Localization.getString("Erfahrung.Erfahrung")); //$NON-NLS-1$
   }
 
   /**
@@ -146,36 +146,36 @@ public final class StepFrame extends SubFrame
     if (jContentPane == null) {
       freeTriesLabel = new JLabel();
       freeTriesLabel.setBounds(new java.awt.Rectangle(199, 200, 50, 22));
-      freeTriesLabel.setText("");
+      freeTriesLabel.setText(""); //$NON-NLS-1$
       freeTriesLabel.setForeground(Color.RED);
       jLabel6 = new JLabel();
       jLabel6.setBounds(new java.awt.Rectangle(7, 200, 181, 22));
-      jLabel6.setText("Frei verteilbare Versuche:");
+      jLabel6.setText(Localization.getString("Erfahrung.FreiVerteilbareVersuche")); //$NON-NLS-1$
       spellTriesLabel = new JLabel();
       spellTriesLabel.setBounds(new java.awt.Rectangle(199, 170, 50, 22));
-      spellTriesLabel.setText("");
+      spellTriesLabel.setText(""); //$NON-NLS-1$
       spellTriesLabel.setForeground(Color.RED);
       jLabel5 = new JLabel();
       jLabel5.setBounds(new java.awt.Rectangle(7, 170, 181, 22));
-      jLabel5.setText("Zaubersteigerungsversuche:");
+      jLabel5.setText(Localization.getString("Erfahrung.ZauberVersuche")); //$NON-NLS-1$
       jLabel4 = new JLabel();
       jLabel4.setBounds(new java.awt.Rectangle(7, 140, 181, 22));
-      jLabel4.setText("Talentsteigerungsversuche:");
+      jLabel4.setText(Localization.getString("Erfahrung.TalentVersuche")); //$NON-NLS-1$
       jLabel3 = new JLabel();
       jLabel3.setBounds(new java.awt.Rectangle(7, 102, 131, 22));
-      jLabel3.setText("Ruf:");
+      jLabel3.setText(Localization.getString("Erfahrung.Ruf")); //$NON-NLS-1$
       jLabel2 = new JLabel();
       jLabel2.setBounds(new java.awt.Rectangle(7, 71, 127, 22));
-      jLabel2.setText("Nächste Stufe bei:");
+      jLabel2.setText(Localization.getString("Erfahrung.NaechsteStufe")); //$NON-NLS-1$
       jLabel1 = new JLabel();
       jLabel1.setBounds(new java.awt.Rectangle(7, 40, 67, 22));
-      jLabel1.setText("Stufe:");
+      jLabel1.setText(Localization.getString("Erfahrung.Stufe")); //$NON-NLS-1$
       jLabel = new JLabel();
       jLabel.setBounds(new java.awt.Rectangle(7, 9, 124, 22));
-      jLabel.setText("AbenteuerPunkte:");
-      missingLabel = new JLabel("");
+      jLabel.setText(Localization.getString("Erfahrung.AbenteuerPunkte")); //$NON-NLS-1$
+      missingLabel = new JLabel(""); //$NON-NLS-1$
       missingLabel.setBounds(new java.awt.Rectangle(218, 71, 110, 22));
-      remainingStepsLabel = new JLabel("");
+      remainingStepsLabel = new JLabel(""); //$NON-NLS-1$
       remainingStepsLabel.setBounds(new java.awt.Rectangle(218, 40, 110, 22));
       jContentPane = new JPanel();
       jContentPane.setLayout(new BorderLayout());
@@ -203,7 +203,7 @@ public final class StepFrame extends SubFrame
       JPanel stepIncreasePanel = new JPanel();
       stepIncreasePanel.setOpaque(false);
       stepIncreasePanel.setBorder(BorderFactory.createTitledBorder(
-          BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Stufenanstieg"));
+          BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), Localization.getString("Erfahrung.Stufenanstieg"))); //$NON-NLS-1$
       stepIncreasePanel.setBounds(new java.awt.Rectangle(3, 125, 303, 98));
       upperPanel.add(stepIncreasePanel, null);
       upperPanel.setPreferredSize(new java.awt.Dimension(310, 225));
@@ -239,7 +239,7 @@ public final class StepFrame extends SubFrame
     if (jPanel4 == null) {
       jPanel4 = new JPanel();
       jPanel4.setLayout(new BorderLayout());
-      jPanel4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Abenteuer", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), Localization.getString("Erfahrung.Abenteuer"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null)); //$NON-NLS-1$
       jPanel4.add(getJPanel1(), BorderLayout.CENTER);
     }
     return jPanel4;
@@ -269,8 +269,8 @@ public final class StepFrame extends SubFrame
     if (addAdventureButton == null) {
       addAdventureButton = new JButton();
       addAdventureButton.setBounds(new Rectangle(10, 0, 51, 21));
-      addAdventureButton.setToolTipText("Abenteuer hinzufügen");
-      addAdventureButton.setIcon(dsa.gui.util.ImageManager.getIcon("increase"));
+      addAdventureButton.setToolTipText(Localization.getString("Erfahrung.AbenteuerHinzufuegen")); //$NON-NLS-1$
+      addAdventureButton.setIcon(dsa.gui.util.ImageManager.getIcon("increase")); //$NON-NLS-1$
       addAdventureButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           addAdventure();
@@ -282,29 +282,29 @@ public final class StepFrame extends SubFrame
   
   private void addAdventure() {
     String name = JOptionPane.showInputDialog(this, 
-        "Name des Abenteuers:", "Abenteuer hinzufügen", JOptionPane.PLAIN_MESSAGE);
+        Localization.getString("Erfahrung.AbenteuerName"), Localization.getString("Erfahrung.AbenteuerHinzufuegen"), JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
     if (name == null) return;
     if ( name.length() == 0) {
-      JOptionPane.showMessageDialog(this, "Bitte einen Namen eingeben.", "Fehler", 
+      JOptionPane.showMessageDialog(this, Localization.getString("Erfahrung.NamenEingeben"), Localization.getString("Erfahrung.Fehler"),  //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.ERROR_MESSAGE);
       return;
     }
     String apS = javax.swing.JOptionPane.showInputDialog(this,
-        "Im letzten Abenteuer verdiente AP:", "Abenteuer hinzufügen",
+        Localization.getString("Erfahrung.VerdienteAP"), Localization.getString("Erfahrung.AbenteuerHinzufuegen"), //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.PLAIN_MESSAGE);
     if (apS == null) return;
     int ap = 0;
     try {
       ap = Integer.parseInt(apS);
-      if (ap < 0) throw new NumberFormatException("");
+      if (ap < 0) throw new NumberFormatException(""); //$NON-NLS-1$
     }
     catch (NumberFormatException ex) {
       JOptionPane.showMessageDialog(this,
-          "Bitte eine positive ganze Zahl eingeben.", "Fehler",
+          Localization.getString("Erfahrung.GanzePositiveZahl"), Localization.getString("Erfahrung.Fehler"), //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.ERROR_MESSAGE);
       return;
     }
-    switch (JOptionPane.showConfirmDialog(this, "AP zu den Gesamt-AP hinzuzählen?", "Abenteuer hinzufügen", 
+    switch (JOptionPane.showConfirmDialog(this, Localization.getString("Erfahrung.ApZuGesamtAP"), Localization.getString("Erfahrung.AbenteuerHinzufuegen"),  //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE)) {
     case JOptionPane.YES_OPTION:
       addAP(ap);
@@ -323,9 +323,9 @@ public final class StepFrame extends SubFrame
   private JButton getRemoveAdventureButton() {
     if (removeAdventureButton == null) {
       removeAdventureButton = new JButton();
-      removeAdventureButton.setToolTipText("Abenteuer entfernen");
-      removeAdventureButton.setIcon(dsa.gui.util.ImageManager.getIcon("decrease_enabled"));
-      removeAdventureButton.setDisabledIcon(dsa.gui.util.ImageManager.getIcon("decrease"));
+      removeAdventureButton.setToolTipText(Localization.getString("Erfahrung.AbenteuerEntfernen")); //$NON-NLS-1$
+      removeAdventureButton.setIcon(dsa.gui.util.ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeAdventureButton.setDisabledIcon(dsa.gui.util.ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeAdventureButton.setBounds(new Rectangle(10, 30, 51, 21));
       removeAdventureButton.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -339,7 +339,7 @@ public final class StepFrame extends SubFrame
   private void removeAdventure() {
     int index = adventureTable.getSelectedItemIndex();
     if (index >= 0) {
-      switch (JOptionPane.showConfirmDialog(this, "Auch die AP entfernen?", "Abenteuer entfernen", 
+      switch (JOptionPane.showConfirmDialog(this, Localization.getString("Erfahrung.APEntfernen"), Localization.getString("Erfahrung.AbenteuerEntfernen"),  //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE)) {
       case JOptionPane.YES_OPTION:
         currentHero.changeAP(-currentHero.getAdventures()[index].getAP());
@@ -361,8 +361,8 @@ public final class StepFrame extends SubFrame
   private JButton getAdventureUpButton() {
     if (adventureUpButton == null) {
       adventureUpButton = new JButton();
-      adventureUpButton.setToolTipText("Nach oben schieben");
-      adventureUpButton.setIcon(dsa.gui.util.ImageManager.getIcon("up"));
+      adventureUpButton.setToolTipText(Localization.getString("Erfahrung.NachObenSchieben")); //$NON-NLS-1$
+      adventureUpButton.setIcon(dsa.gui.util.ImageManager.getIcon("up")); //$NON-NLS-1$
       adventureUpButton.setBounds(new Rectangle(10, 60, 51, 21));
       adventureUpButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -387,8 +387,8 @@ public final class StepFrame extends SubFrame
   private JButton getAdventureDownButton() {
     if (adventureDownButton == null) {
       adventureDownButton = new JButton();
-      adventureDownButton.setToolTipText("Nach unten schieben");
-      adventureDownButton.setIcon(dsa.gui.util.ImageManager.getIcon("down"));
+      adventureDownButton.setToolTipText(Localization.getString("Erfahrung.NachUntenSchieben")); //$NON-NLS-1$
+      adventureDownButton.setIcon(dsa.gui.util.ImageManager.getIcon("down")); //$NON-NLS-1$
       adventureDownButton.setBounds(new Rectangle(10, 90, 51, 21));
       adventureDownButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -425,7 +425,7 @@ public final class StepFrame extends SubFrame
 
         public void propertyChange(PropertyChangeEvent evt) {
           if (!listen) return;
-          if (!evt.getPropertyName().equals("value")) return;
+          if (!evt.getPropertyName().equals("value")) return; //$NON-NLS-1$
           if (currentHero != null) {
             listen = false;
             String sValue = apField.getText();
@@ -447,15 +447,15 @@ public final class StepFrame extends SubFrame
    */
   private JToggleButton getApLockBtn() {
     if (apLockBtn == null) {
-      apLockBtn = new JToggleButton(ImageManager.getIcon("locked"));
+      apLockBtn = new JToggleButton(ImageManager.getIcon("locked")); //$NON-NLS-1$
       apLockBtn.setBounds(new java.awt.Rectangle(219, 11, 33, 18));
-      apLockBtn.setToolTipText("Schützen / Freigeben");
+      apLockBtn.setToolTipText(Localization.getString("Erfahrung.SchuetzenFreigeben")); //$NON-NLS-1$
       apLockBtn.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           apField.setEditable(apLockBtn.isSelected()
               || Group.getInstance().getGlobalUnlock());
           apLockBtn.setIcon(ImageManager
-              .getIcon(apLockBtn.isSelected() ? "unlocked" : "locked"));
+              .getIcon(apLockBtn.isSelected() ? "unlocked" : "locked")); //$NON-NLS-1$ //$NON-NLS-2$
         }
       });
     }
@@ -469,9 +469,9 @@ public final class StepFrame extends SubFrame
    */
   private JButton getApPlusBtn() {
     if (apPlusBtn == null) {
-      apPlusBtn = new JButton(ImageManager.getIcon("increase"));
+      apPlusBtn = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
       apPlusBtn.setBounds(new java.awt.Rectangle(264, 11, 33, 18));
-      apPlusBtn.setToolTipText("AP hinzufügen");
+      apPlusBtn.setToolTipText(Localization.getString("Erfahrung.APHinzufuegen")); //$NON-NLS-1$
       apPlusBtn.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent e) {
           addAP();
@@ -483,22 +483,22 @@ public final class StepFrame extends SubFrame
 
   protected void addAP() {
     String apS = javax.swing.JOptionPane.showInputDialog(this,
-        "Im letzten Abenteuer verdiente AP:", "AP erhöhen",
+        Localization.getString("Erfahrung.VerdienteAP"), Localization.getString("Erfahrung.APErhoehen"), //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.PLAIN_MESSAGE);
     if (apS == null) return;
     int ap = 0;
     try {
       ap = Integer.parseInt(apS);
-      if (ap < 0) throw new NumberFormatException("");
+      if (ap < 0) throw new NumberFormatException(""); //$NON-NLS-1$
     }
     catch (NumberFormatException ex) {
       JOptionPane.showMessageDialog(this,
-          "Bitte eine positive ganze Zahl eingeben.", "Fehler",
+          Localization.getString("Erfahrung.GanzePositiveZahl"), Localization.getString("Erfahrung.Fehler"), //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.ERROR_MESSAGE);
       return;
     }
     String name = JOptionPane.showInputDialog(this, 
-        "Name des Abenteuers:", "AP erhöhen", JOptionPane.PLAIN_MESSAGE);
+        Localization.getString("Erfahrung.AbenteuerName"), Localization.getString("Erfahrung.APErhoehen"), JOptionPane.PLAIN_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$
     if (name != null && name.length() > 0) {
       addAdventure(name, ap);
     }
@@ -532,7 +532,7 @@ public final class StepFrame extends SubFrame
         increaser.increaseStepsAutomatically(currentHero.getStep() - currentStep);
         updateData();
         if (dialog.shallShowLog()) {
-          ScrollableMessageDialog dialog2 = new ScrollableMessageDialog(this, increaser.getLog(), "Automatisch_Steigern");
+          ScrollableMessageDialog dialog2 = new ScrollableMessageDialog(this, increaser.getLog(), Localization.getString("Erfahrung.AutomatischSteigern")); //$NON-NLS-1$
           dialog2.setVisible(true);
         }
       }
@@ -638,39 +638,39 @@ public final class StepFrame extends SubFrame
   private void updateData() {
     currentHero = Group.getInstance().getActiveHero();
     if (currentHero != null) {
-      apField.setText("" + currentHero.getAP());
+      apField.setText("" + currentHero.getAP()); //$NON-NLS-1$
       apField.setForeground(getFieldColor(currentHero.getAP()));
-      stepField.setText("" + currentHero.getStep());
+      stepField.setText("" + currentHero.getStep()); //$NON-NLS-1$
       stepField.setForeground(getFieldColor(currentHero.getStep()));
       if (!currentHero.isDifference()) {
-        nextStepField.setText("" + currentHero.getStep()
+        nextStepField.setText("" + currentHero.getStep() //$NON-NLS-1$
             * (currentHero.getStep() + 1) * 50);
         missingLabel
-        .setText("("
+        .setText("(" //$NON-NLS-1$
             + (currentHero.getStep() * (currentHero.getStep() + 1) * 50 - currentHero
-                .getAP()) + " AP fehlen)");
+                .getAP()) + Localization.getString("Erfahrung.APFehlen")); //$NON-NLS-1$
       }
       else {
-        nextStepField.setText("-");
-        missingLabel.setText("-");
+        nextStepField.setText("-"); //$NON-NLS-1$
+        missingLabel.setText("-"); //$NON-NLS-1$
       }
       rufField.setText(currentHero.getRuf());
       talentTriesLabel
-          .setText("" + currentHero.getOverallTalentIncreaseTries());
+          .setText("" + currentHero.getOverallTalentIncreaseTries()); //$NON-NLS-1$
       apPlusBtn.setEnabled(!currentHero.isDifference());
       apLockBtn.setEnabled(!currentHero.isDifference());
-      spellTriesLabel.setText("" + currentHero.getOverallSpellIncreaseTries());
-      freeTriesLabel.setText("" + currentHero.getSpellOrTalentIncreaseTries());
+      spellTriesLabel.setText("" + currentHero.getOverallSpellIncreaseTries()); //$NON-NLS-1$
+      freeTriesLabel.setText("" + currentHero.getSpellOrTalentIncreaseTries()); //$NON-NLS-1$
       apField.setEditable(!currentHero.isDifference() && (apLockBtn.isSelected()
           || Group.getInstance().getGlobalUnlock()));
       clearButton.setEnabled(!currentHero.isDifference() && (currentHero.getOverallSpellIncreaseTries()
           + currentHero.getSpellOrTalentIncreaseTries()
           + currentHero.getOverallTalentIncreaseTries() > 0));
       if (currentHero.getRemainingStepIncreases() > 0) {
-        remainingStepsLabel.setText("(" + currentHero.getRemainingStepIncreases() + " zu steigern)");
+        remainingStepsLabel.setText("(" + currentHero.getRemainingStepIncreases() + Localization.getString("Erfahrung.zusteigern")); //$NON-NLS-1$ //$NON-NLS-2$
       }
       else {
-        remainingStepsLabel.setText("");
+        remainingStepsLabel.setText(""); //$NON-NLS-1$
       }
       adventureTable.clear();
       Adventure[] adventures = currentHero.getAdventures();
@@ -683,17 +683,17 @@ public final class StepFrame extends SubFrame
       adventureDownButton.setEnabled(!currentHero.isDifference());
     }
     else {
-      apField.setText("");
-      stepField.setText("");
-      nextStepField.setText("");
-      rufField.setText("");
-      talentTriesLabel.setText("");
-      spellTriesLabel.setText("");
-      freeTriesLabel.setText("");
+      apField.setText(""); //$NON-NLS-1$
+      stepField.setText(""); //$NON-NLS-1$
+      nextStepField.setText(""); //$NON-NLS-1$
+      rufField.setText(""); //$NON-NLS-1$
+      talentTriesLabel.setText(""); //$NON-NLS-1$
+      spellTriesLabel.setText(""); //$NON-NLS-1$
+      freeTriesLabel.setText(""); //$NON-NLS-1$
       apPlusBtn.setEnabled(false);
       apLockBtn.setEnabled(false);
       clearButton.setEnabled(false);
-      missingLabel.setText("");
+      missingLabel.setText(""); //$NON-NLS-1$
       adventureTable.clear();
       addAdventureButton.setEnabled(false);
       removeAdventureButton.setEnabled(false);
@@ -724,21 +724,21 @@ public final class StepFrame extends SubFrame
     if (clearButton == null) {
       clearButton = new JButton();
       clearButton.setBounds(new java.awt.Rectangle(260, 140, 37, 20));
-      clearButton.setIcon(ImageManager.getIcon("decrease_enabled"));
-      clearButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      clearButton.setIcon(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      clearButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       clearButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           clearIncreaseTries();
         }
       });
-      clearButton.setToolTipText("Restliche Steigerungsversuche streichen");
+      clearButton.setToolTipText(Localization.getString("Erfahrung.RestlicheVersucheStreichen")); //$NON-NLS-1$
     }
     return clearButton;
   }
 
   protected void clearIncreaseTries() {
     if (JOptionPane.showConfirmDialog(this,
-        "Restliche Steigerungsversuche streichen?", "Heldenverwaltung",
+        Localization.getString("Erfahrung.RestlicheVersucheStreichen2"), Localization.getString("Erfahrung.Heldenverwaltung"), //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
       currentHero.removeRemainingIncreaseTries();
     }

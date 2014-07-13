@@ -59,23 +59,23 @@ public abstract class SubFrame extends JFrame
   private void storeBounds(Rectangle r) {
     PrintWriter out = null;
     try {
-      File file = new File(Directories.getApplicationPath() + "daten"
-          + File.separator + "allframebounds_"
-          + dsa.control.Version.getCurrentVersionString() + ".dat");
+      File file = new File(Directories.getApplicationPath() + "daten" //$NON-NLS-1$
+          + File.separator + "allframebounds_" //$NON-NLS-1$
+          + dsa.control.Version.getCurrentVersionString() + ".dat"); //$NON-NLS-1$
       if (file.exists()) {
-        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "ISO-8859-1")));
+        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "ISO-8859-1"))); //$NON-NLS-1$
       }
       else {
-        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO-8859-1")));
+        out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO-8859-1"))); //$NON-NLS-1$
       }
-      String line = getTitle() + ";" + r.x + ";" + r.y + ";" + r.width + ";"
+      String line = getTitle() + ";" + r.x + ";" + r.y + ";" + r.width + ";" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
           + r.height;
       out.println(line);
       out.flush();
     }
     catch (IOException e) {
       javax.swing.JOptionPane.showMessageDialog(this,
-          "Writing of bounds failed!\n" + e.getMessage());
+          "Writing of bounds failed!\n" + e.getMessage()); //$NON-NLS-1$
     }
     finally {
       if (out != null) out.close();
@@ -83,31 +83,31 @@ public abstract class SubFrame extends JFrame
   }
 
   public static void loadAllBounds(boolean update) throws IOException {
-    File file = new File(update ? Directories.getApplicationPath() + "daten"
-        + File.separator + "allframebounds_"
-        + dsa.control.Version.getCurrentVersionString() + ".dat" : Directories
+    File file = new File(update ? Directories.getApplicationPath() + "daten" //$NON-NLS-1$
+        + File.separator + "allframebounds_" //$NON-NLS-1$
+        + dsa.control.Version.getCurrentVersionString() + ".dat" : Directories //$NON-NLS-1$
         .getApplicationPath()
-        + "daten" + File.separator + "allframebounds.dat");
+        + "daten" + File.separator + "allframebounds.dat"); //$NON-NLS-1$ //$NON-NLS-2$
     if (!file.exists()) return;
     Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
     BufferedReader in = new BufferedReader(new InputStreamReader(
-        new FileInputStream(file), "ISO-8859-1"));
+        new FileInputStream(file), "ISO-8859-1")); //$NON-NLS-1$
     try {
       String line = in.readLine();
       while (line != null) {
-        StringTokenizer tokenizer = new StringTokenizer(line, ";");
+        StringTokenizer tokenizer = new StringTokenizer(line, ";"); //$NON-NLS-1$
         if (tokenizer.countTokens() != 5) {
-          throw new IOException("Falsches Format in bounds-Datei!");
+          throw new IOException("Falsches Format in bounds-Datei!"); //$NON-NLS-1$
         }
         String title = tokenizer.nextToken();
         int x = Integer.parseInt(tokenizer.nextToken());
         int y = Integer.parseInt(tokenizer.nextToken());
         int w = Integer.parseInt(tokenizer.nextToken());
         int h = Integer.parseInt(tokenizer.nextToken());
-        prefs.putInt(title + "x", x);
-        prefs.putInt(title + "y", y);
-        prefs.putInt(title + "w", w);
-        prefs.putInt(title + "h", h);
+        prefs.putInt(title + "x", x); //$NON-NLS-1$
+        prefs.putInt(title + "y", y); //$NON-NLS-1$
+        prefs.putInt(title + "w", w); //$NON-NLS-1$
+        prefs.putInt(title + "h", h); //$NON-NLS-1$
         line = in.readLine();
       }
     }
@@ -131,25 +131,25 @@ public abstract class SubFrame extends JFrame
   public static void saveFrameBounds(String title, Rectangle r) {
     Preferences prefs = Preferences
       .userNodeForPackage(dsa.gui.PackageID.class);
-    prefs.putInt(title + "x", r.x);
-    prefs.putInt(title + "y", r.y);
-    prefs.putInt(title + "w", r.width);
-    prefs.putInt(title + "h", r.height);
+    prefs.putInt(title + "x", r.x); //$NON-NLS-1$
+    prefs.putInt(title + "y", r.y); //$NON-NLS-1$
+    prefs.putInt(title + "w", r.width); //$NON-NLS-1$
+    prefs.putInt(title + "h", r.height); //$NON-NLS-1$
   }
   
   public static Rectangle getSavedFrameBounds(String title) {
     Preferences prefs = Preferences
     .userNodeForPackage(dsa.gui.PackageID.class);
-    int x = prefs.getInt(title + "x", 0);
-    int y = prefs.getInt(title + "y", 0);
-    int w = prefs.getInt(title + "w", 100);
-    int h = prefs.getInt(title + "h", 100);
+    int x = prefs.getInt(title + "x", 0); //$NON-NLS-1$
+    int y = prefs.getInt(title + "y", 0); //$NON-NLS-1$
+    int w = prefs.getInt(title + "w", 100); //$NON-NLS-1$
+    int h = prefs.getInt(title + "h", 100); //$NON-NLS-1$
     return new Rectangle(x, y, w, h);
   }
   
   protected boolean hasSavedFrameBounds() {
 	Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-	int x = prefs.getInt(getTitle() + "x", -1);
+	int x = prefs.getInt(getTitle() + "x", -1); //$NON-NLS-1$
 	return x != -1;  
   }
 
@@ -161,10 +161,10 @@ public abstract class SubFrame extends JFrame
     super(title);
     setTitle(title);
     Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-    int x = prefs.getInt(title + "x", 50);
-    int y = prefs.getInt(title + "y", 50);
-    int w = prefs.getInt(title + "w", 420);
-    int h = prefs.getInt(title + "h", 100);
+    int x = prefs.getInt(title + "x", 50); //$NON-NLS-1$
+    int y = prefs.getInt(title + "y", 50); //$NON-NLS-1$
+    int w = prefs.getInt(title + "w", 420); //$NON-NLS-1$
+    int h = prefs.getInt(title + "h", 100); //$NON-NLS-1$
     java.awt.Dimension screen = java.awt.Toolkit.getDefaultToolkit()
         .getScreenSize();
     if (w > screen.width) w = screen.width;
@@ -199,12 +199,12 @@ public abstract class SubFrame extends JFrame
   public final java.awt.Component getHelpParent() { return this; }
 
   private static ImageIcon getIcon() {
-    return dsa.gui.util.ImageManager.getIcon("icon");
+    return dsa.gui.util.ImageManager.getIcon("icon"); //$NON-NLS-1$
   }
 
   protected JRootPane createRootPane() {
-    String rootPaneClass = UIManager.getString("dsa.gui.rootPaneClass");
-    if (rootPaneClass == null || rootPaneClass.equals("")) {
+    String rootPaneClass = UIManager.getString("dsa.gui.rootPaneClass"); //$NON-NLS-1$
+    if (rootPaneClass == null || rootPaneClass.equals("")) { //$NON-NLS-1$
       return super.createRootPane();
     }
     else

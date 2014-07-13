@@ -109,6 +109,12 @@ public final class Fighting {
     else if ("Hruruzat".equals(weapon)) {
       return new Weapon.WV(3, 1);
     }
+    else if (Flammenschwert1.equals(weapon)) {
+    	return new Weapon.WV(0, 0);
+    }
+    else if (Flammenschwert2.equals(weapon)) {
+    	return new Weapon.WV(0, 0);
+    }
     else {
       Weapon w = Weapons.getInstance().getWeapon(weapon);
       if (w != null) return w.getWV();
@@ -184,6 +190,12 @@ public final class Fighting {
     else if (s == null) {
       category  = Weapons.getCategoryIndex("Raufen");
     }
+    else if (s.equals(Flammenschwert1)) {
+    	return new Optional<Integer>(15);
+    }
+    else if (s.equals(Flammenschwert2)) {
+    	return new Optional<Integer>(15);
+    }
     else {
       category = Weapons.getInstance().getWeapon(s).getType();
     }
@@ -213,6 +225,13 @@ public final class Fighting {
       }
       else if (s == null) {
         category = Weapons.getCategoryIndex("Raufen");
+      }
+      else if (s.equals(Flammenschwert1)) {
+    	  category = Weapons.getInstance().getWeapon("Langschwert").getType();
+      }
+      else if (s.equals(Flammenschwert2)) {
+    	  category = Weapons.getCategoryIndex("Raufen");
+    	  paMod -= 5;
       }
       else {
         category = Weapons.getInstance().getWeapon(s).getType();
@@ -291,11 +310,19 @@ public final class Fighting {
   
   private static DiceSpecification getTP(Hero hero, String weapon) {
     if (weapon == null) return DiceSpecification.create(1, 6, 0);
-    Weapon w = Weapons.getInstance().getWeapon(weapon);
-    int wDamage = w.getW6damage();
-    int constDamage = w.getConstDamage();
-    constDamage += getKKBonus(hero, w);    
-    return DiceSpecification.create(wDamage, 6, constDamage);
+    if (weapon.equals(Flammenschwert1)) {
+    	return DiceSpecification.create(1, 6, hero.getStep());
+    }
+    else if (weapon.equals(Flammenschwert2)) {
+    	return DiceSpecification.create(1, 6, hero.getStep());
+    }
+    else {
+	    Weapon w = Weapons.getInstance().getWeapon(weapon);
+	    int wDamage = w.getW6damage();
+	    int constDamage = w.getConstDamage();
+	    constDamage += getKKBonus(hero, w);    
+	    return DiceSpecification.create(wDamage, 6, constDamage);
+    }
   }
   
   public static int getFirstKKBonus(Hero hero) {
@@ -305,7 +332,11 @@ public final class Fighting {
       }
     }
     else {
-      Weapon weapon = Weapons.getInstance().getWeapon(hero.getFirstHandWeapon());
+      String w = hero.getFirstHandWeapon();
+      if (Flammenschwert1.equals(w) || Flammenschwert2.equals(w)) {
+    	  return 0;
+      }
+      Weapon weapon = Weapons.getInstance().getWeapon(w);
       if (weapon != null) {
         return getKKBonus(hero, weapon); 
       }
@@ -314,15 +345,15 @@ public final class Fighting {
   }
   
   public static DiceSpecification getFirstTP(Hero hero) {
+	  String weapon = hero.getFirstHandWeapon();
     if (hero.getFightMode().equals("Waffenlos")) {
       int fixedTP = 0;
-      if (hero.getFirstHandWeapon().equals("Boxen")) {
+      if (weapon != null && weapon.equals("Boxen")) {
         fixedTP += getKKBonus(hero, 14);
       }
       return DiceSpecification.create(1, 6, fixedTP);
     }
     else {
-      String weapon = hero.getFirstHandWeapon();
       return getTP(hero, weapon);
     }
   }
@@ -349,13 +380,14 @@ public final class Fighting {
   
   public static interface UpdateCallbacks {
     void updateData();
+    void fightPropertyChanged(Fighter fighter, dsa.remote.IServer.FightProperty fp);
   }
   
-  public static int doHit(Fighter fighter, int tp, boolean useAU, boolean rollSpecials, boolean hasShield,
+  public static String doHit(Fighter fighter, int tp, boolean useAU, boolean rollSpecials, boolean hasShield,
       JFrame parent, UpdateCallbacks callbacks) {
     ImageIcon icon = ImageManager.getIcon("hit");
     int sp = tp - fighter.getRS();
-    if (sp <= 0) return 0;
+    if (sp <= 0) return ", aber die Rüstung fängt den Schaden ab.";
     int le = 0;
     String zoneText = "";
     if (Group.getInstance().getOptions().useHitZones()) {
@@ -407,7 +439,9 @@ public final class Fighting {
     	}
     }
     String zoneTextOnly = zoneText;
-    zoneText = "\n\n" + zoneText;
+    if (!zoneText.isEmpty()) {
+    	zoneText = "\n\n" + zoneText;
+    }
     if (useAU && (fighter instanceof Hero)) {
       ((Hero)fighter).changeAU(-sp);
       le = ((Hero)fighter).getCurrentEnergy(Energy.AU);
@@ -416,20 +450,23 @@ public final class Fighting {
       fighter.setCurrentLE(fighter.getCurrentLE() - sp);
       le = fighter.getCurrentLE();
     }
+    String additionalText = "";
     if (useAU) {
       if (le == 0) {
+    	additionalText = " und wird bewusstlos.";
         JOptionPane.showMessageDialog(parent, fighter.getName()
             + " wird bewusstlos." + zoneText, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
       }
       else if (!"".equals(zoneTextOnly)) {
     	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
       }
-      return sp;
+      return additionalText + " " + zoneTextOnly;
     }
     if (le < 0) {
       JOptionPane.showMessageDialog(parent, fighter.getName()
           + " liegt im Sterben ..." + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
           icon);
+      additionalText += " und liegt im Sterben ...";
     }
     else if (le <= 5) {
       if (Group.getInstance().getOptions().hasQvatStunned()) {
@@ -441,7 +478,9 @@ public final class Fighting {
                       + " ist benommen und braucht jede KR\neine KO-Probe, um nicht ohnmächtig zu werden." + zoneText,
                   "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
           fighter.setDazed(true);
+          callbacks.fightPropertyChanged(fighter, dsa.remote.IServer.FightProperty.dazed);
           callbacks.updateData();
+          additionalText += " und ist benommen.";
         }
         else if (!"".equals(zoneTextOnly)) {
       	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
@@ -451,13 +490,16 @@ public final class Fighting {
         JOptionPane.showMessageDialog(parent, fighter.getName()
             + " wird bewusstlos." + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
             icon);
+        additionalText += " und wird bewusstlos.";
       }
     }
     else if (sp >= 15 && (fighter instanceof Hero)) {
       Hero currentHero = (Hero) fighter;
       if (Markers.isUsingMarkers()) {
         currentHero.setExtraMarkers(currentHero.getExtraMarkers() + 1);
+        callbacks.fightPropertyChanged(fighter, dsa.remote.IServer.FightProperty.markers);
         callbacks.updateData();
+        additionalText += " und bekommt einen Wundmarker.";
       }
       if (!rollSpecials) {
         if (JOptionPane.showConfirmDialog(parent, currentHero.getName() + " hat mehr als 15 SP erhalten. Effekt auswürfeln?", 
@@ -469,26 +511,32 @@ public final class Fighting {
         int ko = currentHero.getCurrentEnergy(Energy.KO);
         int roll = Dice.roll(20);
         if (roll <= ko - Markers.getMarkers(currentHero)) {
+          String koText = " hat die KO-Probe mit einer " + roll + " bestanden!"; 
           JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die KO-Probe mit einer " + roll + " bestanden!" + zoneText,
+              + koText + zoneText,
               "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
+          additionalText += " und" + koText;
         }
         else {
           if (currentHero.isDazed()) {
+        	String koText = " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
+                    + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
+                    + " wird ohnmächtig.";
             JOptionPane.showMessageDialog(parent, currentHero.getName()
-                + " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
-                + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                + " wird ohnmächtig." + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
+                + koText + zoneText, "Verwundung", JOptionPane.PLAIN_MESSAGE,
                 icon);
+            additionalText += " und" + koText;
           }
           else {
+        	String koText = " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
+                    + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
+                    + " ist jetzt benommen."; 
             JOptionPane.showMessageDialog(parent, currentHero.getName()
-                + " hat die KO-Probe mit einer " + roll + " nicht bestanden.\n"
-                + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-                + " ist jetzt benommen." + zoneText, "Verwundung",
+                + koText + zoneText, "Verwundung",
                 JOptionPane.PLAIN_MESSAGE, icon);
             currentHero.setDazed(true);
             callbacks.updateData();
+            additionalText += " und" + koText;
           }
         }
 
@@ -504,40 +552,33 @@ public final class Fighting {
         int d2 = Dice.roll(20);
         int d3 = Dice.roll(20);
         int result = probe.performDetailedTest(d1, d2, d3);
+        String specialText;
         if (result == Probe.DAEMONENPECH) {
-          JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit DREI 20ern verpatzt!" + zoneText,
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
+          specialText = " hat die Selbstbeherrschung mit DREI 20ern verpatzt!";
         }
         else if (result == Probe.PATZER) {
-          JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit zwei 20ern verpatzt!" + zoneText,
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
+          specialText = " hat die Selbstbeherrschung mit zwei 20ern verpatzt!";
         }
         else if (result == Probe.PERFEKT) {
-          JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit zwei 1ern perfekt bestanden!" + zoneText,
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
+          specialText = " hat die Selbstbeherrschung mit zwei 1ern perfekt bestanden!";
         }
         else if (result == Probe.GOETTERGLUECK) {
-          JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " hat die Selbstbeherrschung mit DREI 1ern bestanden!" + zoneText,
-              "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
+          specialText = " hat die Selbstbeherrschung mit DREI 1ern bestanden!";
         }
         else if (result == Probe.FEHLSCHLAG) {
-          JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " ist die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
-              + " nicht gelungen.\n"
-              + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
-              + " wird vor Schmerz ohnmächtig." + zoneText, "Verwundung",
-              JOptionPane.PLAIN_MESSAGE, icon);
+          specialText = " hat die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
+                  + " nicht bestanden.\n"
+                  + (currentHero.getSex().startsWith("m") ? "Er" : "Sie")
+                  + " wird vor Schmerz ohnmächtig.";
         }
         else {
-          JOptionPane.showMessageDialog(parent, currentHero.getName()
-              + " ist die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
-              + " gelungen (" + result + " Punkte übrig)." + zoneText, "Verwundung",
-              JOptionPane.PLAIN_MESSAGE, icon);
+          specialText = " hat die Selbstbeherrschung mit " + d1 + "," + d2 + "," + d3
+                  + " bestanden (" + result + " Punkte übrig).";
         }
+        JOptionPane.showMessageDialog(parent, currentHero.getName()
+                + specialText + zoneText,
+                "Verwundung", JOptionPane.PLAIN_MESSAGE, icon);
+        additionalText = " und " + specialText;
       }
       else if (!"".equals(zoneTextOnly)) {
     	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
@@ -546,7 +587,11 @@ public final class Fighting {
     else if (!"".equals(zoneTextOnly)) {
   	  JOptionPane.showMessageDialog(parent, zoneTextOnly, "Treffer", JOptionPane.PLAIN_MESSAGE, icon);
     }    
-    return sp;
+    if (additionalText.isEmpty())
+    	additionalText = ".";
+    if (!zoneTextOnly.isEmpty())
+    	additionalText += " " + zoneTextOnly;
+    return additionalText;
   }
 
   private static boolean isProjectileWeapon(Weapon w) {
@@ -562,8 +607,11 @@ public final class Fighting {
     }
     return result;
   }
+  
+  public static final String Flammenschwert1 = "Flammenschwert, i.d. Hand";
+  public static final String Flammenschwert2 = "Flammenschwert, schwebend";
 
-  public static ArrayList<String> getCloseRangeWeapons(Hero currentHero) {
+  public static ArrayList<String> getCloseRangeWeapons(Hero currentHero, int hand) {
     String[] weapons = currentHero.getWeapons();
     ArrayList<String> result = new ArrayList<String>();
     for (String s : weapons) {
@@ -572,6 +620,10 @@ public final class Fighting {
         for (int i = 0; i < currentHero.getWeaponCount(s); ++i)
           result.add(s);
       }
+    }
+    if (currentHero.getRituals().contains("5. Stabzauber") && hand == 0) {
+    	result.add(Flammenschwert1);
+    	result.add(Flammenschwert2);
     }
     return result;
   }
@@ -589,13 +641,13 @@ public final class Fighting {
   public static java.util.List<String> getPossibleItems(Hero hero, String fightMode, int hand) {
     if (hand == 0) {
       if (fightMode.equals("Eine Waffe")) {
-        return getCloseRangeWeapons(hero);
+        return getCloseRangeWeapons(hero, hand);
       }
       else if (fightMode.startsWith("Waffe + Parade")) {
-        return getCloseRangeWeapons(hero);
+        return getCloseRangeWeapons(hero, hand);
       }
       else if (fightMode.equals("Zwei Waffen")) {
-        return getCloseRangeWeapons(hero);
+        return getCloseRangeWeapons(hero, hand);
       }
       else if (fightMode.equals("Waffenlos")) {
         ArrayList<String> items = new ArrayList<String>();
@@ -618,7 +670,7 @@ public final class Fighting {
         return java.util.Arrays.asList(hero.getShields());
       }
       else if (fightMode.equals("Zwei Waffen")) {
-        ArrayList<String> items = getCloseRangeWeapons(hero);
+        ArrayList<String> items = getCloseRangeWeapons(hero, 1);
         if (items.contains(hero.getFirstHandWeapon()))
           items.remove(hero.getFirstHandWeapon());
         return items;

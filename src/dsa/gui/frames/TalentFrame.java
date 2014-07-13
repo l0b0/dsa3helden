@@ -115,7 +115,7 @@ class TalentFrame extends SubFrame implements CharactersObserver,
   }
   
   public String getHelpPage() {
-    return "Talente";
+    return "Talente"; //$NON-NLS-1$
   }
 
   protected void saveSubclassState() {
@@ -308,9 +308,9 @@ class TalentFrame extends SubFrame implements CharactersObserver,
   }
 
   protected Vector<String> getColumnIdentifiers() {
-    String[] columnHeaders = enableTests ? new String[] { "Talent", "Std",
-        "Akt", "", "", "", "" } : new String[] { "Talent", "Std", "Akt", "",
-        "", "" };
+    String[] columnHeaders = enableTests ? new String[] { Localization.getString("Talente.Talent"), Localization.getString("Talente.Std"), //$NON-NLS-1$ //$NON-NLS-2$
+        Localization.getString("Talente.Akt"), "", "", "", "" } : new String[] { Localization.getString("Talente.Talent"), Localization.getString("Talente.Std"), Localization.getString("Talente.Akt"), "", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$
+        "", "" }; //$NON-NLS-1$ //$NON-NLS-2$
     Vector<String> result = new Vector<String>();
     for (String header : columnHeaders)
       result.add(header);
@@ -363,28 +363,28 @@ class TalentFrame extends SubFrame implements CharactersObserver,
         25, colouringRenderer, numberEditor));
     tcm.addColumn(new javax.swing.table.TableColumn(getCurrentValueColumn(),
         25, colouringRenderer, numberEditor));
-    JToggleButton lockButton = TableButtonInput.createToggleButton(ImageManager.getIcon("locked"));
+    JToggleButton lockButton = TableButtonInput.createToggleButton(ImageManager.getIcon("locked")); //$NON-NLS-1$
     mLockButtons = TableButtonInput.createButtonCellRenderer(lockButton,
         new DefaultTableCellRenderer());
-    lockButton.setPressedIcon(ImageManager.getIcon("unlocked"));
-    lockButton.setToolTipText("Schützen / Freigeben");
+    lockButton.setPressedIcon(ImageManager.getIcon("unlocked")); //$NON-NLS-1$
+    lockButton.setToolTipText(Localization.getString("Talente.SchuetzenFreigeben")); //$NON-NLS-1$
     tcm.addColumn(new javax.swing.table.TableColumn(getLockColumn(), 12,
         mLockButtons, TableButtonInput.createDummyCellEditor()));
     JButton testButton = null;
     if (enableTests) {
-      testButton = TableButtonInput.createButton(ImageManager.getIcon("probe"));
+      testButton = TableButtonInput.createButton(ImageManager.getIcon("probe")); //$NON-NLS-1$
       mTestButtons = TableButtonInput.createButtonCellRenderer(testButton,
           new DefaultTableCellRenderer());
-      testButton.setDisabledIcon(ImageManager.getIcon("probe_disabled"));
-      testButton.setToolTipText("Probe");
+      testButton.setDisabledIcon(ImageManager.getIcon("probe_disabled")); //$NON-NLS-1$
+      testButton.setToolTipText(Localization.getString("Talente.Probe")); //$NON-NLS-1$
       tcm.addColumn(new javax.swing.table.TableColumn(getTestColumn(), 12,
           mTestButtons, TableButtonInput.createDummyCellEditor()));
     }
-    JButton increaseButton = TableButtonInput.createButton(ImageManager.getIcon("increase"));
+    JButton increaseButton = TableButtonInput.createButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
     mIncreaseButtons = TableButtonInput.createButtonCellRenderer(increaseButton,
         new DefaultTableCellRenderer());
-    increaseButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
-    increaseButton.setToolTipText("Erhöhen");
+    increaseButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
+    increaseButton.setToolTipText(Localization.getString("Talente.Erhoehen")); //$NON-NLS-1$
     tcm.addColumn(new javax.swing.table.TableColumn(getIncrColumn(), 12,
         mIncreaseButtons, TableButtonInput.createDummyCellEditor()));
 
@@ -403,7 +403,7 @@ class TalentFrame extends SubFrame implements CharactersObserver,
       if (!shallDisplay(talents.get(i))) continue;
       StringBuffer descr = new StringBuffer(talents.get(i).getName());
       if (enableTests && talents.get(i).canBeTested()) {
-        descr.append(" (");
+        descr.append(" ("); //$NON-NLS-1$
         NormalTalent normalTalent = (NormalTalent) talents.get(i);
         descr.append(normalTalent.getFirstProperty());
         descr.append('/');

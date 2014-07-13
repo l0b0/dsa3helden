@@ -1,6 +1,7 @@
 package dsa.gui.dialogs;
 
 import dsa.gui.lf.BGDialog;
+import dsa.remote.RemoteManager;
 
 import java.awt.Container;
 import java.awt.Dialog;
@@ -23,6 +24,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import javax.swing.JCheckBox;
+import javax.swing.BoxLayout;
 
 public class ProbeResultDialog extends BGDialog {
 
@@ -34,74 +37,104 @@ public class ProbeResultDialog extends BGDialog {
 	private JPanel jPanel1 = null;
 	private JLabel jLabel3 = null;
 	private JButton closeButton = null;
-	private JButton copyButton = null;
 	
-	public static void showDialog(Container parent, String message, String title)
+	public static final int SEND_TO_SINGLE = 1;
+	public static final int SEND_TO_ALL = 2;
+	
+	public static int showDialog(Container parent, String message, String title, boolean allowOnlineOperations)
 	{
 		if (parent instanceof Dialog)
-			showDialog((Dialog)parent, message, title);
+			return showDialog((Dialog)parent, message, title, allowOnlineOperations);
 		else
-			showDialog((Frame)parent, message, title);
+			return showDialog((Frame)parent, message, title, allowOnlineOperations);
 	}
 	
-	public static void showDialog(Frame parent, String message, String title)
+	public static int showDialog(Frame parent, String message, String title, boolean allowOnlineOperations)
 	{
 		ProbeResultDialog dialog = new ProbeResultDialog(parent);
 		dialog.setTitle(title);
 		dialog.setText(message);
+		dialog.setAllowOnlineOperations(allowOnlineOperations);
 		dialog.setVisible(true);
+		int result = 0;
+		if (dialog.shallSendToMasterOrPlayer())
+			result += SEND_TO_SINGLE;
+		if (dialog.shallSendToOtherPlayers())
+			result += SEND_TO_ALL;
+		return result;
 	}
 
-	public static void showDialog(Frame parent, String message, String title, ImageIcon icon)
+	public static int showDialog(Frame parent, String message, String title, ImageIcon icon, boolean allowOnlineOperations)
 	{
 		ProbeResultDialog dialog = new ProbeResultDialog(parent, icon);
 		dialog.setTitle(title);
 		dialog.setText(message);
+		dialog.setAllowOnlineOperations(allowOnlineOperations);
 		dialog.setVisible(true);
+		int result = 0;
+		if (dialog.shallSendToMasterOrPlayer())
+			result += SEND_TO_SINGLE;
+		if (dialog.shallSendToOtherPlayers())
+			result += SEND_TO_ALL;
+		return result;
 	}
 
-	public static void showDialog(Dialog parent, String message, String title)
+	public static int showDialog(Dialog parent, String message, String title, boolean allowOnlineOperations)
 	{
 		ProbeResultDialog dialog = new ProbeResultDialog(parent);
 		dialog.setTitle(title);
 		dialog.setText(message);
+		dialog.setAllowOnlineOperations(allowOnlineOperations);
 		dialog.setVisible(true);
+		int result = 0;
+		if (dialog.shallSendToMasterOrPlayer())
+			result += SEND_TO_SINGLE;
+		if (dialog.shallSendToOtherPlayers())
+			result += SEND_TO_ALL;
+		return result;
 	}
 
-	public static void showDialog(Dialog parent, String message, String title, ImageIcon icon)
+	public static int showDialog(Dialog parent, String message, String title, ImageIcon icon)
 	{
 		ProbeResultDialog dialog = new ProbeResultDialog(parent, icon);
 		dialog.setTitle(title);
 		dialog.setText(message);
+		dialog.setAllowOnlineOperations(false);
 		dialog.setVisible(true);
+		int result = 0;
+		if (dialog.shallSendToMasterOrPlayer())
+			result += SEND_TO_SINGLE;
+		if (dialog.shallSendToOtherPlayers())
+			result += SEND_TO_ALL;
+		return result;
 	}
 
 	/**
 	 * This method initializes 
 	 * 
 	 */
-	public ProbeResultDialog() {
+	private ProbeResultDialog() {
 		super();
 		initialize();
 	}
 	
-	public ProbeResultDialog(Frame parent) {
+	private ProbeResultDialog(Frame parent) {
 		super(parent);
 		initialize();
 	}
 	
-	public ProbeResultDialog(Frame parent, ImageIcon icon) {
+	private ProbeResultDialog(Frame parent, ImageIcon icon) {
 		super(parent);
 		this.icon = icon;
 		initialize();
 	}
 	
-	public ProbeResultDialog(Dialog parent) {
+	private ProbeResultDialog(Dialog parent) {
 		super(parent);
 		initialize();
 	}
 
-	public ProbeResultDialog(Dialog parent, ImageIcon icon) {
+	private ProbeResultDialog(Dialog parent, ImageIcon icon) {
 		super(parent);
 		this.icon = icon;
 		initialize();
@@ -119,13 +152,40 @@ public class ProbeResultDialog extends BGDialog {
 		textLabel.setText(labelText);
 		this.text = text;
 	}
+	
+	private void setAllowOnlineOperations(boolean allowOperations) {
+		if (allowOperations && RemoteManager.getInstance().isConnectedAsGM()) {
+			sendToMasterOrPlayerBox.setEnabled(true);
+			sendToMasterOrPlayerBox.setSelected(true);
+			sendToOtherPlayersBox.setEnabled(true);
+			sendToOtherPlayersBox.setSelected(true);
+			sendToMasterOrPlayerBox.setText("An Spieler senden");
+			copyBox.setSelected(false);
+		}
+		else if (allowOperations && RemoteManager.getInstance().isConnectedAsPlayer()) {
+			sendToMasterOrPlayerBox.setEnabled(false);
+			sendToMasterOrPlayerBox.setSelected(true);
+			sendToOtherPlayersBox.setEnabled(true);
+			sendToOtherPlayersBox.setSelected(true);
+			sendToMasterOrPlayerBox.setText("An Meister senden");
+			copyBox.setSelected(false);				
+		}
+		else {
+			sendToMasterOrPlayerBox.setEnabled(false);
+			sendToMasterOrPlayerBox.setSelected(false);
+			sendToOtherPlayersBox.setEnabled(false);
+			sendToOtherPlayersBox.setSelected(false);
+			sendToMasterOrPlayerBox.setText("An Meister senden");
+			copyBox.setSelected(true);				
+		}
+	}
 
 	/**
 	 * This method initializes this
 	 * 
 	 */
 	private void initialize() {
-        this.setSize(new Dimension(352, 203));
+        this.setSize(new Dimension(400, 200));
         this.setContentPane(getJContentPane());
         this.setTitle("ProbeResult");
         this.setModal(true);
@@ -179,10 +239,9 @@ public class ProbeResultDialog extends BGDialog {
 	private JPanel getJPanel() {
 		if (jPanel == null) {
 			jPanel = new JPanel();
-			jPanel.setLayout(new FlowLayout());
-			jPanel.setPreferredSize(new Dimension(120, 40));
-			jPanel.add(getCopyButton(), null);
-			jPanel.add(getCloseButton(), null);
+			jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.Y_AXIS));
+			jPanel.add(getPanel_1());
+			jPanel.add(getPanel());
 		}
 		return jPanel;
 	}
@@ -207,6 +266,11 @@ public class ProbeResultDialog extends BGDialog {
 	
 	private JPanel iconPanel;
 	private JLabel iconLabel;
+	private JPanel panel;
+	private JPanel panel_1;
+	private JCheckBox copyBox;
+	private JCheckBox sendToOtherPlayersBox;
+	private JCheckBox sendToMasterOrPlayerBox;
 	
 	private JPanel getIconPanel() {
 		if (iconPanel == null) {
@@ -229,29 +293,31 @@ public class ProbeResultDialog extends BGDialog {
 			closeButton.setText("Schließen");
 			closeButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
+					doCloseActions();
 					dispose();
 				}
 			});
 		}
 		return closeButton;
 	}
-
-	/**
-	 * This method initializes copyButton	
-	 * 	
-	 * @return javax.swing.JButton	
-	 */
-	private JButton getCopyButton() {
-		if (copyButton == null) {
-			copyButton = new JButton();
-			copyButton.setText("Kopieren");
-			copyButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					copyText();
-				}
-			});
+	
+	private boolean sendToMasterOrPlayer = false;
+	private boolean sendToOtherPlayers = false;
+	
+	private void doCloseActions() {
+		if (copyBox.isSelected()) {
+			copyText();
 		}
-		return copyButton;
+		sendToMasterOrPlayer = sendToMasterOrPlayerBox.isSelected();
+		sendToOtherPlayers = sendToOtherPlayersBox.isSelected();
+	}
+	
+	public boolean shallSendToMasterOrPlayer() {
+		return sendToMasterOrPlayer;
+	}
+	
+	public boolean shallSendToOtherPlayers() {
+		return sendToOtherPlayers;
 	}
 	
 	private void copyText()
@@ -283,4 +349,54 @@ public class ProbeResultDialog extends BGDialog {
 		return jScrollPane;
 	}
 
+	private JPanel getPanel() {
+		if (panel == null) {
+			panel = new JPanel();
+			panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+			panel.add(getCloseButton());
+		}
+		return panel;
+	}
+	private JPanel getPanel_1() {
+		if (panel_1 == null) {
+			panel_1 = new JPanel();
+			panel_1.setLayout(new BoxLayout(panel_1, BoxLayout.X_AXIS));
+			panel_1.add(getCopyBox());
+			panel_1.add(getSendToMasterOrPlayerBox());
+			panel_1.add(getSendToOtherPlayersBox());
+		}
+		return panel_1;
+	}
+	private JCheckBox getCopyBox() {
+		if (copyBox == null) {
+			copyBox = new JCheckBox("Kopieren");
+			copyBox.setSelected(true);
+		}
+		return copyBox;
+	}
+	private JCheckBox getSendToOtherPlayersBox() {
+		if (sendToOtherPlayersBox == null) {
+			sendToOtherPlayersBox = new JCheckBox("An andere Spieler senden");
+		}
+		return sendToOtherPlayersBox;
+	}
+	private JCheckBox getSendToMasterOrPlayerBox() {
+		if (sendToMasterOrPlayerBox == null) {
+			sendToMasterOrPlayerBox = new JCheckBox("An Meister senden");
+			sendToMasterOrPlayerBox.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if (sendToMasterOrPlayerBox.isSelected()) {
+						sendToOtherPlayersBox.setEnabled(true);
+					}
+					else {
+						sendToOtherPlayersBox.setEnabled(false);
+						sendToOtherPlayersBox.setSelected(false);
+					}
+				}
+			});
+			sendToMasterOrPlayerBox.setSelected(true);
+			sendToMasterOrPlayerBox.setEnabled(false);
+		}
+		return sendToMasterOrPlayerBox;
+	}
 }  //  @jve:decl-index=0:visual-constraint="10,10"

@@ -69,7 +69,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
   }
   
   public String getHelpPage() {
-    return bank ? "Bank" : "Geld";
+    return bank ? "Bank" : "Geld"; //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   dsa.model.characters.Hero currentHero = null;
@@ -124,7 +124,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-      if (!evt.getPropertyName().equals("value")) return;
+      if (!evt.getPropertyName().equals("value")) return; //$NON-NLS-1$
       int value = ((Number) ((JFormattedTextField) evt.getSource()).getValue())
           .intValue();
       if (currentHero != null) {
@@ -149,7 +149,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       int oldValue = currentHero.getMoney(mIndex, bank);
       int newValue = Currencies.getInstance().changeValueIndex(oldValue,
           oldCurrency, newCurrency);
-      mField.setText("" + newValue);
+      mField.setText("" + newValue); //$NON-NLS-1$
       currentHero.setCurrency(mIndex, newCurrency, bank);
       currentHero.setMoney(mIndex, newValue, bank);
       updateData();
@@ -250,8 +250,8 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
     format.setMaximumFractionDigits(2);
     format.setMinimumIntegerDigits(1);
     format.setMinimumFractionDigits(0);
-    String text = "Gesamt: Wert ca. " + format.format(worthInDuks) + " Dukaten";
-    if (!bank) text += ", Gewicht ca. " + weightInUnzes + " Unzen";
+    String text = Localization.getString("Geld.GesamtWert") + format.format(worthInDuks) + Localization.getString("Geld.Dukaten"); //$NON-NLS-1$ //$NON-NLS-2$
+    if (!bank) text += Localization.getString("Geld.Gewicht") + weightInUnzes + Localization.getString("Geld.Unzen"); //$NON-NLS-1$ //$NON-NLS-2$
     getWeightLabel().setText(text);
   }
 
@@ -270,7 +270,7 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       sidePanel = new JPanel();
       jLabel = new JLabel();
       jLabel.setBounds(new java.awt.Rectangle(7, 0, 80, 29));
-      jLabel.setText("Währungen");
+      jLabel.setText(Localization.getString("Geld.Waehrungen")); //$NON-NLS-1$
       sidePanel.setLayout(null);
       sidePanel.setPreferredSize(new java.awt.Dimension(100, 90));
       sidePanel.add(jLabel, null);
@@ -299,9 +299,9 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
     if (upperPanel == null) {
       upperPanel = new JPanel(new BorderLayout(5, 5));
       upperPanel.add(getWeightLabel(), BorderLayout.CENTER);
-      JLabel upper = new JLabel("");
+      JLabel upper = new JLabel(""); //$NON-NLS-1$
       upper.setPreferredSize(new java.awt.Dimension(10, 10));
-      JLabel left = new JLabel("");
+      JLabel left = new JLabel(""); //$NON-NLS-1$
       left.setPreferredSize(new java.awt.Dimension(10, 10));
       upperPanel.add(upper, BorderLayout.NORTH);
       upperPanel.add(left, BorderLayout.WEST);
@@ -320,19 +320,19 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
       innerPanel.setLayout(new BorderLayout());
       JPanel temp = new JPanel(new BorderLayout());
       JPanel temp2 = new JPanel(new BorderLayout());
-      JLabel filler = new JLabel("");
+      JLabel filler = new JLabel(""); //$NON-NLS-1$
       filler.setPreferredSize(new java.awt.Dimension(10, 20));
       temp2.add(filler, BorderLayout.NORTH);
       temp2.add(getJPanel(), BorderLayout.CENTER);
       temp.add(temp2, BorderLayout.NORTH);
-      temp.add(new JLabel(""), BorderLayout.CENTER);
+      temp.add(new JLabel(""), BorderLayout.CENTER); //$NON-NLS-1$
       innerPanel.add(temp, BorderLayout.CENTER);
       innerPanel.add(getSidePanel(), BorderLayout.EAST);
       // JLabel upper = new JLabel("");
       // upper.setPreferredSize(new java.awt.Dimension(10, 10));
-      JLabel left = new JLabel("");
+      JLabel left = new JLabel(""); //$NON-NLS-1$
       left.setPreferredSize(new java.awt.Dimension(10, 10));
-      JLabel lower = new JLabel("");
+      JLabel lower = new JLabel(""); //$NON-NLS-1$
       lower.setPreferredSize(new java.awt.Dimension(10, 10));
       innerPanel.add(getUpperPanel(), BorderLayout.NORTH);
       innerPanel.add(lower, BorderLayout.SOUTH);
@@ -367,9 +367,9 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
    */
   private JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
       addButton.setBounds(new java.awt.Rectangle(5, 26, 78, 23));
-      addButton.setToolTipText("Währung hinzufügen");
+      addButton.setToolTipText(Localization.getString("Geld.WaehrungHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener((new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (currentHero == null) return;
@@ -389,10 +389,10 @@ public class MoneyFrame extends SubFrame implements CharactersObserver {
    */
   private JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(new java.awt.Rectangle(5, 60, 78, 23));
-      removeButton.setToolTipText("Unterste Währung entfernen");
+      removeButton.setToolTipText(Localization.getString("Geld.WaehrungEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (currentHero == null) return;

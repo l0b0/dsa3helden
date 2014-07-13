@@ -4,6 +4,9 @@ import java.awt.Frame;
 
 import dsa.control.Dice;
 import dsa.gui.lf.BGDialog;
+import dsa.model.characters.Group;
+import dsa.remote.RemoteManager;
+
 import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -303,7 +306,12 @@ public class DiceRollDialog extends BGDialog {
 			if (nrOfDice > 1) {
 				result.append("\nSumme: " + sum);
 			}
-			ProbeResultDialog.showDialog(getParent(), result.toString(), "Würfeln");
+			int dialogResult = ProbeResultDialog.showDialog(getParent(), result.toString(), "Würfeln", true);
+			boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+			boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+			if (sendToServer) {
+				RemoteManager.getInstance().informOfProbe(Group.getInstance().getActiveHero(), result.toString(), informOtherPlayers);
+			}
 		}
 	}
 	

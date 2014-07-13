@@ -433,7 +433,7 @@ public final class GroupOperations {
       OptionsChange.fireOptionsChanged();
       return true;
     }
-    catch (IOException e) {
+    catch (Exception e) {
       JOptionPane.showMessageDialog(parent, "Fehler beim Laden: "
           + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
       return false;

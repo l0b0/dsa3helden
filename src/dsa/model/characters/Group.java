@@ -177,6 +177,19 @@ public class Group extends AbstractObservable<CharactersObserver> implements Pri
       setActiveHero(hero);
     }
   }
+  
+  public void replaceCharacter(Hero oldHero, Hero newHero) {
+	    if (!characters.contains(oldHero)) return;
+	    int index = characters.indexOf(oldHero);
+	    characters.remove(oldHero);
+	    String oldPath = filePaths.get(index);
+	    filePaths.remove(index);
+	    characters.add(newHero);
+	    filePaths.add(oldPath);
+	    if (activeHero == oldHero) {
+	    	setActiveHero(newHero);
+	    }
+  }
 
   public Set<String> getOpponentNames() {
     return opponents.getOpponentNames();

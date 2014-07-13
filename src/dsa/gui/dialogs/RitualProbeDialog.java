@@ -37,6 +37,7 @@ import dsa.control.Probe;
 import dsa.gui.lf.BGDialog;
 import dsa.model.characters.Hero;
 import dsa.model.data.Ritual;
+import dsa.remote.RemoteManager;
 import dsa.util.Strings;
 
 /**
@@ -186,8 +187,13 @@ public final class RitualProbeDialog extends BGDialog {
     dispose();
     String ret = "";
     ret = doProbe(hero, testData, difficulty);
-    ProbeResultDialog.showDialog(parent, ret, "Ritual-Probe für "
-        + Strings.cutTo(hero.getName(), ' '));
+    int dialogResult = ProbeResultDialog.showDialog(parent, ret, "Ritual-Probe für "
+        + Strings.cutTo(hero.getName(), ' '), true);
+	boolean sendToServer = (dialogResult & ProbeResultDialog.SEND_TO_SINGLE) != 0;
+	boolean informOtherPlayers = (dialogResult & ProbeResultDialog.SEND_TO_ALL) != 0;
+	if (sendToServer) {
+		RemoteManager.getInstance().informOfProbe(hero, ret, informOtherPlayers);
+	}
   }
 
   public enum Result {

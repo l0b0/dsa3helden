@@ -77,7 +77,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
   private Hero currentHero;
 
   public BackgroundFrame() {
-    super("Hintergrund");
+    super(Localization.getString("Hintergrund.Hintergrund")); //$NON-NLS-1$
     currentHero = Group.getInstance().getActiveHero();
     Group.getInstance().addObserver(this);
     addWindowListener(new WindowAdapter() {
@@ -100,7 +100,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
   }
   
   public String getHelpPage() {
-    return "Hintergrund";
+    return "Hintergrund"; //$NON-NLS-1$
   }
 
   private boolean listenForChanges = true;
@@ -116,8 +116,8 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
       notesPane.setEditable(!currentHero.isDifference());
     }
     else {
-      backgroundFileField.setText("");
-      notesPane.setText("");
+      backgroundFileField.setText(""); //$NON-NLS-1$
+      notesPane.setText(""); //$NON-NLS-1$
       editButton.setEnabled(false);
       fileSelectorButton.setEnabled(false);
     }
@@ -131,7 +131,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
   private void initialize() {
     // this.setSize(new java.awt.Dimension(397,359));
     this.setContentPane(getJContentPane());
-    this.setTitle("Hintergrund");
+    this.setTitle(Localization.getString("Hintergrund.Hintergrund")); //$NON-NLS-1$
 
   }
 
@@ -159,10 +159,10 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
     if (jPanel == null) {
       jLabel5 = new JLabel();
       jLabel5.setBounds(new java.awt.Rectangle(6, 93, 162, 20));
-      jLabel5.setText("Anmerkungen:");
+      jLabel5.setText(Localization.getString("Hintergrund.Anmerkungen")); //$NON-NLS-1$
       jLabel4 = new JLabel();
       jLabel4.setBounds(new java.awt.Rectangle(6, 8, 163, 20));
-      jLabel4.setText("Hintergrundgeschichte:");
+      jLabel4.setText(Localization.getString("Hintergrund.Geschichte")); //$NON-NLS-1$
       jPanel = new JPanel();
       jPanel.setLayout(null);
       jPanel.setPreferredSize(new Dimension(400, 122));
@@ -183,16 +183,16 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
   private JPanel getJPanel1() {
     if (jPanel1 == null) {
       jLabel3 = new JLabel();
-      jLabel3.setText("");
+      jLabel3.setText(""); //$NON-NLS-1$
       jLabel3.setPreferredSize(new Dimension(6, 10));
       jLabel2 = new JLabel();
-      jLabel2.setText("");
+      jLabel2.setText(""); //$NON-NLS-1$
       jLabel2.setPreferredSize(new Dimension(10, 10));
       jLabel1 = new JLabel();
-      jLabel1.setText("");
+      jLabel1.setText(""); //$NON-NLS-1$
       jLabel1.setPreferredSize(new Dimension(10, 10));
       jLabel = new JLabel();
-      jLabel.setText("");
+      jLabel.setText(""); //$NON-NLS-1$
       jLabel.setPreferredSize(new Dimension(10, 1));
       jPanel1 = new JPanel();
       jPanel1.setLayout(new BorderLayout());
@@ -286,7 +286,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
     if (fileSelectorButton == null) {
       fileSelectorButton = new JButton();
       fileSelectorButton.setBounds(new java.awt.Rectangle(300, 31, 40, 20));
-      fileSelectorButton.setText("...");
+      fileSelectorButton.setText("..."); //$NON-NLS-1$
       fileSelectorButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectFile(backgroundFileField, false, false);
@@ -304,7 +304,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
     }
     else {
       File f = Directories.getLastUsedDirectory(this,
-          editor ? "BackgroundEditors" : "BackgroundFiles");
+          editor ? "BackgroundEditors" : "BackgroundFiles"); //$NON-NLS-1$ //$NON-NLS-2$
       if (f != null)
         chooser = new JFileChooser(f);
       else
@@ -312,26 +312,26 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
     }
     if (editor) {
       dsa.gui.util.ExampleFileFilter filter = new ExampleFileFilter();
-      filter.addExtension("exe");
-      filter.addExtension("com");
-      filter.setDescription("Ausführbare Dateien (Windows)");
+      filter.addExtension("exe"); //$NON-NLS-1$
+      filter.addExtension("com"); //$NON-NLS-1$
+      filter.setDescription(Localization.getString("Hintergrund.AusfuehrbareDateien")); //$NON-NLS-1$
       chooser.setFileFilter(filter);
     }
     else {
       dsa.gui.util.ExampleFileFilter filter = new ExampleFileFilter();
-      filter.addExtension("doc");
-      filter.addExtension("odt");
-      filter.addExtension("rtf");
-      filter.addExtension("txt");
-      filter.setDescription("Textdokumente");
+      filter.addExtension("doc"); //$NON-NLS-1$
+      filter.addExtension("odt"); //$NON-NLS-1$
+      filter.addExtension("rtf"); //$NON-NLS-1$
+      filter.addExtension("txt"); //$NON-NLS-1$
+      filter.setDescription(Localization.getString("Hintergrund.Textdokumente")); //$NON-NLS-1$
       chooser.setFileFilter(filter);
     }
     chooser.setAcceptAllFileFilterUsed(true);
     chooser.setMultiSelectionEnabled(false);
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       textField.setText(chooser.getSelectedFile().getAbsolutePath());
-      Directories.setLastUsedDirectory(this, editor ? "BackgroundEditors"
-          : "BackgroundFiles", chooser.getSelectedFile());
+      Directories.setLastUsedDirectory(this, editor ? "BackgroundEditors" //$NON-NLS-1$
+          : "BackgroundFiles", chooser.getSelectedFile()); //$NON-NLS-1$
     }
   }
 
@@ -344,7 +344,7 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
     if (editButton == null) {
       editButton = new JButton();
       editButton.setBounds(new java.awt.Rectangle(6, 59, 106, 20));
-      editButton.setText("Editieren ...");
+      editButton.setText(Localization.getString("Hintergrund.Editieren")); //$NON-NLS-1$
       editButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           Desktop desktop = null;
@@ -355,8 +355,8 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
             }
           }
           if (desktop == null) {
-            JOptionPane.showMessageDialog(BackgroundFrame.this, "Das Betriebssystem erlaubt keinen direkten Viewer-Aufruf.", 
-                "Fehler", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(BackgroundFrame.this, Localization.getString("Hintergrund.ViewerAufrufFehler"),  //$NON-NLS-1$
+                Localization.getString("Hintergrund.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
             return;
           }
           try {
@@ -364,8 +364,8 @@ public final class BackgroundFrame extends SubFrame implements CharactersObserve
           }
           catch (IOException ex) {
             JOptionPane.showMessageDialog(BackgroundFrame.this,
-                "Aufruf des Editors fehlgeschlagen:\n" + ex.getMessage(),
-                "Fehler", JOptionPane.ERROR_MESSAGE);
+                Localization.getString("Hintergrund.EditorAufrufFehler") + ex.getMessage(), //$NON-NLS-1$
+                Localization.getString("Hintergrund.Fehler"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
           }
         }
       });

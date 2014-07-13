@@ -139,7 +139,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   }
   
   public String getHelpPage() {
-    return "Grunddaten";
+    return "Grunddaten"; //$NON-NLS-1$
   }
 
   public PhysFrame(String title) {
@@ -175,7 +175,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
    * @return void
    */
   private void initialize() {
-    this.setTitle("Grunddaten");
+    this.setTitle(Localization.getString("Grunddaten.Grunddaten")); //$NON-NLS-1$
     // this.setSize(new Dimension(569, 398));
     this.setContentPane(getJContentPane());
   }
@@ -188,10 +188,10 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private javax.swing.JPanel getJContentPane() {
     if (jContentPane == null) {
       jLabel13 = new JLabel();
-      jLabel13.setText("Titel:");
+      jLabel13.setText(Localization.getString("Grunddaten.Titel")); //$NON-NLS-1$
       jLabel13.setBounds(new Rectangle(10, 40, 103, 15));
       jLabel12 = new JLabel();
-      jLabel12.setText("Hautfarbe:");
+      jLabel12.setText(Localization.getString("Grunddaten.Hautfarbe")); //$NON-NLS-1$
       jLabel12.setBounds(new Rectangle(10, 60, 112, 15));
       jLabel11 = new JLabel();
       jLabel10 = new JLabel();
@@ -207,29 +207,29 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       jLabel = new JLabel();
       jContentPane = new javax.swing.JPanel();
       jContentPane.setLayout(null);
-      jLabel.setText("Name:");
+      jLabel.setText(Localization.getString("Grunddaten.Name")); //$NON-NLS-1$
       jLabel.setBounds(new Rectangle(10, 20, 96, 16));
-      jLabel1.setText("Typ:");
+      jLabel1.setText(Localization.getString("Grunddaten.Typ")); //$NON-NLS-1$
       jLabel1.setBounds(new Rectangle(10, 40, 96, 16));
-      jLabel2.setText("Geschlecht:");
+      jLabel2.setText(Localization.getString("Grunddaten.Geschlecht")); //$NON-NLS-1$
       jLabel2.setBounds(new Rectangle(320, 20, 111, 16));
-      jLabel3.setText("Gottheit:");
+      jLabel3.setText(Localization.getString("Grunddaten.Gottheit")); //$NON-NLS-1$
       jLabel3.setBounds(new Rectangle(10, 20, 96, 16));
-      jLabel4.setText("Stand der Eltern:");
+      jLabel4.setText(Localization.getString("Grunddaten.Stand")); //$NON-NLS-1$
       jLabel4.setBounds(new Rectangle(10, 60, 109, 16));
-      jLabel5.setText("Geburtsort:");
+      jLabel5.setText(Localization.getString("Grunddaten.Geburtsort")); //$NON-NLS-1$
       jLabel5.setBounds(new Rectangle(10, 40, 96, 16));
-      jLabel6.setText("Geburtstag:");
+      jLabel6.setText(Localization.getString("Grunddaten.Geburtstag")); //$NON-NLS-1$
       jLabel6.setBounds(new Rectangle(10, 20, 110, 16));
-      jLabel7.setText("Alter (Jahre):");
+      jLabel7.setText(Localization.getString("Grunddaten.AlterJahre")); //$NON-NLS-1$
       jLabel7.setBounds(new Rectangle(320, 20, 110, 16));
-      jLabel8.setText("Größe (Halbfinger):");
+      jLabel8.setText(Localization.getString("Grunddaten.GroesseHalbfinger")); //$NON-NLS-1$
       jLabel8.setBounds(new Rectangle(320, 40, 121, 16));
-      jLabel9.setText("Gewicht (Stein):");
+      jLabel9.setText(Localization.getString("Grunddaten.GewichtStein")); //$NON-NLS-1$
       jLabel9.setBounds(new Rectangle(320, 60, 110, 16));
-      jLabel10.setText("Haarfarbe:");
+      jLabel10.setText(Localization.getString("Grunddaten.Haarfarbe")); //$NON-NLS-1$
       jLabel10.setBounds(new Rectangle(10, 20, 111, 16));
-      jLabel11.setText("Augenfarbe:");
+      jLabel11.setText(Localization.getString("Grunddaten.Augenfarbe")); //$NON-NLS-1$
       jLabel11.setBounds(new Rectangle(10, 40, 110, 16));
       jContentPane.add(getJPanel(), null);
       jContentPane.add(getJPanel1(), null);
@@ -280,14 +280,14 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     if (sexCombo == null) {
       sexCombo = new JComboBox();
       sexCombo.setBounds(new Rectangle(445, 20, 86, 16));
-      sexCombo.addItem("weiblich");
-      sexCombo.addItem("männlich");
+      sexCombo.addItem(Localization.getString("Grunddaten.weiblich")); //$NON-NLS-1$
+      sexCombo.addItem(Localization.getString("Grunddaten.maennlich")); //$NON-NLS-1$
       sexCombo.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) {
           if (PhysFrame.this.disableChanges) return;
           if (PhysFrame.this.currentHero == null) return;
           PhysFrame.this.currentHero.setSex(getSexCombo().getSelectedItem()
-              .equals("männlich") ? "m" : "w");
+              .equals(Localization.getString("Grunddaten.maennlich")) ? "m" : "w"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$  
         }
       });
     }
@@ -439,7 +439,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JButton getNameButton() {
     if (nameButton == null) {
       nameButton = new JButton();
-      nameButton.setText("...");
+      nameButton.setText("...");  //$NON-NLS-1$
       nameButton.setBounds(new Rectangle(445, 20, 36, 16));
       nameButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -454,7 +454,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     NameSelectionDialog dialog = new NameSelectionDialog(this, true);
     dialog.setLocationRelativeTo(this);
     dialog.setCharacterName(getNameField().getText());
-    dialog.setSex(currentHero.getSex().toLowerCase(Locale.GERMAN).startsWith("w"));
+    dialog.setSex(currentHero.getSex().toLowerCase(Locale.GERMAN).startsWith("w"));  //$NON-NLS-1$
     dialog.setVisible(true);
     String name = dialog.getCharacterName();
     if (name != null) {
@@ -471,7 +471,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JButton getBirthPlaceButton() {
     if (birthPlaceButton == null) {
       birthPlaceButton = new JButton();
-      birthPlaceButton.setText("...");
+      birthPlaceButton.setText("...");  //$NON-NLS-1$
       birthPlaceButton.setBounds(new Rectangle(445, 40, 36, 16));
       birthPlaceButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -645,7 +645,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
 
   private JButton getHairButton() {
     if (hairButton == null) {
-      hairButton = new JButton("...");
+      hairButton = new JButton("...");  //$NON-NLS-1$
       hairButton.setBounds(new Rectangle(270, 20, 36, 16));
       hairButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -707,7 +707,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
         }
         
         private void fillBox() {
-          eyeCombo.addItem("<passend>");
+          eyeCombo.addItem(Localization.getString("Grunddaten.passend")); //$NON-NLS-1$
           for (String color : Looks.getInstance().getEyeColors()) {
             eyeCombo.addItem(color);
           }          
@@ -718,7 +718,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
           if (disableChanges) return;
           if (PhysFrame.this.currentHero == null) return;
           String color = getEyeCombo().getSelectedItem().toString();
-          if (color.equals("<passend>")) {
+          if (color.equals(Localization.getString("Grunddaten.passend"))) { //$NON-NLS-1$
             color = Looks.getMatchingEyeColor(currentHero.getHairColor());
             disableChanges = true;
             getEyeCombo().setSelectedItem(color);
@@ -762,7 +762,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     if (hasHero) {
       getNameField().setText(currentHero.getName());
       getTypeField().setText(currentHero.getType());
-      getSexCombo().setSelectedIndex(currentHero.getSex().equals("m") ? 1 : 0);
+      getSexCombo().setSelectedIndex(currentHero.getSex().equals("m") ? 1 : 0);  //$NON-NLS-1$
       getGodBox().setSelectedItem(currentHero.getGod());
       getStandCombo().removeAllItems();
       standComboFilled = false;
@@ -793,20 +793,20 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       getSoSpinner().getModel().setValue(currentHero.getSO());
     }
     else {
-      getNameField().setText("");
-      getTypeField().setText("");
+      getNameField().setText("");  //$NON-NLS-1$
+      getTypeField().setText("");  //$NON-NLS-1$
       getSexCombo().setSelectedIndex(0);
       getGodBox().setSelectedIndex(0);
-      getStandCombo().setSelectedItem("");
-      getBirthplaceField().setText("");
-      getBirthdayField().setText("");
+      getStandCombo().setSelectedItem("");  //$NON-NLS-1$
+      getBirthplaceField().setText("");  //$NON-NLS-1$
+      getBirthdayField().setText("");   //$NON-NLS-1$
       getAgeSpinner().getModel().setValue(Integer.valueOf(20));
       getHeightSpinner().getModel().setValue(Integer.valueOf(170));
       getWeightSpinner().getModel().setValue(Integer.valueOf(70));
-      getHairField().setText("");
-      getEyeCombo().setSelectedItem("");
-      getTitleField().setText("");
-      getSkinField().setText("");
+      getHairField().setText("");   //$NON-NLS-1$
+      getEyeCombo().setSelectedItem("");   //$NON-NLS-1$
+      getTitleField().setText("");   //$NON-NLS-1$
+      getSkinField().setText("");   //$NON-NLS-1$
       getSoSpinner().getModel().setValue(8);
     }
     boolean changeable = hasHero && !currentHero.isDifference();
@@ -887,7 +887,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
   private JButton getBirthdayButton() {
     if (birthdayButton == null) {
       birthdayButton = new JButton();
-      birthdayButton.setText("...");
+      birthdayButton.setText("...");   //$NON-NLS-1$
       birthdayButton.setBounds(new Rectangle(265, 20, 36, 16));
       birthdayButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
@@ -984,7 +984,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       jPanel = new JPanel();
       jPanel.setLayout(null);
       jPanel.setBounds(new Rectangle(10, 90, 541, 91));
-      jPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Aussehen", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), Localization.getString("Grunddaten.Aussehen"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null)); //$NON-NLS-1$
       jPanel.add(jLabel2, null);
       jPanel.add(getSexCombo(), null);
       jPanel.add(jLabel8, null);
@@ -1011,11 +1011,11 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
     if (jPanel1 == null) {
       jLabel14 = new JLabel();
       jLabel14.setBounds(new Rectangle(320, 20, 116, 16));
-      jLabel14.setText("Sozialstatus:");
+      jLabel14.setText(Localization.getString("Grunddaten.Sozialstatus")); //$NON-NLS-1$
       jPanel1 = new JPanel();
       jPanel1.setLayout(null);
       jPanel1.setBounds(new Rectangle(10, 190, 541, 71));
-      jPanel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Gesellschaft", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), Localization.getString("Grunddaten.Gesellschaft"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null)); //$NON-NLS-1$
       jPanel1.add(jLabel13, null);
       jPanel1.add(getTitleField(), null);
       jPanel1.add(jLabel3, null);
@@ -1036,7 +1036,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       jPanel2 = new JPanel();
       jPanel2.setLayout(null);
       jPanel2.setBounds(new Rectangle(10, 270, 541, 91));
-      jPanel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Geburt", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), Localization.getString("Grunddaten.Geburt"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null)); //$NON-NLS-1$
       jPanel2.add(jLabel6, null);
       jPanel2.add(getBirthdayField(), null);
       jPanel2.add(getBirthdayButton(), null);
@@ -1087,7 +1087,7 @@ public class PhysFrame extends SubFrame implements CharactersObserver {
       jPanel3 = new JPanel();
       jPanel3.setLayout(null);
       jPanel3.setBounds(new Rectangle(10, 10, 541, 71));
-      jPanel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Allgemein", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+      jPanel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), Localization.getString("Grunddaten.Allgemein"), TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null)); //$NON-NLS-1$
       jPanel3.add(jLabel, null);
       jPanel3.add(getNameField(), null);
       jPanel3.add(jLabel1, null);

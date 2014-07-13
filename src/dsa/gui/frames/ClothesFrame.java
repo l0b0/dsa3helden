@@ -58,7 +58,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   private CharacterAdapter myHeroObserver;
   
   public ClothesFrame() {
-    super(ThingTransfer.Flavors.Thing, "Kleidung");
+    super(ThingTransfer.Flavors.Thing, Localization.getString("Kleidung.Kleidung")); //$NON-NLS-1$
     currentHero = Group.getInstance().getActiveHero();
     myHeroObserver = new CharacterAdapter() {
       public void thingsChanged() {
@@ -78,7 +78,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
       boolean done = false;
 
       public void windowClosing(WindowEvent e) {
-        mTable.saveSortingState("Kleidung");
+        mTable.saveSortingState("Kleidung"); //$NON-NLS-1$
         Group.getInstance().removeObserver(ClothesFrame.this);
         Things.getInstance().removeObserver(ClothesFrame.this);
         OptionsChange.removeListener(ClothesFrame.this);
@@ -90,7 +90,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
 
       public void windowClosed(WindowEvent e) {
         if (!done) {
-          mTable.saveSortingState("Kleidung");
+          mTable.saveSortingState("Kleidung"); //$NON-NLS-1$
           Group.getInstance().removeObserver(ClothesFrame.this);
           Things.getInstance().removeObserver(ClothesFrame.this);
           OptionsChange.removeListener(ClothesFrame.this);
@@ -127,11 +127,11 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
     this.setContentPane(panel);
 
     updateData();
-    mTable.restoreSortingState("Kleidung");
+    mTable.restoreSortingState("Kleidung"); //$NON-NLS-1$
   }
 
   public String getHelpPage() {
-    return "Kleidung";
+    return "Kleidung"; //$NON-NLS-1$
   }
 
   ClothesTable mTable;
@@ -148,7 +148,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
 
   JLabel getSumLabel() {
     if (sumLabel == null) {
-      sumLabel = new JLabel("");
+      sumLabel = new JLabel(""); //$NON-NLS-1$
       sumLabel.setForeground(java.awt.Color.BLUE);
       sumLabel.setBounds(5, 5, 350, 25);
     }
@@ -179,22 +179,22 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
       format.setMaximumFractionDigits(3);
       format.setMinimumFractionDigits(0);
       format.setMinimumIntegerDigits(1);
-      String text = "Gesamt:  KS " + ks;
+      String text = Localization.getString("Kleidung.GesamtKS") + ks; //$NON-NLS-1$
       if (Group.getInstance().getOptions().getClothesBE() == GroupOptions.ClothesBE.Items) {
-    	  text += "  BE " + be;
+    	  text += Localization.getString("Kleidung.BE") + be; //$NON-NLS-1$
       }
-      text += "  Gewicht " + format.format(weightStones)
-          + " Stein"
-          + "  Wert " + format.format(worthD) + " Dukaten";
+      text += Localization.getString("Kleidung.Gewicht") + format.format(weightStones) //$NON-NLS-1$
+          + Localization.getString("Kleidung.Stein") //$NON-NLS-1$
+          + Localization.getString("Kleidung.Wert") + format.format(worthD) + Localization.getString("Kleidung.Dukaten"); //$NON-NLS-1$ //$NON-NLS-2$
       sumLabel.setText(text);
   }
 
   JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(5, 5, 60, 25);
-      addButton.setToolTipText("Kleidung hinzufügen");
+      addButton.setToolTipText(Localization.getString("Kleidung.KleidungHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           selectItem();
@@ -212,8 +212,8 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
           JOptionPane
               .showMessageDialog(
                   ClothesFrame.this,
-                  "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-                  "Fehler", JOptionPane.WARNING_MESSAGE);
+                  Localization.getString("Kleidung.KleidungsArtNurEinmal"), //$NON-NLS-1$
+                  Localization.getString("Kleidung.Fehler"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
           return;
         }
         clothesAdded(item);
@@ -228,7 +228,7 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   
   protected void clothesAdded(String item) {
     Thing thing = Things.getInstance().getThing(item);
-    if (thing != null && thing.getCategory().equals("Kleidung")) {
+    if (thing != null && thing.getCategory().equals(Localization.getString("Kleidung.KleidungsKategorie"))) { //$NON-NLS-1$
       mTable.addThing(thing);
       currentHero.addClothes(item);
       removeButton.setEnabled(true);
@@ -242,8 +242,8 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
       JOptionPane
       .showMessageDialog(
           ClothesFrame.this,
-          "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-          "Fehler", JOptionPane.WARNING_MESSAGE);       
+          Localization.getString("Kleidung.KleidungsArtNurEinmal"), //$NON-NLS-1$
+          Localization.getString("Kleidung.Fehler"), JOptionPane.WARNING_MESSAGE);        //$NON-NLS-1$
       return false;
     }
     return true;
@@ -251,9 +251,9 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
 
   JButton getBuyButton() {
     if (buyButton == null) {
-      buyButton = new JButton(ImageManager.getIcon("money"));
+      buyButton = new JButton(ImageManager.getIcon("money")); //$NON-NLS-1$
       buyButton.setBounds(5, 35, 60, 25);
-      buyButton.setToolTipText("Gegenstand kaufen");
+      buyButton.setToolTipText(Localization.getString("Kleidung.GegenstandKaufen")); //$NON-NLS-1$
       buyButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           buyItem();
@@ -285,10 +285,10 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
   }
   JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(5, 65, 60, 25);
-      removeButton.setToolTipText("Kleidung entfernen");
+      removeButton.setToolTipText(Localization.getString("Kleidung.KleidungEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           String name = mTable.getSelectedItem();
@@ -361,15 +361,15 @@ public final class ClothesFrame extends AbstractDnDFrame implements CharactersOb
     if (thing == null) {
       return false;
     }
-    if (!thing.getCategory().equals("Kleidung")) {
+    if (!thing.getCategory().equals(Localization.getString("Kleidung.KleidungsKategorie"))) { //$NON-NLS-1$
       return false;
     }
     if (java.util.Arrays.asList(currentHero.getClothes()).contains(item)) {
       JOptionPane
           .showMessageDialog(
               ClothesFrame.this,
-              "Jede Kleidungsart kann hier nur einmal hinzugefügt werden.\nDu kannst weitere Kleidungsstücke statt dessen zu den\nAusrüstungsgegenständen hinzufügen.",
-              "Fehler", JOptionPane.WARNING_MESSAGE);
+              Localization.getString("Kleidung.KleidungsArtNurEinmal"), //$NON-NLS-1$
+              Localization.getString("Kleidung.Fehler"), JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
       return false;
     }
     currentHero.addClothes(item);

@@ -210,7 +210,7 @@ public class FrameManagement {
     positions = new HashMap<Component, Rectangle>();
     windowSnapper = new WindowSnapper();
     KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    manager.addPropertyChangeListener("permanentFocusOwner", new HelpListener());
+    manager.addPropertyChangeListener("permanentFocusOwner", new HelpListener()); //$NON-NLS-1$
     frameStateChanger = null;
   }
 
@@ -300,7 +300,7 @@ public class FrameManagement {
     for (SubFrame frame : frames) {
       if (frame.getTitle().equals(title)) {
         Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-        if (prefs.getBoolean("BringWindowsToTop", true)) {
+        if (prefs.getBoolean("BringWindowsToTop", true)) { //$NON-NLS-1$
           frame.toFront();
         }
         frame.setBounds(bounds);
@@ -326,7 +326,7 @@ public class FrameManagement {
 
   public void activateAllFrames(SubFrame caller) {
     Preferences prefs = Preferences.userNodeForPackage(dsa.gui.PackageID.class);
-    if (prefs.getBoolean("BringWindowsToTop", true)) {
+    if (prefs.getBoolean("BringWindowsToTop", true)) { //$NON-NLS-1$
       for (SubFrame frame : frames)
         if (frame != null && frame.isVisible() && frame != caller) {
           frame.toFront();

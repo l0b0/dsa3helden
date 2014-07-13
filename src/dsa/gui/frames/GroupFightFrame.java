@@ -20,7 +20,13 @@
 package dsa.gui.frames;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -52,6 +58,9 @@ import dsa.model.data.Shields;
 import dsa.model.data.Talents;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.remote.IServer.FightProperty;
+import dsa.remote.RemoteFight;
+import dsa.remote.RemoteManager;
 import dsa.util.Strings;
 
 public class GroupFightFrame extends SubFrame 
@@ -168,6 +177,7 @@ public class GroupFightFrame extends SubFrame
     if (newCharacter != null) {
       newCharacter.addHeroObserver(myCharacterObserver);
     }
+    updateData();
   }
 
   public void characterAdded(Hero character) {
@@ -224,23 +234,119 @@ public class GroupFightFrame extends SubFrame
     boolean farRanged = (weapon != null) && weapon.isFarRangedWeapon();
     String[] opponentWeapons = new String[opponent.getFightingWeapons().size()];
     opponentWeapons = opponent.getFightingWeapons().toArray(opponentWeapons);
-    AttackDialog dialog = new AttackDialog(this, fighter, weaponIndex, opponentWeapons);
-    dialog.setVisible(true);
-    AttackDialog.AttackResult result = dialog.getResult();
+    
+    RemoteFight.Attack receivedAt = null;
+    if (fighter instanceof Hero && RemoteManager.getInstance().isConnectedAsGM()) {
+    	receivedAt = RemoteManager.getInstance().getLastAttackByHero((Hero)fighter);
+    	if (receivedAt != null) {
+    		switch (JOptionPane.showConfirmDialog(this, "Empfangene AT verwenden?", "Heldenverwaltung", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+    		case JOptionPane.YES_OPTION:
+    			break;
+    		case JOptionPane.NO_OPTION:
+    			receivedAt = null;
+    			break;
+    		case JOptionPane.CANCEL_OPTION:
+			default:
+    			return;
+    		}
+    		RemoteManager.getInstance().removeLastAttackByHero((Hero)fighter);
+    	}
+    }
+    
+    AttackDialog.AttackResult result = null;
+    if (receivedAt == null) {
+    	AttackDialog dialog = new AttackDialog(this, fighter, weaponIndex, opponentWeapons);
+    	dialog.setVisible(true);
+    	result = dialog.getResult();
+    }
+    else {
+    	int paIndex = opponentWeapons.length > 0 ? 0 : -1;
+    	result = new AttackDialog.AttackResult(false, receivedAt.getQuality(), receivedAt.getTP(), paIndex);
+    	result.setCopy(false);
+    	result.setSendToPlayer(false);
+    	result.setSendToAll(false);
+    	farRanged = receivedAt.isProjectile();
+    }
+    
     if (result == null) return; // user cancelled
+    
+    if ((fighter instanceof Hero) && Fighting.Flammenschwert1.equals(weaponName) && receivedAt == null) {
+    	if (((Hero)fighter).getCurrentEnergy(Energy.AE) < 2) {
+    		JOptionPane.showMessageDialog(this, "Nicht genügend ASP für die Attacke!", "Heldenverwaltung", JOptionPane.INFORMATION_MESSAGE);
+    		return;
+    	}
+    	((Hero)fighter).changeCurrentEnergy(Energy.AE, -2);
+    }
+    else if ((fighter instanceof Hero) && Fighting.Flammenschwert2.equals(weaponName) && receivedAt == null) {
+    	if (((Hero)fighter).getCurrentEnergy(Energy.AE) < 3) {
+    		JOptionPane.showMessageDialog(this, "Nicht genügend ASP für die Attacke!", "Heldenverwaltung", JOptionPane.INFORMATION_MESSAGE);
+    		return;
+    	}
+    	((Hero)fighter).changeCurrentEnergy(Energy.AE, -3);
+    }
     
     fighter.setATBonus(weaponIndex, 0);
     fighter.setHasStumbled(false);
+    if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && result.sendToPlayer()) {
+    	RemoteManager.getInstance().informOfFightPropertyChange((Hero)fighter, dsa.remote.IServer.FightProperty.stumbled, result.sendToAll());
+    	if (weaponIndex == 0) 
+    		RemoteManager.getInstance().informOfFightPropertyChange((Hero)fighter, dsa.remote.IServer.FightProperty.atBonus1, result.sendToAll());
+    	else
+    		RemoteManager.getInstance().informOfFightPropertyChange((Hero)fighter, dsa.remote.IServer.FightProperty.atBonus2, result.sendToAll());
+    }
+    
+    String text = "";
     
     if (result.hasFumbled()) {
       int fumbleType = result.getFumbleType();
       int tp = result.getTP();
-      doFumble(fighter, weaponName, fumbleType, tp);
-      return;
+      text += "Patzer! ";
+      text += doFumble(fighter, weaponName, fumbleType, tp, result.sendToPlayer(), result.sendToAll());
     }
+    else {
+    	text += " Qualität " + result.getQuality() + ", " + result.getTP() + " TP";
+    }
+    if (result.copy()) {
+		Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+		c.setContents(new StringSelection(text), new ClipboardOwner() {
+			public void lostOwnership(Clipboard clipboard, Transferable contents) {
+			}
+		});    	
+    }
+    if (result.sendToPlayer()) {
+    	if (fighter instanceof Hero) {
+    		if (weapon != null && Weapons.isFarRangedCategory(weapon.getType())) {
+    			RemoteManager.getInstance().informOfHeroProjectileAT((Hero)fighter, text, !result.hasFumbled(), result.getTP(), result.sendToAll());
+    		}
+    		else {
+    			RemoteManager.getInstance().informOfHeroAt((Hero)fighter, text, result.getQuality(), !result.hasFumbled(), result.getTP(), 
+    				weapon != null && Weapons.isAUCategory(weapon.getType()), result.sendToAll());
+    		}
+    	}
+    	else if (opponent instanceof Hero) {
+    		if (weapon != null && Weapons.isFarRangedCategory(weapon.getType())) {
+    			RemoteManager.getInstance().informOfOpponentProjectileAT((Hero)opponent, (Opponent)fighter, text, !result.hasFumbled(), 
+    					result.getTP(), result.sendToAll());
+    		}
+    		else {
+    			RemoteManager.getInstance().informOfOpponentAt((Hero)opponent, (Opponent)fighter, text, result.getQuality(), !result.hasFumbled(), result.getTP(), 
+    				weapon != null && Weapons.isAUCategory(weapon.getType()), result.sendToAll());
+    		}
+    	}
+    }
+    
+    if (result.hasFumbled()) return;
     
     if (farRanged && result.getTP() <= 0) return;
     
+    if (!(fighter instanceof Hero)) {
+    	if (JOptionPane.showConfirmDialog(this, "Auch Parade für Held würfeln?", "Heldenverwaltung", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
+    		return;
+    	}
+    }
+    
+    String paText = "";
+    ParadeDialog.ParadeResult paradeResult = null;
     if (!farRanged && Fighting.canDefend(opponent)) {
       String paradeWeapon = null;
       if (Group.getInstance().getOptions().useWV()) {
@@ -248,19 +354,36 @@ public class GroupFightFrame extends SubFrame
         else if (result.getParadeIndex() == -2) paradeWeapon = fighter.getOpponentWeapon(weaponIndex);
         else paradeWeapon = opponent.getFightingWeapons().get(result.getParadeIndex());
       }          
-      String attackWeapon = weapon != null ? weapon.getName() : "Nichts";
+      String attackWeapon = weapon != null ? weapon.getName() : weaponName;
       ParadeDialog dialog2 = new ParadeDialog(this, opponent, result.getQuality(), 
           attackWeapon, paradeWeapon);
       dialog2.setVisible(true);
-      ParadeDialog.ParadeResult paradeResult = dialog2.getResult();
+      paradeResult = dialog2.getResult();
       ParadeDialog.ParadeOutcome outcome = paradeResult.getOutcome();
+      boolean success = true;
       if (outcome == ParadeDialog.ParadeOutcome.NoHit)
-        return;
+        paText = paradeResult.isEvasion() ? "Ausgewichen." : "Pariert.";
       else if (outcome == ParadeDialog.ParadeOutcome.Canceled)
         return;
-      else if (outcome == ParadeDialog.ParadeOutcome.Fumble)
-        doFumble(opponent, paradeResult.getWeapon(), paradeResult.getFumbleType(), 
-            paradeResult.getFumbleSP());
+      else if (outcome == ParadeDialog.ParadeOutcome.Fumble) {
+        paText = "Patzer! " + doFumble(opponent, paradeResult.getWeapon(), paradeResult.getFumbleType(), 
+            paradeResult.getFumbleSP(), paradeResult.sendToPlayer(), paradeResult.sendToAll());
+        success = false;
+      }
+      else {
+    	  paText = paradeResult.isEvasion() ? "Nicht ausgewichen." : "Nicht pariert.";
+    	  success = false;
+      }
+      if (paradeResult.sendToPlayer()) {
+    	  if (fighter instanceof Hero) {
+    		  RemoteManager.getInstance().informOfOpponentPA((Hero)fighter, (Opponent)opponent, paText, paradeResult.sendToAll());
+    	  }
+    	  else {
+    		  RemoteManager.getInstance().informOfHeroPA((Hero)opponent, paText, success, paradeResult.sendToAll());
+    	  }
+      }
+      if (success)
+    	  return;
     }
     else {
       JOptionPane.showMessageDialog(this, Strings.cutTo(opponent.getName(), ' ') + 
@@ -279,7 +402,19 @@ public class GroupFightFrame extends SubFrame
     		}
     	}
     }
-    Fighting.doHit(opponent, result.getTP(), useAU, false, hasShield, this, new NoUpdate());
+    try {
+      RemoteManager.getInstance().setListenForHeroChanges(false);
+      boolean sendToPlayer = (paradeResult == null && result.sendToPlayer()) || (paradeResult != null && paradeResult.sendToPlayer());
+	  boolean sendToOthers = (paradeResult == null && result.sendToAll()) || (paradeResult != null && paradeResult.sendToAll());
+      String hitResult = Fighting.doHit(opponent, result.getTP(), useAU, false, hasShield, this, new HitUpdate(sendToPlayer, sendToOthers));
+      if ((opponent instanceof Hero) && sendToPlayer) {
+    	  RemoteManager.getInstance().informOfHit((Hero)opponent, hitResult, sendToOthers);
+      }
+    }
+    finally {
+  	  RemoteManager.getInstance().setListenForHeroChanges(true);
+    }
+    
     if (opponent instanceof Hero) {
       heroesTable.updateFighter(opponent);
     }
@@ -288,17 +423,34 @@ public class GroupFightFrame extends SubFrame
     }
   }
   
-  private static class NoUpdate implements Fighting.UpdateCallbacks {
+  public Component getMessageBoxParent() {
+	  return this;
+  }
+  
+  private static class HitUpdate implements Fighting.UpdateCallbacks {
+	  private boolean sendToPlayer;
+	  private boolean sendToOthers;
+	  public HitUpdate(boolean sendToPlayer, boolean sendToOthers) {
+		  this.sendToPlayer = sendToPlayer;
+		  this.sendToOthers = sendToOthers;
+	  }
     public void updateData() {}
+	public void fightPropertyChanged(Fighter fighter, FightProperty fp) {
+		if (sendToPlayer && (fighter instanceof Hero)) {
+			RemoteManager.getInstance().informOfFightPropertyChange((Hero)fighter, fp, sendToOthers);
+		}
+	}
   }
 
 
-  private void doFumble(Fighter fighter, String weaponName, int fumbleType, int sp) {
+  private String doFumble(Fighter fighter, String weaponName, int fumbleType, int sp, boolean sendToPlayer, boolean sendToAll) {
+	String info = "";
     switch (fumbleType) {
     case 2:
+      info = Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
+              + weaponName + "!";
       JOptionPane.showMessageDialog(this, "Kampf", 
-          Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
-          + weaponName + "!", JOptionPane.PLAIN_MESSAGE);
+          info, JOptionPane.PLAIN_MESSAGE);
       if (fighter instanceof Hero) {
         int bfRoll = Dice.roll(6) + Dice.roll(6);
         Hero hero = (Hero) fighter;
@@ -316,6 +468,7 @@ public class GroupFightFrame extends SubFrame
           JOptionPane.showMessageDialog(this, "Kampf", 
               "Die Waffe zerbricht!", JOptionPane.PLAIN_MESSAGE);
           hero.removeWeapon(weaponName);
+          info += "Die Waffe zerbricht!";
         }
         else {
           hero.setBF(weaponName, 1, bf);
@@ -323,12 +476,14 @@ public class GroupFightFrame extends SubFrame
       }
       break;
     case 3:
+    	info = Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
+    	          + weaponName + "!"; 
       JOptionPane.showMessageDialog(this, "Kampf", 
-          Strings.cutTo(fighter.getName(), ' ') + " verliert die Waffe "
-          + weaponName + "!", JOptionPane.PLAIN_MESSAGE);
+          info, JOptionPane.PLAIN_MESSAGE);
       break;
     case 4:
     case 5:
+      info = "Die Waffe ist beschädigt.";
       if (fighter instanceof Hero) {
         int bfRoll = Dice.roll(6) + Dice.roll(6);
         Hero hero = (Hero) fighter;
@@ -341,6 +496,7 @@ public class GroupFightFrame extends SubFrame
         if (breakWeapon) {
           JOptionPane.showMessageDialog(this, "Kampf", 
               "Die Waffe zerbricht!", JOptionPane.PLAIN_MESSAGE);
+          info += "Die Waffe zerbricht!";
           hero.removeWeapon(weaponName);
         }
         else {
@@ -351,16 +507,24 @@ public class GroupFightFrame extends SubFrame
     case 6:
     case 7:
     case 8:
+      info = "Stolpern";
       fighter.setHasStumbled(true);
+      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && sendToPlayer)
+      	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.stumbled, sendToAll);
       break;
     case 9:
     case 10:
+      info = "Sturz";
       fighter.setGrounded(true);
       if (fighter instanceof Hero) updateData((Hero)fighter);
       else updateData((Opponent)fighter);
+      if (RemoteManager.getInstance().isConnected() && (fighter instanceof Hero) && sendToPlayer)
+        	RemoteManager.getInstance().informOfFightPropertyChange((Hero) fighter, dsa.remote.IServer.FightProperty.grounded, sendToAll);
       break;
     case 11:
+      info = "Selbst verletzt.";
     case 12:
+      if (info.equals("")) info = "Selbst schwer verletzt."; 
       fighter.setCurrentLE(fighter.getCurrentLE() - sp);
       if (fighter instanceof Hero) updateData((Hero)fighter);
       else updateData((Opponent)fighter);
@@ -368,6 +532,7 @@ public class GroupFightFrame extends SubFrame
     default:
         break;
     }
+    return info;
   }
   
   private class MyOpponentObserver implements Opponent.OpponentObserver {

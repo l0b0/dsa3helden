@@ -28,7 +28,7 @@ class PersonsFrame extends SubFrame implements CharactersObserver {
 	private Hero currentHero = null;
 	
 	public PersonsFrame() {
-		super("Personen");
+		super(Localization.getString("Personen.Personen")); //$NON-NLS-1$
 		currentHero = Group.getInstance().getActiveHero();
 		Group.getInstance().addObserver(this);
 	    addWindowListener(new WindowAdapter() {
@@ -51,7 +51,7 @@ class PersonsFrame extends SubFrame implements CharactersObserver {
 	}
 	
 	  public String getHelpPage() {
-		    return "Personen";
+		    return "Personen"; //$NON-NLS-1$
 	  }
 
 	  private boolean listenForChanges = true;
@@ -63,15 +63,15 @@ class PersonsFrame extends SubFrame implements CharactersObserver {
 		    pcPane.setText(currentHero.getKnownPCs());
 	    }
 	    else {
-	    	npcPane.setText("");
-	    	pcPane.setText("");
+	    	npcPane.setText(""); //$NON-NLS-1$
+	    	pcPane.setText(""); //$NON-NLS-1$
 	    }
 	    listenForChanges = true;
 	  }
 	  
 	  private void initialize() {
 		    this.setContentPane(getJContentPane());
-		    this.setTitle("Personen");
+		    this.setTitle(Localization.getString("Personen.Personen")); //$NON-NLS-1$
 		    if (!hasSavedFrameBounds()) {
 		    	pack();
 		    }
@@ -89,7 +89,7 @@ class PersonsFrame extends SubFrame implements CharactersObserver {
 	  
 	  private JPanel getPersonsPanel(boolean npcs) {
 		  JPanel personsPanel = new JPanel(new BorderLayout(5, 5));
-		  JLabel caption = new JLabel(npcs ? "Bekannte NSCs:" : "Bekannte SCs:");
+		  JLabel caption = new JLabel(npcs ? Localization.getString("Personen.BekannteNSC") : Localization.getString("Personen.BekannteSC")); //$NON-NLS-1$ //$NON-NLS-2$
 		  JPanel inner = new JPanel(new BorderLayout(5, 5));
 		  inner.add(caption, BorderLayout.NORTH);
 		  JTextPane textPane = npcs ? getNPCPane() : getPCPane();

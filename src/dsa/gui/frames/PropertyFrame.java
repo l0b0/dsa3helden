@@ -106,7 +106,7 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
   }
   
   public String getHelpPage() {
-    return "Eigenschaften";
+    return "Eigenschaften"; //$NON-NLS-1$
   }
 
   private boolean disableChange = false;
@@ -146,9 +146,9 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
       }
       else {
         defaultValues.get(displayIndex).setEditable(false);
-        defaultValues.get(displayIndex).setText("-");
+        defaultValues.get(displayIndex).setText("-"); //$NON-NLS-1$
         currentValues.get(displayIndex).setEditable(false);
-        currentValues.get(displayIndex).setText("-");
+        currentValues.get(displayIndex).setText("-"); //$NON-NLS-1$
         locks.get(displayIndex).setEnabled(false);
         tests.get(displayIndex).setEnabled(false);
         // testAlls.get(displayIndex).setEnabled(true);
@@ -210,7 +210,7 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
     c.weighty = 1.0;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.WEST;
-    JLabel headerDesc = new JLabel("Eigenschaft");
+    JLabel headerDesc = new JLabel(Localization.getString("Eigenschaften.Eigenschaft")); //$NON-NLS-1$
     headerDesc.setPreferredSize(new Dimension(20, lineHeight));
     layout.setConstraints(headerDesc, c);
     propertiesPanel.add(headerDesc);
@@ -218,36 +218,33 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
     c.gridx = 1;
     c.anchor = GridBagConstraints.CENTER;
     c.fill = GridBagConstraints.NONE;
-    JLabel headerDefault = new JLabel("Std");
+    JLabel headerDefault = new JLabel(Localization.getString("Eigenschaften.Std")); //$NON-NLS-1$
     headerDefault.setPreferredSize(new Dimension(25, lineHeight));
     layout.setConstraints(headerDefault, c);
     propertiesPanel.add(headerDefault);
     c.gridx = 2;
-    JLabel headerCurrent = new JLabel("Akt");
+    JLabel headerCurrent = new JLabel(Localization.getString("Eigenschaften.Akt")); //$NON-NLS-1$
     headerCurrent.setPreferredSize(new Dimension(25, lineHeight));
     layout.setConstraints(headerCurrent, c);
     propertiesPanel.add(headerCurrent);
     c.gridx = 3;
-    JLabel headerLock = new JLabel("");
+    JLabel headerLock = new JLabel(""); //$NON-NLS-1$
     layout.setConstraints(headerLock, c);
     headerLock.setPreferredSize(new Dimension(btnWidth, lineHeight));
     propertiesPanel.add(headerLock);
     c.gridx = 4;
-    JLabel headerTests = new JLabel("");
+    JLabel headerTests = new JLabel(""); //$NON-NLS-1$
     layout.setConstraints(headerTests, c);
     headerTests.setPreferredSize(new Dimension(btnWidth, lineHeight));
     propertiesPanel.add(headerTests);
     c.gridx = 5;
-    JLabel headerIncr = new JLabel("");
+    JLabel headerIncr = new JLabel(""); //$NON-NLS-1$
     headerIncr.setPreferredSize(new Dimension(btnWidth, lineHeight));
     layout.setConstraints(headerIncr, c);
     propertiesPanel.add(headerIncr);
 
-    int nrOfProperties = 0;
-
     for (int i = 0; i < properties.size(); ++i) {
-      ++nrOfProperties;
-      String descr = "" + properties.get(i);
+      String descr = "" + properties.get(i); //$NON-NLS-1$
       JLabel descrLabel = new JLabel(descr);
       propertyDescriptions.add(descrLabel);
       c.gridx = 0;
@@ -281,29 +278,29 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
       layout.setConstraints(currentValue, c);
       propertiesPanel.add(currentValue);
       c.gridx = 3;
-      JToggleButton lock = new JToggleButton(ImageManager.getIcon("locked"));
-      lock.setPressedIcon(ImageManager.getIcon("unlocked"));
+      JToggleButton lock = new JToggleButton(ImageManager.getIcon("locked")); //$NON-NLS-1$
+      lock.setPressedIcon(ImageManager.getIcon("unlocked")); //$NON-NLS-1$
       lock.setPreferredSize(new Dimension(btnWidth, lineHeight));
-      lock.setToolTipText("Schützen / Freigeben");
+      lock.setToolTipText(Localization.getString("Eigenschaften.SchuetzenFreigeben")); //$NON-NLS-1$
       locks.add(lock);
       layout.setConstraints(lock, c);
       propertiesPanel.add(lock);
       c.gridx = 4;
       JButton test = null;
-      test = new JButton(ImageManager.getIcon("probe"));
-      test.setDisabledIcon(ImageManager.getIcon("probe_disabled"));
+      test = new JButton(ImageManager.getIcon("probe")); //$NON-NLS-1$
+      test.setDisabledIcon(ImageManager.getIcon("probe_disabled")); //$NON-NLS-1$
       test.setPreferredSize(new Dimension(btnWidth, lineHeight));
-      test.setToolTipText("Probe");
+      test.setToolTipText(Localization.getString("Eigenschaften.Probe")); //$NON-NLS-1$
       layout.setConstraints(test, c);
       tests.add(test);
       propertiesPanel.add(test);
       c.gridx = 5;
       JButton increase = new JButton(ImageManager
-          .getIcon(goodProperties ? "increase" : "decrease_enabled"));
+          .getIcon(goodProperties ? "increase" : "decrease_enabled")); //$NON-NLS-1$ //$NON-NLS-2$
       increase.setDisabledIcon(ImageManager
-          .getIcon(goodProperties ? "increase_disabled" : "decrease"));
+          .getIcon(goodProperties ? "increase_disabled" : "decrease")); //$NON-NLS-1$ //$NON-NLS-2$
       increase.setPreferredSize(new Dimension(btnWidth, lineHeight));
-      increase.setToolTipText(goodProperties ? "Erhöhen" : "Senken");
+      increase.setToolTipText(goodProperties ? Localization.getString("Eigenschaften.Erhoehen") : Localization.getString("Eigenschaften.Senken")); //$NON-NLS-1$ //$NON-NLS-2$
       increases.add(increase);
       layout.setConstraints(increase, c);
       propertiesPanel.add(increase);
@@ -366,10 +363,10 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
               || (PropertyFrame.this.currentHero != null && PropertyFrame.this.currentHero
                   .hasPropertyChangeTry(property)));
       if (button.isSelected()) {
-        button.setIcon(ImageManager.getIcon("unlocked"));
+        button.setIcon(ImageManager.getIcon("unlocked")); //$NON-NLS-1$
       }
       else {
-        button.setIcon(ImageManager.getIcon("locked"));
+        button.setIcon(ImageManager.getIcon("locked")); //$NON-NLS-1$
       }
     }
 
@@ -388,7 +385,7 @@ public final class PropertyFrame extends SubFrame implements CharactersObserver 
 
     public void propertyChange(PropertyChangeEvent evt) {
       if (PropertyFrame.this.disableChange) return;
-      if (!evt.getPropertyName().equals("value")) return;
+      if (!evt.getPropertyName().equals("value")) return; //$NON-NLS-1$
       if (currentHero != null) {
         if (current)
           currentHero.setCurrentProperty(property,

@@ -49,7 +49,7 @@ public final class LanguageFrame extends TalentFrame {
   }
   
   public String getHelpPage() {
-    return "Sprachen";
+    return "Sprachen"; //$NON-NLS-1$
   }
 
   private JCheckBox mCheckbox;
@@ -103,7 +103,7 @@ public final class LanguageFrame extends TalentFrame {
   protected void addSubclassSpecificComponents(java.awt.Container container) {
     JPanel panel = new JPanel();
     panel.setLayout(null);
-    mCheckbox = new JCheckBox("Unbekannte Sprachen anzeigen");
+    mCheckbox = new JCheckBox(Localization.getString("Sprachen.UnbekannteSprachenZeigen")); //$NON-NLS-1$
     mCheckbox.setBounds(5, 5, 250, 18);
     mCheckbox.setSelected(displayUnknownLanguages);
     mCheckbox.addActionListener(new ActionListener() {
@@ -113,13 +113,13 @@ public final class LanguageFrame extends TalentFrame {
       }
     });
     panel.add(mCheckbox);
-    mCBLabel = new JLabel("Muttersprache: ");
+    mCBLabel = new JLabel(Localization.getString("Sprachen.Muttersprache")); //$NON-NLS-1$
     mCBLabel.setBounds(5, 30, 100, 25);
     panel.add(mCBLabel);
     mNativeCombo = new JComboBox();
     mNativeCombo.setBounds(130, 30, 150, 25);
     for (Talent language : Talents.getInstance().getTalentsInCategory(
-        "Sprachen")) {
+        Localization.getString("Sprachen.SprachenKategorie"))) { //$NON-NLS-1$
       mNativeCombo.addItem(language.getName());
     }
     mNativeCombo.addItemListener(new ItemListener() {
@@ -209,8 +209,8 @@ public final class LanguageFrame extends TalentFrame {
   protected void updateStaticSubclassSpecificData() {
     int nr1 = currentHero != null ? currentHero.getFreeLanguagePoints() : 0;
     int nr2 = currentHero != null ? currentHero.getFreeOldLanguagePoints() : 0;
-    getLabel3().setText("" + nr1);
-    getLabel4().setText("" + nr2);
+    getLabel3().setText("" + nr1); //$NON-NLS-1$
+    getLabel4().setText("" + nr2); //$NON-NLS-1$
     inUpdate = true;
     if (currentHero != null && mNativeCombo != null)
       mNativeCombo.setSelectedItem(currentHero.getNativeTongue());
@@ -218,24 +218,24 @@ public final class LanguageFrame extends TalentFrame {
   }
 
   private JLabel getLabel1() {
-    if (label1 == null) label1 = new JLabel("Freie Punkte für Sprachen: ");
+    if (label1 == null) label1 = new JLabel(Localization.getString("Sprachen.FreiePunkteSprachen")); //$NON-NLS-1$
     return label1;
   }
 
   private JLabel getLabel2() {
     if (label2 == null)
-      label2 = new JLabel("Freie Punkte für Alte Sprachen: ");
+      label2 = new JLabel(Localization.getString("Sprachen.FreiePunkteAlteSprachen")); //$NON-NLS-1$
     return label2;
   }
 
   private JLabel getLabel3() {
-    if (label3 == null) label3 = new JLabel("");
+    if (label3 == null) label3 = new JLabel(""); //$NON-NLS-1$
     label3.setForeground(java.awt.Color.RED);
     return label3;
   }
 
   private JLabel getLabel4() {
-    if (label4 == null) label4 = new JLabel("");
+    if (label4 == null) label4 = new JLabel(""); //$NON-NLS-1$
     label4.setForeground(java.awt.Color.RED);
     return label4;
   }
@@ -247,7 +247,7 @@ public final class LanguageFrame extends TalentFrame {
 
   protected Vector<String> getColumnIdentifiers() {
     Vector<String> defaultNames = super.getColumnIdentifiers();
-    defaultNames.add(getMaxColumn(), "Max");
+    defaultNames.add(getMaxColumn(), Localization.getString("Sprachen.Max")); //$NON-NLS-1$
     return defaultNames;
   }
 
@@ -280,7 +280,7 @@ public final class LanguageFrame extends TalentFrame {
   protected void loadSubclassState() {
     boolean dUL = java.util.prefs.Preferences.userNodeForPackage(
         dsa.gui.PackageID.class).getBoolean(
-        getTitle() + "DisplayUnknownSpells", false);
+        getTitle() + "DisplayUnknownSpells", false); //$NON-NLS-1$
     if (dUL != displayUnknownLanguages) {
       displayUnknownLanguages = dUL;
       recreateUI();
@@ -289,12 +289,12 @@ public final class LanguageFrame extends TalentFrame {
 
   protected void saveSubclassState() {
     java.util.prefs.Preferences.userNodeForPackage(dsa.gui.PackageID.class)
-        .putBoolean(getTitle() + "DisplayUnknownSpells",
+        .putBoolean(getTitle() + "DisplayUnknownSpells", //$NON-NLS-1$
             displayUnknownLanguages);
   }
   
   protected boolean isTalentRelevant(String talent) {
-    return (talent.equals("Sprachen Kennen") || talent.equals("Alte Sprachen"));
+    return (talent.equals(Localization.getString("Sprachen.SprachenKennenTalent")) || talent.equals(Localization.getString("Sprachen.AlteSprachenTalent"))); //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   private boolean displayUnknownLanguages;

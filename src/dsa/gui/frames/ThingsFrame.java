@@ -35,9 +35,9 @@ public final class ThingsFrame extends AbstractThingsFrame {
   
   public String getHelpPage() {
     String tlc = getTopLevelContainer();
-    if (tlc.equals("Ausrüstung")) return "Ausruestung";
-    if (tlc.equals("Lager")) return "Lager";
-    return "Tier";
+    if (tlc.equals("Ausrüstung")) return "Ausruestung"; //$NON-NLS-1$ //$NON-NLS-2$
+    if (tlc.equals("Lager")) return "Lager"; //$NON-NLS-1$ //$NON-NLS-2$
+    return "Tier"; //$NON-NLS-1$
   }
   
   protected Rectangle getSumLabelPos() {

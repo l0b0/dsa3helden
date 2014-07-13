@@ -19,11 +19,13 @@
  */
 package dsa.control;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.prefs.Preferences;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import dsa.gui.dialogs.ErrorHandlingDialog;
 import dsa.gui.frames.ControlFrame;
 import dsa.gui.frames.FrameLayouts;
 import dsa.gui.frames.SubFrame;
@@ -135,6 +137,19 @@ public class Main {
 
   private static void createAndShowGUI() {
     try {
+      final UncaughtExceptionHandler oldHandler = java.lang.Thread.currentThread().getUncaughtExceptionHandler();
+      java.lang.Thread.currentThread().setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+		public void uncaughtException(Thread t, Throwable e) {
+			if (e instanceof Exception) {
+				ErrorHandlingDialog dialog = new ErrorHandlingDialog((Exception)e);
+				dialog.setModal(true);
+				dialog.setVisible(true);
+			}
+			else
+				oldHandler.uncaughtException(t, e);
+		}
+      });
+
       // Synthetica licence
       String[] li = {"Licensee=Jörg Rüdenauer", "LicenseRegistrationNumber=NCJR110913", "Product=Synthetica", "LicenseType=Non Commercial", "ExpireDate=--.--.----", "MaxVersion=2.999.999"};
       UIManager.put("Synthetica.license.info", li);

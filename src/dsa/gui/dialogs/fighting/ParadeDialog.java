@@ -27,6 +27,7 @@ import dsa.model.Fighter;
 import dsa.model.characters.Hero;
 import dsa.model.data.Weapon;
 import dsa.model.data.Weapons;
+import dsa.remote.RemoteManager;
 import dsa.util.Optional;
 import dsa.util.Strings;
 
@@ -36,7 +37,10 @@ import javax.swing.JRadioButton;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
@@ -67,6 +71,9 @@ public class ParadeDialog extends BGDialog {
   private JLabel fumbleLabel2 = null;
   private JSpinner spSpinner = null;
   private JButton spButton = null;
+  private JCheckBox sendToPlayerBox = null;
+  private JCheckBox sendToAllBox = null;
+  private JCheckBox copyBox = null;
   private JButton cancelButton = null;
   private JButton okButton = null;
   
@@ -76,6 +83,7 @@ public class ParadeDialog extends BGDialog {
     public ParadeResult(ParadeOutcome outcome, String weapon) {
       this.outcome = outcome;
       this.weapon = weapon;
+      isEvasion = false;
     }
     
     public ParadeResult(int type, int sp, String weapon) {
@@ -83,6 +91,7 @@ public class ParadeDialog extends BGDialog {
       fumbleSP = sp;
       outcome = ParadeOutcome.Fumble;
       this.weapon = weapon;
+      isEvasion = false;
     }
     
     public ParadeOutcome getOutcome() { return outcome; }
@@ -90,10 +99,24 @@ public class ParadeDialog extends BGDialog {
     public int getFumbleSP() { return fumbleSP; }
     public String getWeapon() { return weapon; }
     
+    public boolean sendToPlayer() { return sendToPlayer; }
+    public boolean sendToAll() { return sendToAll; }
+    public boolean copy() { return copy; }
+    public boolean isEvasion() { return isEvasion; }
+    
+    public void setSendToPlayer(boolean send) { sendToPlayer = send; }
+    public void setSendToAll(boolean send) { sendToAll = send; }
+    public void setCopy(boolean copy) { this.copy = copy; }
+    public void setEvasion(boolean evasion) { isEvasion = evasion; }
+    
     private ParadeOutcome outcome;
     private int fumbleType;
     private int fumbleSP;
     private String weapon;
+    private boolean sendToPlayer;
+    private boolean sendToAll;
+    private boolean copy;
+    private boolean isEvasion;
   }
 
   /**
@@ -151,7 +174,8 @@ public class ParadeDialog extends BGDialog {
    * 
    */
   private void initialize() {
-    this.setSize(new Dimension(289, 346));
+	boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+    this.setSize(new Dimension(289, !isConnected ? 366 : 406));
     this.setContentPane(getJContentPane());
   }
   
@@ -246,6 +270,15 @@ public class ParadeDialog extends BGDialog {
         if (paradeButton.isSelected()) weaponNr = weaponBox.getSelectedIndex();
         mDefender.setATBonus(weaponNr, bonusForNextAction);
         mDefender.setHasStumbled(false);
+        if (RemoteManager.getInstance().isConnectedAsGM() && (mDefender instanceof Hero)) {
+        	if (mResult.sendToPlayer()) {
+        		RemoteManager.getInstance().informOfFightPropertyChange((Hero)mDefender, dsa.remote.IServer.FightProperty.stumbled, mResult.sendToAll());
+        		if (weaponNr == 0)
+        			RemoteManager.getInstance().informOfFightPropertyChange((Hero)mDefender, dsa.remote.IServer.FightProperty.atBonus1, mResult.sendToAll());
+        		else
+        			RemoteManager.getInstance().informOfFightPropertyChange((Hero)mDefender, dsa.remote.IServer.FightProperty.atBonus2, mResult.sendToAll());
+        	}
+        }
         dispose();
       }
     });
@@ -487,6 +520,10 @@ public class ParadeDialog extends BGDialog {
       if (paradeButton.isSelected()) weapon = weaponBox.getSelectedItem().toString();
       mResult = new ParadeResult(hit ? ParadeOutcome.Hit : ParadeOutcome.NoHit, weapon);
     }
+    mResult.setCopy(copyBox.isSelected());
+    mResult.setSendToPlayer(sendToPlayerBox.isSelected());
+    mResult.setSendToAll(sendToAllBox.isSelected());
+    mResult.setEvasion(evadeButton.isSelected());
   }
 
   public String getHelpPage() {
@@ -518,6 +555,25 @@ public class ParadeDialog extends BGDialog {
       jLabel = new JLabel();
       jLabel.setBounds(new Rectangle(150, 40, 51, 21));
       jLabel.setText("Bonus:");
+      boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+      copyBox = new JCheckBox("Kopieren");
+      copyBox.setBounds(new Rectangle(10, 270, 161, 21));
+      copyBox.setSelected(!isConnected);
+      sendToPlayerBox = new JCheckBox("An Spieler senden");
+      sendToPlayerBox.setBounds(new Rectangle(10, 290, 161, 21));
+      sendToPlayerBox.setEnabled(isConnected);
+      sendToPlayerBox.setSelected(isConnected);
+      sendToPlayerBox.addItemListener(new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent arg0) {
+			sendToAllBox.setSelected(sendToPlayerBox.isSelected());
+			sendToAllBox.setEnabled(sendToPlayerBox.isSelected());
+		}
+      });
+      sendToAllBox = new JCheckBox("An alle senden");
+      sendToAllBox.setBounds(new Rectangle(10, 310, 161, 21));
+      sendToAllBox.setEnabled(isConnected);
+      sendToAllBox.setSelected(isConnected);
       jContentPane = new JPanel();
       jContentPane.setLayout(null);
       jContentPane.add(getParadeButton(), null);
@@ -538,6 +594,11 @@ public class ParadeDialog extends BGDialog {
       jContentPane.add(fumbleLabel2, null);
       jContentPane.add(getSpSpinner(), null);
       jContentPane.add(getSpButton(), null);
+      jContentPane.add(copyBox, null);
+      if (isConnected) {
+    	  jContentPane.add(sendToPlayerBox, null);
+    	  jContentPane.add(sendToAllBox, null);
+      }
       jContentPane.add(getCancelButton(), null);
       jContentPane.add(getOkButton(), null);
       jContentPane.add(jLabel2, null);
@@ -743,7 +804,8 @@ public class ParadeDialog extends BGDialog {
   private JButton getCancelButton() {
     if (cancelButton == null) {
       cancelButton = new JButton();
-      cancelButton.setBounds(new Rectangle(160, 290, 101, 21));
+      boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+      cancelButton.setBounds(new Rectangle(160, !isConnected ? 310 : 350, 101, 21));
       cancelButton.setText("Abbrechen");
     }
     return cancelButton;
@@ -757,7 +819,8 @@ public class ParadeDialog extends BGDialog {
   private JButton getOkButton() {
     if (okButton == null) {
       okButton = new JButton();
-      okButton.setBounds(new Rectangle(30, 290, 101, 21));
+      boolean isConnected = RemoteManager.getInstance().isConnectedAsGM();
+      okButton.setBounds(new Rectangle(30, !isConnected ? 310 : 350, 101, 21));
       okButton.setText("OK");
     }
     return okButton;

@@ -80,7 +80,7 @@ abstract class AbstractDnDFrame extends SubFrame {
   
   protected abstract void selectItem();
   
-  protected String getCarrier() { return ""; }
+  protected String getCarrier() { return ""; } //$NON-NLS-1$
   
   protected abstract IExtraThingData getExtraDnDData(String item);
 
@@ -175,13 +175,13 @@ abstract class AbstractDnDFrame extends SubFrame {
     
     public ContextMenuManager(JComponent c, Action addAction, Action removeAction) {
       actionMap = new ActionMap();
-      actionMap.put("ADD", addAction);
-      actionMap.put("REMOVE", removeAction);
+      actionMap.put("ADD", addAction); //$NON-NLS-1$
+      actionMap.put("REMOVE", removeAction); //$NON-NLS-1$
       actionMap.put((String)TransferHandler.getCutAction().getValue(Action.NAME), TransferHandler.getCutAction());
-      actionMap.put("MY_PASTE", pasteAction);
+      actionMap.put("MY_PASTE", pasteAction); //$NON-NLS-1$
       inputMap = new InputMap();
-      inputMap.put(KeyStroke.getKeyStroke("control X"), (String)TransferHandler.getCutAction().getValue(Action.NAME));
-      inputMap.put(KeyStroke.getKeyStroke("control V"), "MY_PASTE");
+      inputMap.put(KeyStroke.getKeyStroke("control X"), (String)TransferHandler.getCutAction().getValue(Action.NAME)); //$NON-NLS-1$
+      inputMap.put(KeyStroke.getKeyStroke("control V"), "MY_PASTE"); //$NON-NLS-1$ //$NON-NLS-2$
       component = c;
     }
     
@@ -197,24 +197,24 @@ abstract class AbstractDnDFrame extends SubFrame {
     
     private void showPopupMenu(MouseEvent e) {
       JPopupMenu popup = new JPopupMenu();
-      JMenuItem addItem = new JMenuItem("Hinzufügen ...");
+      JMenuItem addItem = new JMenuItem(Localization.getString("DndFrame.PopupMenuHinzufuegen")); //$NON-NLS-1$
       addItem.setMnemonic(KeyEvent.VK_H);
-      addItem.setActionCommand("ADD");
+      addItem.setActionCommand("ADD"); //$NON-NLS-1$
       addItem.addActionListener(this);
       popup.add(addItem);
-      JMenuItem removeItem = new JMenuItem("Entfernen");
+      JMenuItem removeItem = new JMenuItem(Localization.getString("DndFrame.PopupMenuEntfernen")); //$NON-NLS-1$
       removeItem.setMnemonic(KeyEvent.VK_E);
-      removeItem.setActionCommand("REMOVE");
+      removeItem.setActionCommand("REMOVE"); //$NON-NLS-1$
       removeItem.addActionListener(this);
       popup.add(removeItem);
-      JMenuItem cutItem = new JMenuItem("Ausschneiden");
+      JMenuItem cutItem = new JMenuItem(Localization.getString("DndFrame.PopupMenuAusschneiden")); //$NON-NLS-1$
       cutItem.setMnemonic(KeyEvent.VK_A);
       cutItem.setActionCommand((String)TransferHandler.getCutAction().getValue(Action.NAME));
       cutItem.addActionListener(this);
       popup.add(cutItem);
-      JMenuItem pasteItem = new JMenuItem("Einfügen");
+      JMenuItem pasteItem = new JMenuItem(Localization.getString("DndFrame.PopupMenuEinfuegen")); //$NON-NLS-1$
       pasteItem.setMnemonic(KeyEvent.VK_F);
-      pasteItem.setActionCommand("MY_PASTE");
+      pasteItem.setActionCommand("MY_PASTE"); //$NON-NLS-1$
       pasteItem.addActionListener(this);
       popup.add(pasteItem);
       popup.show(e.getComponent(), e.getX(), e.getY());

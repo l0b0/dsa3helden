@@ -21,11 +21,15 @@ package dsa.gui.util.table;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FontMetrics;
+import java.awt.Rectangle;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.plaf.basic.BasicLabelUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
@@ -109,6 +113,82 @@ public final class CellRenderers {
     }
   }
   
+  private static final class MiddleShorteningLabelUI extends BasicLabelUI {
+	  protected String layoutCL(JLabel label, FontMetrics fontMetrics, String text, Icon icon, 
+			  Rectangle viewR, Rectangle iconR, Rectangle textR) {
+		  String newText = text;
+		  Rectangle oldViewR = new Rectangle(viewR);
+		  Rectangle oldIconR = new Rectangle(iconR);
+		  Rectangle oldTextR = new Rectangle(textR);
+		  String test = super.layoutCL(label, fontMetrics, newText, icon, viewR, iconR, textR);
+		  if (!test.equals(newText)) {
+			  // text was cut. Cut differently
+			  boolean shorten = true;
+			  int length = text.length();
+			  int diff = length / 2;
+			  while (true) {
+				  int newLength = shorten ? length - diff : length + diff;
+				  int after = newLength > 5 ? 2 : 1;
+				  int before = newLength > 7 ? newLength - 5 : 1;
+				  newText = text.substring(0, before) + "..." + text.substring(text.length() - after);
+				  viewR = new Rectangle(oldViewR);
+				  iconR = new Rectangle(oldIconR);
+				  textR = new Rectangle(oldTextR);
+				  test = super.layoutCL(label, fontMetrics, newText, icon, viewR, iconR, textR);
+				  if (!test.equals(newText)) {
+					  // too long
+					  if (newLength <= 5) {
+						  // stop anwyay
+						  newText = text.substring(0, before + 3);
+						  break;
+					  }
+					  else if (diff == 1) {
+						  newLength = newLength - 1;
+						  after = newLength > 5 ? 2 : 1;
+						  before = newLength > 7 ? newLength - 5 : 3;
+						  newText = text.substring(0, before) + "..." + text.substring(text.length() - after);
+						  break;
+					  }
+					  shorten = true;
+				  }
+				  else {
+					  // short enough
+					  if (diff == 1)
+						  break;
+					  shorten = false;
+				  }
+				  diff = diff / 2;
+				  length = newLength;
+			  }
+			  viewR = oldViewR;
+			  iconR = oldIconR;
+			  textR = oldTextR;
+			  return super.layoutCL(label, fontMetrics, newText, icon, viewR, iconR, textR);
+		  }
+		  else {
+			  return test;
+		  }
+	  }
+  }
+  
+  private static final class MiddleShorteningCellRenderer extends DefaultTableCellRenderer {
+	    public Component getTableCellRendererComponent(JTable table, Object value, 
+	            boolean isSelected, boolean hasFocus, int row, int column) {
+	          Component comp = super.getTableCellRendererComponent(table, value,
+	              isSelected, hasFocus, row, column);
+	          setOpaque(isSelected);
+	          if (comp instanceof JLabel) {
+	        	  JLabel label = (JLabel)comp;
+	        	  String text = value.toString();
+	        	  label.setText(text);
+	        	  label.setToolTipText(text);
+	        	  label.setUI(new MiddleShorteningLabelUI());
+	          }
+	          return comp;
+	    }
+    
+  }
+  
   public static class ImageAndText {
     private String text;
     private ImageIcon image;
@@ -136,4 +216,7 @@ public final class CellRenderers {
     return new ImageCellRenderer();
   }
 
+  public static TableCellRenderer createMiddleShorteningCellRenderer() {
+	  return new MiddleShorteningCellRenderer();
+  }
 }

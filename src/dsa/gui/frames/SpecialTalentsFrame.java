@@ -46,7 +46,7 @@ public class SpecialTalentsFrame extends TalentFrame {
   }
 
   public String getHelpPage() {
-    return "Berufe";
+    return "Berufe"; //$NON-NLS-1$
   }
 
   public void activeCharacterChanged(Hero newCharacter, Hero oldCharacter) {
@@ -95,10 +95,10 @@ public class SpecialTalentsFrame extends TalentFrame {
 
   private JButton getAddButton() {
     if (addButton == null) {
-      addButton = new JButton(ImageManager.getIcon("increase"));
-      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled"));
+      addButton = new JButton(ImageManager.getIcon("increase")); //$NON-NLS-1$
+      addButton.setDisabledIcon(ImageManager.getIcon("increase_disabled")); //$NON-NLS-1$
       addButton.setBounds(5, 5, 34, 20);
-      addButton.setToolTipText("Talent hinzufügen ...");
+      addButton.setToolTipText(Localization.getString("Berufe.TalentHinzufuegen")); //$NON-NLS-1$
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           addTalent();
@@ -123,10 +123,10 @@ public class SpecialTalentsFrame extends TalentFrame {
 
   private JButton getRemoveButton() {
     if (removeButton == null) {
-      removeButton = new JButton(ImageManager.getIcon("decrease_enabled"));
-      removeButton.setDisabledIcon(ImageManager.getIcon("decrease"));
+      removeButton = new JButton(ImageManager.getIcon("decrease_enabled")); //$NON-NLS-1$
+      removeButton.setDisabledIcon(ImageManager.getIcon("decrease")); //$NON-NLS-1$
       removeButton.setBounds(45, 5, 34, 20);
-      removeButton.setToolTipText("Talent entfernen ...");
+      removeButton.setToolTipText(Localization.getString("Berufe.TalentEntfernen")); //$NON-NLS-1$
       removeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           removeTalent();
@@ -140,14 +140,14 @@ public class SpecialTalentsFrame extends TalentFrame {
     int row = mTable.getSelectedRow();
     if (row < 0) return;
     String talent = (String) mSorter.getValueAt(row, getNameDummyColumn());
-    if (talent.equals("Mirakel") || talent.equals("Jagen (Falle)") || talent.equals("Jagen (Pirsch)")) {
-      JOptionPane.showMessageDialog(this, "Talent \"" + talent
-          + "\" kann nicht entfernt werden.", "Fehler",
+    if (talent.equals(Localization.getString("Berufe.MirakelTalent")) || talent.equals(Localization.getString("Berufe.JagenFalleTalent")) || talent.equals(Localization.getString("Berufe.JagenPirschTalent"))) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      JOptionPane.showMessageDialog(this, Localization.getString("Berufe.TalentEntfernenFehler1") + talent //$NON-NLS-1$
+          + Localization.getString("Berufe.TalentEntfernenFehler2"), Localization.getString("Berufe.Fehler"), //$NON-NLS-1$ //$NON-NLS-2$
           JOptionPane.ERROR_MESSAGE);
       return;
     }
-    if (JOptionPane.showConfirmDialog(this, "Talent \"" + talent
-        + "\" wirklich entfernen?", "Talent entfernen",
+    if (JOptionPane.showConfirmDialog(this, Localization.getString("Berufe.TalentEntfernen1") + talent //$NON-NLS-1$
+        + Localization.getString("Berufe.TalentEntfernen2"), Localization.getString("Berufe.TalentEntfernenTitel"), //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
       currentHero.removeTalent(talent);
     }

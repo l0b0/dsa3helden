@@ -313,9 +313,15 @@ public class RemoteFrame extends SubFrame implements IRemoteLog, CharactersObser
 			disconnectButton.setEnabled(false);			
 		}		
 		Hero hero = Group.getInstance().getActiveHero();
-		boolean isHeroOnline = RemoteManager.getInstance().isHeroRegistered(hero);
-		registerHeroButton.setEnabled(RemoteManager.getInstance().isConnectedAsPlayer() && !isHeroOnline);
-		unregisterHeroButton.setEnabled(isHeroOnline);
+		if (hero != null) {
+			boolean isHeroOnline = RemoteManager.getInstance().isHeroRegistered(hero);
+			registerHeroButton.setEnabled(RemoteManager.getInstance().isConnectedAsPlayer() && !isHeroOnline);
+			unregisterHeroButton.setEnabled(isHeroOnline);
+		}
+		else {
+			registerHeroButton.setEnabled(false);
+			unregisterHeroButton.setEnabled(false);
+		}
 	}
 
 	private void disconnect() {
@@ -337,7 +343,7 @@ public class RemoteFrame extends SubFrame implements IRemoteLog, CharactersObser
 		}
 		RemoteManager.getInstance().connectAsPlayer(playerName, host, port);
 		Hero activeHero = Group.getInstance().getActiveHero();
-		if (RemoteManager.getInstance().isConnectedAsPlayer()) {
+		if (activeHero != null && RemoteManager.getInstance().isConnectedAsPlayer()) {
 			RemoteManager.getInstance().registerHero(activeHero);
 			callOnlineConnectCommand();
 		}

@@ -1,3 +1,12 @@
+Version 1.11.3
+--------------
+- Bugfix: Exception beim Doppelklick auf eine Titelleiste
+- Bugfix: Exception, wenn man sich als Spieler online anmelden will,
+  aber kein Held geladen ist
+- Bugfix: neue Gegner hatten zuerst immer <= 30 als aktuelle LE  
+- Bugfix: im Kampf (Meister)-Fenster konnte die LE manuell nicht
+  höher als 40 gesetzt werden
+
 Version 1.11.2
 --------------
 - Ausführliche Zauberkostenanzeige nach der Zauberprobe

@@ -264,12 +264,22 @@ public class HelpButtonRootPaneUI extends BasicRootPaneUI
             if(frame == null)
                 return;
             Point convertedPoint = SwingUtilities.convertPoint(window, evt.getPoint(), titlePane);
-            if(titlePane != null && titlePane.contains(convertedPoint) && evt.getClickCount() == 2 && (evt.getModifiers() & 0x10) == 16)
-                if(frame.isResizable() && isFrameResizable())
-                    ((SyntheticaTitlePane)titlePane).maximize();
-                else
-                if(frame.isResizable() && !isFrameResizable())
-                    ((SyntheticaTitlePane)titlePane).restore();
+            if(titlePane != null && titlePane.contains(convertedPoint) && evt.getClickCount() == 2 && (evt.getModifiers() & 0x10) == 16) {
+            	if (titlePane instanceof HelpButtonTitlePane) {
+	                if(frame.isResizable() && isFrameResizable())
+	                    ((HelpButtonTitlePane)titlePane).maximize();
+	                else
+	                if(frame.isResizable() && !isFrameResizable())
+	                    ((HelpButtonTitlePane)titlePane).restore();
+            	}
+            	else if (titlePane instanceof SyntheticaTitlePane) {
+	                if(frame.isResizable() && isFrameResizable())
+	                    ((SyntheticaTitlePane)titlePane).maximize();
+	                else
+	                if(frame.isResizable() && !isFrameResizable())
+	                    ((SyntheticaTitlePane)titlePane).restore();            		
+            	}
+            }
         }
 
         private int position2Cursor(Window w, int x, int y)

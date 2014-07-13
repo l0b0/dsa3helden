@@ -24,6 +24,7 @@ import java.util.EventObject;
 
 import javax.swing.JSpinner;
 import javax.swing.JTable;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.table.TableCellEditor;
@@ -38,6 +39,7 @@ public class SpinnerCellEditor extends JSpinner implements TableCellEditor {
 
   public interface EditorClient {
     String getCellInfo(int row);
+    int getCellMaximum(int row, int column);
   }
 
   private EditorClient mClient;
@@ -66,6 +68,10 @@ public class SpinnerCellEditor extends JSpinner implements TableCellEditor {
       oldObject = (Integer) value;
     }
     mCellInfo = mClient.getCellInfo(row);
+    int max = mClient.getCellMaximum(row, column);
+    if (max != -1) {
+    	((SpinnerNumberModel)getModel()).setMaximum(max);
+    }
     return this;
   }
 

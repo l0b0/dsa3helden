@@ -248,6 +248,10 @@ public final class OpponentTable extends AbstractTable
   public String getCellInfo(int row) {
     return mSorter.getValueAt(row, getNameColumn()).toString();
   }
+  
+  public int getCellMaximum(int row, int column) {
+	  return -1;
+  }
 
   public boolean canUseText(String cellInfo, String text, int id) {
     if (id == getNameColumn()) {

@@ -305,4 +305,8 @@ public class WeaponsTable extends AbstractTable implements
     return mSorter.getValueAt(row, getNameColumn()).toString();
   }
 
+  public int getCellMaximum(int row, int column) {
+	  return -1;
+  }
+
 }

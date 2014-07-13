@@ -416,6 +416,15 @@ public final class FightTable
     return info;
   }
   
+  public int getCellMaximum(int row, int column) {
+	  if (column == getLEColumn()) {
+		  return fighters.get(row).getMaxLE();
+	  }
+	  else {
+		  return -1;
+	  }
+  }
+  
   public void setClickedRow(int row) {
     mButtonClickedRow = row;
   }

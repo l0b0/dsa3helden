@@ -517,6 +517,7 @@ public class OpponentDialog extends BGDialog implements OpponentWeaponTable.Valu
     opponent.setName(name);
     opponent.setCategory(categoryField.getText());
     opponent.setLE(le);
+    opponent.setCurrentLE(le);
     opponent.setMR(mr);
     opponent.setRS(rs);
     opponent.setNrOfAttacks(nrOfATs);

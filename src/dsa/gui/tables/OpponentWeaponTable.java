@@ -225,6 +225,10 @@ public final class OpponentWeaponTable extends AbstractTable
     return info;
   }
   
+  public int getCellMaximum(int row, int column) {
+	  return -1;
+  }
+
   public int getSelectedIndex() {
     return mTable.getSelectedRow();
   }
